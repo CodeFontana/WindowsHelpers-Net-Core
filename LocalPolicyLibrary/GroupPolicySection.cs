@@ -1,6 +1,9 @@
 ﻿
+using System.Runtime.Versioning;
+
 namespace LocalPolicyLibrary
 {
+    [SupportedOSPlatform("windows")]
     public enum GroupPolicySection
     {
         Root = 0,

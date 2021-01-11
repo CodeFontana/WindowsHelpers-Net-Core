@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Runtime.Versioning;
 using System.Text;
 
 namespace LocalPolicyLibrary
 {
+    [SupportedOSPlatform("windows")]
     public class ActiveDirectoryGroupPolicyObject : GroupPolicyObject
     {
         /// <summary>

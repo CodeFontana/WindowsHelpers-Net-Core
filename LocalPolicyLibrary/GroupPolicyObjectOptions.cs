@@ -1,6 +1,9 @@
 ﻿
+using System.Runtime.Versioning;
+
 namespace LocalPolicyLibrary
 {
+    [SupportedOSPlatform("windows")]
     public struct GroupPolicyObjectOptions
     {
         public readonly bool UserEnabled;

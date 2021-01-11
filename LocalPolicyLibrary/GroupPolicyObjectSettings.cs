@@ -1,5 +1,8 @@
-﻿namespace LocalPolicyLibrary
+﻿using System.Runtime.Versioning;
+
+namespace LocalPolicyLibrary
 {
+    [SupportedOSPlatform("windows")]
     public class GroupPolicyObjectSettings
     {
         public readonly bool LoadRegistryInformation;

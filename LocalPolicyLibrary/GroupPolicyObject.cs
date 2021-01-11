@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 using System.Text;
 using Microsoft.Win32;
 using Microsoft.Win32.SafeHandles;
 
 namespace LocalPolicyLibrary
 {
+    [SupportedOSPlatform("windows")]
     public abstract class GroupPolicyObject
     {
         private const uint S_OK = 0;
@@ -143,7 +145,7 @@ namespace LocalPolicyLibrary
                 }
                 else
                 {
-                    throw e;
+                    throw;
                 }
             }
         }
