@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net5.0-windows</TargetFramework>
+    <Authors>Brian Fontana</Authors>
+    <Company>CodeFoxtrot</Company>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\LocalPolicyLibrary\LocalPolicyLibrary.csproj" />
+    <ProjectReference Include="..\LoggerLibrary\LoggerLibrary.csproj" />
+    <ProjectReference Include="..\WindowsHelpers\WindowsLibrary.csproj" />
+  </ItemGroup>
+
+</Project>
