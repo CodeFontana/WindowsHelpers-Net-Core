@@ -263,7 +263,7 @@ namespace WindowsLibrary
                 Logger.Log(logComponent, e, $"Failed to query data from '{namespaceName}\\{wmiClassName}'.");
             }
 
-            return DotNetHelper.PadListElements(output, columnPadding);
+            return DotNetHelper.GetInstance().PadListElements(output, columnPadding);
         }
     }
 }

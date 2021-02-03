@@ -562,7 +562,7 @@ namespace WindowsLibrary
                 catch (Exception) { }
             }
 
-            return DotNetHelper.PadListElements(runningProcesses, 1);
+            return DotNetHelper.GetInstance().PadListElements(runningProcesses, 1);
         }
 
         public static Tuple<long, string> RunProcess(
