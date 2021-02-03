@@ -189,7 +189,7 @@ namespace WindowsLibrary
                     _logger.Log("ERROR: Unable to open specified process token [OpenProcessToken=" + Marshal.GetLastWin32Error().ToString() + "].");
                 }
 
-                WindowsHelper.EnablePrivilege(hToken, NativeMethods.SE_CREATE_PAGEFILE_NAME);
+                WindowsHelper.GetInstance(_logger).EnablePrivilege(hToken, NativeMethods.SE_CREATE_PAGEFILE_NAME);
                 _logger.Log($"Configure automatic page file management [Enable={enable.ToString().ToUpper()}]...");
 
                 var scope = new ManagementScope(@"\\.\root\cimv2");

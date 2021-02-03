@@ -14,19 +14,37 @@ using System.Threading.Tasks;
 namespace WindowsLibrary
 {
     [SupportedOSPlatform("windows")]
-    public static class ProcessHelper
+    public class ProcessHelper
     {
-        public static Tuple<bool, int> CreateProcessAsUser(string logComponent, IntPtr hUserToken, string appFileName, string appArgs)
+        private static ProcessHelper _instance;
+        private Logger _logger;
+
+        private ProcessHelper(Logger logger)
+        {
+            _logger = logger;
+        }
+
+        public static ProcessHelper GetInstance(Logger logger)
+        {
+            if (_instance == null)
+            {
+                _instance = new ProcessHelper(logger);
+            }
+
+            return _instance;
+        }
+
+        public Tuple<bool, int> CreateProcessAsUser(IntPtr hUserToken, string appFileName, string appArgs)
         {
             try
             {
                 // Identify user from access token.
                 WindowsIdentity userId = new WindowsIdentity(hUserToken);
-                Logger.Log(logComponent, "Create process for: " + userId.Name + " [" + appFileName + " " + appArgs + "].");
+                _logger.Log("Create process for: " + userId.Name + " [" + appFileName + " " + appArgs + "].");
                 userId.Dispose();
 
                 // Obtain duplicated user token (elevated if UAC is turned on/enabled).
-                IntPtr hDuplicateToken = WindowsHelper.DuplicateToken(logComponent, hUserToken);
+                IntPtr hDuplicateToken = WindowsHelper.GetInstance(_logger).DuplicateToken(hUserToken);
 
                 // Initialize process info and startup info.
                 NativeMethods.PROCESS_INFORMATION pi = new NativeMethods.PROCESS_INFORMATION();
@@ -39,7 +57,7 @@ namespace WindowsLibrary
 
                 if (!NativeMethods.CreateEnvironmentBlock(out hEnvironment, hDuplicateToken, true))
                 {
-                    Logger.Log(logComponent, "Unable to create environment block [CreateEnvironmentBlock=" + Marshal.GetLastWin32Error().ToString() + "].", Logger.MsgType.WARN);
+                    _logger.Log("Unable to create environment block [CreateEnvironmentBlock=" + Marshal.GetLastWin32Error().ToString() + "].", Logger.MsgType.WARN);
                 }
 
                 if (!NativeMethods.CreateProcessAsUser(
@@ -57,7 +75,7 @@ namespace WindowsLibrary
                     ref si,
                     out pi))
                 {
-                    Logger.Log(logComponent, "Unable to create user process [CreateProcessAsUser=" + Marshal.GetLastWin32Error().ToString() + "].", Logger.MsgType.ERROR);
+                    _logger.Log("Unable to create user process [CreateProcessAsUser=" + Marshal.GetLastWin32Error().ToString() + "].", Logger.MsgType.ERROR);
 
                     Marshal.FreeHGlobal(hDuplicateToken);
                     Marshal.FreeHGlobal(hEnvironment);
@@ -66,7 +84,7 @@ namespace WindowsLibrary
                 }
                 else
                 {
-                    Logger.Log(logComponent, "Created new process: " + pi.dwProcessId.ToString() + "/" + appFileName + " " + appArgs);
+                    _logger.Log("Created new process: " + pi.dwProcessId.ToString() + "/" + appFileName + " " + appArgs);
                     var newProcess = Process.GetProcessById(pi.dwProcessId);
 
                     try
@@ -89,17 +107,17 @@ namespace WindowsLibrary
             }
             catch (Exception e)
             {
-                Logger.Log(logComponent, e, "Failed to create process as user.");
+                _logger.Log(e, "Failed to create process as user.");
                 return new Tuple<bool, int>(false, -1);
             }
         }
 
-        public static bool CreateProcessAsUser(string logComponent, WindowsIdentity userId, string appFileName, string appArgs)
+        public bool CreateProcessAsUser(WindowsIdentity userId, string appFileName, string appArgs)
         {
             try
             {
-                Logger.Log(logComponent, "Create process for: " + userId.Name);
-                List<Tuple<uint, string>> userSessions = WindowsHelper.GetUserSessions(logComponent);
+                _logger.Log("Create process for: " + userId.Name);
+                List<Tuple<uint, string>> userSessions = WindowsHelper.GetInstance(_logger).GetUserSessions();
                 int sessionId = -1;
 
                 foreach (Tuple<uint, string> logonSession in userSessions)
@@ -113,18 +131,18 @@ namespace WindowsLibrary
 
                 if (sessionId == -1)
                 {
-                    Logger.Log(logComponent, "Failed to match any/existing logon session with user [" + userId.Name + "].", Logger.MsgType.ERROR);
+                    _logger.Log("Failed to match any/existing logon session with user [" + userId.Name + "].", Logger.MsgType.ERROR);
                     return false;
                 }
 
                 if (!NativeMethods.WTSQueryUserToken((uint)sessionId, out IntPtr hUserToken))
                 {
-                    Logger.Log(logComponent, "Failed to query user token [WTSQueryUserToken=" + Marshal.GetLastWin32Error().ToString() + "].", Logger.MsgType.ERROR);
+                    _logger.Log("Failed to query user token [WTSQueryUserToken=" + Marshal.GetLastWin32Error().ToString() + "].", Logger.MsgType.ERROR);
                     return false;
                 }
 
                 // Obtain duplicated user token (elevated if UAC is turned on/enabled).
-                IntPtr hDuplicateToken = WindowsHelper.DuplicateToken(logComponent, hUserToken, (uint)sessionId);
+                IntPtr hDuplicateToken = WindowsHelper.GetInstance(_logger).DuplicateToken(hUserToken, (uint)sessionId);
                 Marshal.FreeHGlobal(hUserToken);
 
                 // Initialize process info and startup info.
@@ -138,7 +156,7 @@ namespace WindowsLibrary
 
                 if (!NativeMethods.CreateEnvironmentBlock(out hEnvironment, hDuplicateToken, true))
                 {
-                    Logger.Log(logComponent, "Unable to create environment block [CreateEnvironmentBlock=" + Marshal.GetLastWin32Error().ToString() + "].", Logger.MsgType.WARN);
+                    _logger.Log("Unable to create environment block [CreateEnvironmentBlock=" + Marshal.GetLastWin32Error().ToString() + "].", Logger.MsgType.WARN);
                 }
 
                 if (!NativeMethods.CreateProcessAsUser(
@@ -156,12 +174,12 @@ namespace WindowsLibrary
                     ref si,
                     out pi))
                 {
-                    Logger.Log(logComponent, "ERROR: Unable to create user process [CreateProcessAsUser=" + Marshal.GetLastWin32Error().ToString() + "].");
+                    _logger.Log("ERROR: Unable to create user process [CreateProcessAsUser=" + Marshal.GetLastWin32Error().ToString() + "].");
                     return false;
                 }
                 else
                 {
-                    Logger.Log(logComponent, "Created new process: " + pi.dwProcessId.ToString() + "/" + appFileName + " " + appArgs);
+                    _logger.Log("Created new process: " + pi.dwProcessId.ToString() + "/" + appFileName + " " + appArgs);
                     var newProcess = Process.GetProcessById(pi.dwProcessId);
 
                     try
@@ -180,12 +198,12 @@ namespace WindowsLibrary
             }
             catch (Exception e)
             {
-                Logger.Log(logComponent, e, "Failed to create process as user.");
+                _logger.Log(e, "Failed to create process as user.");
                 return false;
             }
         }
 
-        public static string GetInstanceNameForProcessId(int processId)
+        public string GetInstanceNameForProcessId(int processId)
         {
             var process = Process.GetProcessById(processId);
             string processName = Path.GetFileNameWithoutExtension(process.ProcessName);
@@ -212,7 +230,7 @@ namespace WindowsLibrary
             return null;
         }
 
-        public static bool IsProcessRunning(string logComponent, string processFriendlyName, bool moreInfo = false)
+        public bool IsProcessRunning(string processFriendlyName, bool moreInfo = false)
         {
             processFriendlyName = Path.GetFileNameWithoutExtension(processFriendlyName);
 
@@ -240,7 +258,7 @@ namespace WindowsLibrary
                             commandLine = "unavailable";
                         }
 
-                        Logger.Log(logComponent, "IsProcessRunning() found: " + runningProcess.Id.ToString() + "/" + runningProcess.ProcessName + " [" + commandLine + "]");
+                        _logger.Log("IsProcessRunning() found: " + runningProcess.Id.ToString() + "/" + runningProcess.ProcessName + " [" + commandLine + "]");
 
                         try
                         {
@@ -281,7 +299,7 @@ namespace WindowsLibrary
                                 try
                                 {
                                     string parentName = Process.GetProcessById((int)parentId).ProcessName;
-                                    Logger.Log(logComponent, "IsProcessRunning() parent: " + parentId.ToString() + "/" + parentName);
+                                    _logger.Log("IsProcessRunning() parent: " + parentId.ToString() + "/" + parentName);
                                     currentID = (int)parentId;
                                 }
                                 catch (ArgumentException)
@@ -303,7 +321,7 @@ namespace WindowsLibrary
             return false;
         }
 
-        public static int IsProcessRunningCount(string processFriendlyName)
+        public int IsProcessRunningCount(string processFriendlyName)
         {
             int processCount = 0;
             processFriendlyName = Path.GetFileNameWithoutExtension(processFriendlyName);
@@ -321,7 +339,7 @@ namespace WindowsLibrary
             return processCount;
         }
 
-        public static bool KillProcess(string logComponent, string friendlyOrShortName, bool moreInfo = false)
+        public bool KillProcess(string friendlyOrShortName, bool moreInfo = false)
         {
             bool matchFound = false;
 
@@ -362,11 +380,11 @@ namespace WindowsLibrary
 
                         if (moreInfo)
                         {
-                            Logger.Log(logComponent, "Killed: " + runningProcess.Id.ToString() + "/" + runningProcess.MainModule.FileName + " [" + commandLine + "]");
+                            _logger.Log("Killed: " + runningProcess.Id.ToString() + "/" + runningProcess.MainModule.FileName + " [" + commandLine + "]");
                         }
                         else
                         {
-                            Logger.Log(logComponent, "Killed: " + runningProcess.Id.ToString() + "/" + runningProcess.MainModule.FileName);
+                            _logger.Log("Killed: " + runningProcess.Id.ToString() + "/" + runningProcess.MainModule.FileName);
                         }
                     }
 
@@ -404,7 +422,7 @@ namespace WindowsLibrary
                     }
 
                     matchFound = true;
-                    KillProcess(logComponent, int.Parse(processId), moreInfo);
+                    KillProcess(int.Parse(processId), moreInfo);
                 }
 
                 wmiQuery.Dispose();
@@ -414,7 +432,7 @@ namespace WindowsLibrary
             return matchFound;
         }
 
-        public static bool KillProcess(string logComponent, int processID, bool moreInfo = false)
+        public bool KillProcess(int processID, bool moreInfo = false)
         {
             try
             {
@@ -448,11 +466,11 @@ namespace WindowsLibrary
 
                         if (moreInfo)
                         {
-                            Logger.Log(logComponent, "Killed: " + runningProcess.Id.ToString() + "/" + runningProcess.MainModule.FileName + " [" + commandLine + "]");
+                            _logger.Log("Killed: " + runningProcess.Id.ToString() + "/" + runningProcess.MainModule.FileName + " [" + commandLine + "]");
                         }
                         else
                         {
-                            Logger.Log(logComponent, "Killed: " + runningProcess.Id.ToString() + "/" + runningProcess.MainModule.FileName);
+                            _logger.Log("Killed: " + runningProcess.Id.ToString() + "/" + runningProcess.MainModule.FileName);
                         }
 
                         runningProcess.Dispose();
@@ -467,7 +485,7 @@ namespace WindowsLibrary
             return false;
         }
 
-        public static bool KillProcessByCommandLine(string logComponent, string processShortName, string containsCommandLine, bool moreInfo = false)
+        public bool KillProcessByCommandLine(string processShortName, string containsCommandLine, bool moreInfo = false)
         {
             bool matchFound = false;
 
@@ -495,7 +513,7 @@ namespace WindowsLibrary
                     if (commandLine != null && commandLine.ToLower().Contains(containsCommandLine.ToLower()))
                     {
                         matchFound = true;
-                        KillProcess(logComponent, int.Parse(processId), moreInfo);
+                        KillProcess(int.Parse(processId), moreInfo);
                     }
                 }
 
@@ -506,7 +524,7 @@ namespace WindowsLibrary
             return matchFound;
         }
 
-        public static bool KillProcessByPath(string logComponent, string processShortName, string processPathContains)
+        public bool KillProcessByPath(string processShortName, string processPathContains)
         {
             bool processFound = false;
 
@@ -534,7 +552,7 @@ namespace WindowsLibrary
                     if (executablePath != null && executablePath.ToLower().Contains(processPathContains.ToLower()))
                     {
                         processFound = true;
-                        KillProcess(logComponent, int.Parse(processId));
+                        KillProcess(int.Parse(processId));
                     }
                 }
 
@@ -545,7 +563,7 @@ namespace WindowsLibrary
             return processFound;
         }
 
-        public static string ReadProcessList()
+        public string ReadProcessList()
         {
             List<string[]> runningProcesses = new List<string[]>();
             string[] outputHeader = { "Process", "PID", "User", "CPU Time", "Memory", "Handles", "Threads", "Command Line" };
@@ -565,7 +583,7 @@ namespace WindowsLibrary
             return DotNetHelper.GetInstance().PadListElements(runningProcesses, 1);
         }
 
-        public static Tuple<long, string> RunProcess(
+        public Tuple<long, string> RunProcess(
             string logComponent,
             string appFileName,
             string arguments = "",
@@ -631,14 +649,14 @@ namespace WindowsLibrary
                     // Last chance.
                     if (!File.Exists(appFileName) && !File.Exists(appFileName.TrimStart('\\')))
                     {
-                        Logger.Log(logComponent, "Application not found [" + origAppToExecute + "].", Logger.MsgType.ERROR);
+                        _logger.Log("Application not found [" + origAppToExecute + "].", Logger.MsgType.ERROR);
                         return Tuple.Create((long)-1, "");
                     }
                 }
             }
             catch (Exception e)
             {
-                Logger.Log(logComponent, e, $"Failed to resolve explicit path for app [{appFileName}].");
+                _logger.Log(e, $"Failed to resolve explicit path for app [{appFileName}].");
                 return Tuple.Create((long)-1, "");
             }
 
@@ -667,7 +685,7 @@ namespace WindowsLibrary
             }
             catch (Exception e)
             {
-                Logger.Log(logComponent, e, $"Failed to resolve working directory for app [{appFileName}].");
+                _logger.Log(e, $"Failed to resolve working directory for app [{appFileName}].");
                 return Tuple.Create((long)-1, "");
             }
 
@@ -694,12 +712,12 @@ namespace WindowsLibrary
 
                 if (!hideExecution)
                 {
-                    Logger.Log(logComponent, "Create process: " + appFileName + " " + arguments + " [Timeout=" + execTimeoutSeconds.ToString() + "s]");
+                    _logger.Log("Create process: " + appFileName + " " + arguments + " [Timeout=" + execTimeoutSeconds.ToString() + "s]");
                 }
             }
             catch (Exception e)
             {
-                Logger.Log(logComponent, e, $"Failed to prepare new process for execution [{appFileName}].");
+                _logger.Log(e, $"Failed to prepare new process for execution [{appFileName}].");
                 return Tuple.Create((long)-1, "");
             }
 
@@ -726,7 +744,7 @@ namespace WindowsLibrary
 
                         if (!hideStreamOutput && !hideExecution)
                         {
-                            Logger.Log(logComponent, textLine, Logger.MsgType.INFO);
+                            _logger.Log(textLine, Logger.MsgType.INFO);
                         }
                     }
                 }
@@ -736,7 +754,7 @@ namespace WindowsLibrary
             }
             catch (Exception e)
             {
-                Logger.Log(logComponent, e, "Failed to start new process.");
+                _logger.Log(e, "Failed to start new process.");
                 return Tuple.Create((long)-1, "");
             }
 
@@ -756,7 +774,7 @@ namespace WindowsLibrary
                 if (!p.HasExited)
                 {
                     p.Kill();
-                    Logger.Log(logComponent, "Killed: " + Path.GetFileName(appFileName) + " [Timeout breached]", Logger.MsgType.ERROR);
+                    _logger.Log("Killed: " + Path.GetFileName(appFileName) + " [Timeout breached]", Logger.MsgType.ERROR);
                 }
                 else
                 {
@@ -778,30 +796,30 @@ namespace WindowsLibrary
 
                 if (!hideExecution)
                 {
-                    Logger.Log(logComponent, Path.GetFileName(appFileName) + " return code: " + ExitCode.ToString());
+                    _logger.Log(Path.GetFileName(appFileName) + " return code: " + ExitCode.ToString());
                 }
 
                 return Tuple.Create((long)ExitCode, String.Join(Environment.NewLine, combinedOutput.ToList()));
             }
             catch (Exception e)
             {
-                Logger.Log(logComponent, e, "New process monitoring failure.");
+                _logger.Log(e, "New process monitoring failure.");
                 return Tuple.Create((long)-1, "");
             }
             finally
             {
                 try { if (consumeStdOut != null) { consumeStdOut.Dispose(); } }
-                catch (Exception e) { Logger.Log(logComponent, e, "Resource disposal failure [consumeStdOut]."); }
+                catch (Exception e) { _logger.Log(e, "Resource disposal failure [consumeStdOut]."); }
                 try { if (consumeStdErr != null) { consumeStdErr.Dispose(); } }
-                catch (Exception e) { Logger.Log(logComponent, e, "Resource disposal failure [consumeStdErr]."); }
+                catch (Exception e) { _logger.Log(e, "Resource disposal failure [consumeStdErr]."); }
                 try { cts.Dispose(); }
-                catch (Exception e) { Logger.Log(logComponent, e, "Resource disposal failure [cts]."); }
+                catch (Exception e) { _logger.Log(e, "Resource disposal failure [cts]."); }
                 try { p.Dispose(); }
-                catch (Exception e) { Logger.Log(logComponent, e, "Resource disposal failure [p]."); }
+                catch (Exception e) { _logger.Log(e, "Resource disposal failure [p]."); }
             }
         }
 
-        public static bool RunProcessDetached(
+        public bool RunProcessDetached(
             string logComponent,
             string appFileName,
             string arguments,
@@ -859,7 +877,7 @@ namespace WindowsLibrary
                 // Last chance.
                 if (!File.Exists(appFileName) && !File.Exists(appFileName.TrimStart('\\')))
                 {
-                    Logger.Log(logComponent, "Application not found [" + origAppToExecute + "].", Logger.MsgType.ERROR);
+                    _logger.Log("Application not found [" + origAppToExecute + "].", Logger.MsgType.ERROR);
                     return false;
                 }
             }
@@ -891,13 +909,13 @@ namespace WindowsLibrary
 
             if (!hideExecution)
             {
-                Logger.Log(logComponent, "Execute [Detached]: " + appFileName + " " + arguments);
+                _logger.Log("Execute [Detached]: " + appFileName + " " + arguments);
             }
 
             try
             {
                 p.Start();
-                Logger.Log(logComponent, "Created detached process: " + p.Id.ToString() + "/" + appFileName.Replace("\\\\", "\\") + " " + arguments);
+                _logger.Log("Created detached process: " + p.Id.ToString() + "/" + appFileName.Replace("\\\\", "\\") + " " + arguments);
 
                 // Brief delay for app startup, before continuing.
                 // Note: This is for the scenario where the parent app (this app)
@@ -921,7 +939,7 @@ namespace WindowsLibrary
             }
             catch (Exception e)
             {
-                Logger.Log(logComponent, e, "Failed to start new detached process.");
+                _logger.Log(e, "Failed to start new detached process.");
                 return false;
             }
 

@@ -85,7 +85,7 @@ namespace WindowsLibrary
                         return false;
                     }
 
-                    if (!WindowsHelper.EnablePrivilege(hToken, NativeMethods.SE_TAKE_OWNERSHIP_NAME))
+                    if (!WindowsHelper.GetInstance(_logger).EnablePrivilege(hToken, NativeMethods.SE_TAKE_OWNERSHIP_NAME))
                     {
                         _logger.Log("Failed to enable privilege [SeTakeOwnershipPrivilege].", Logger.MsgType.ERROR);
                         Marshal.FreeHGlobal(hToken);
@@ -177,7 +177,7 @@ namespace WindowsLibrary
                 {
                     _logger.Log("Check drive [read-only]: " + d.Name);
 
-                    Tuple<long, string> result = ProcessHelper.RunProcess(logComponent,
+                    Tuple<long, string> result = ProcessHelper.GetInstance(_logger).RunProcess(logComponent,
                         "chkdsk.exe",
                         d.Name.Substring(0, 2),
                         Environment.GetEnvironmentVariable("windir") + "\\System32",
