@@ -46,9 +46,7 @@ namespace WindowsLibrary
             }
         }
 
-        public void CopyValue(string logComponent,
-            RegistryKey sourceKey, RegistryKey destKey,
-            string sourceValueName, string destValueName)
+        public void CopyValue(RegistryKey sourceKey, RegistryKey destKey, string sourceValueName, string destValueName)
         {
             try
             {
@@ -67,8 +65,7 @@ namespace WindowsLibrary
             }
         }
 
-        public bool DeleteSubKeysWithValue(string logComponent,
-            RegistryHive regHive, string regKey, string valueName, string valueData)
+        public bool DeleteSubKeysWithValue(RegistryHive regHive, string regKey, string valueName, string valueData)
         {
             try
             {
@@ -117,7 +114,7 @@ namespace WindowsLibrary
                     else if (subKeyValue == null && regSubKey.SubKeyCount > 0)
                     {
                         // Does the subkey of the subkey contain a matching value-data entry?
-                        if (DeleteSubKeysWithValue(logComponent, regHive, regKey + "\\" + subKey, valueName, valueData))
+                        if (DeleteSubKeysWithValue(regHive, regKey + "\\" + subKey, valueName, valueData))
                         {
                             regSubKey.Dispose();
                             _logger.Log("Delete registry: " + regHive.ToString() + "\\" + regKey + "\\" + valueName + " = " + valueData);
@@ -359,9 +356,7 @@ namespace WindowsLibrary
             }
         }
 
-        public void MoveValue(string logComponent,
-            RegistryKey sourceKey, RegistryKey destKey,
-            string sourceValueName, string destValueName)
+        public void MoveValue(RegistryKey sourceKey, RegistryKey destKey, string sourceValueName, string destValueName)
         {
             try
             {

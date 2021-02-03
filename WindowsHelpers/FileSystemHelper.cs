@@ -156,7 +156,7 @@ namespace WindowsLibrary
             return numBytes.ToString();
         }
 
-        public bool CheckDiskStatus(string logComponent)
+        public bool CheckDiskStatus()
         {
             DriveInfo[] allDrives = DriveInfo.GetDrives();
 
@@ -166,7 +166,7 @@ namespace WindowsLibrary
                 {
                     _logger.Log("Check drive [read-only]: " + d.Name);
 
-                    Tuple<long, string> result = new ProcessHelper(_logger).RunProcess(logComponent,
+                    Tuple<long, string> result = new ProcessHelper(_logger).RunProcess(
                         "chkdsk.exe",
                         d.Name.Substring(0, 2),
                         Environment.GetEnvironmentVariable("windir") + "\\System32",
@@ -187,7 +187,7 @@ namespace WindowsLibrary
             return true;
         }
 
-        public bool CheckSmartStatus(string logComponent)
+        public bool CheckSmartStatus()
         {
             try
             {

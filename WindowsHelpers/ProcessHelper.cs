@@ -573,7 +573,6 @@ namespace WindowsLibrary
         }
 
         public Tuple<long, string> RunProcess(
-            string logComponent,
             string appFileName,
             string arguments = "",
             string workingDirectory = "",
@@ -809,7 +808,6 @@ namespace WindowsLibrary
         }
 
         public bool RunProcessDetached(
-            string logComponent,
             string appFileName,
             string arguments,
             string workingDirectory = "",

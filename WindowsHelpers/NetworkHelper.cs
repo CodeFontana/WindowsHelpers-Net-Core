@@ -19,7 +19,7 @@ namespace WindowsLibrary
             _logger = logger;
         }
 
-        public Tuple<bool, List<string>> ResolveHostToIP(string logComponent,
+        public Tuple<bool, List<string>> ResolveHostToIP(
             string hostAddress, bool hideOutput = false)
         {
             try
@@ -28,7 +28,7 @@ namespace WindowsLibrary
                 {
                     if (!hideOutput)
                     {
-                        Logger.Log(logComponent, hostAddress + " resolved to: " + hostAddress);
+                        _logger.Log(hostAddress + " resolved to: " + hostAddress);
                     }
 
                     return new Tuple<bool, List<string>>(true, new List<string> { hostAddress });
@@ -49,7 +49,7 @@ namespace WindowsLibrary
                             addresses.Add(addr.ToString());
                             if (!hideOutput)
                             {
-                                Logger.Log(logComponent, hostAddress + " resolved to: " + addr.ToString());
+                                _logger.Log(hostAddress + " resolved to: " + addr.ToString());
                             }
                         }
                     }
@@ -61,7 +61,7 @@ namespace WindowsLibrary
             {
                 if (!hideOutput)
                 {
-                    Logger.Log(logComponent, "Unable to resolve: " + hostAddress);
+                    _logger.Log("Unable to resolve: " + hostAddress);
                 }
 
                 return new Tuple<bool, List<string>>(false, null);
@@ -70,14 +70,14 @@ namespace WindowsLibrary
             {
                 if (!hideOutput)
                 {
-                    Logger.Log(logComponent, e, "Address resolution failure.");
+                    _logger.Log(e, "Address resolution failure.");
                 }
 
                 return new Tuple<bool, List<string>>(false, null);
             }
         }
 
-        public string ResolveIPtoHost(string logComponent, string inputAddress, bool hideOutput = false)
+        public string ResolveIPtoHost(string inputAddress, bool hideOutput = false)
         {
             try
             {
@@ -85,7 +85,7 @@ namespace WindowsLibrary
                 {
                     if (!hideOutput)
                     {
-                        Logger.Log(logComponent, inputAddress + " reversed to: " + inputAddress);
+                        _logger.Log(inputAddress + " reversed to: " + inputAddress);
                     }
 
                     return inputAddress;
@@ -97,7 +97,7 @@ namespace WindowsLibrary
                 {
                     if (!hideOutput)
                     {
-                        Logger.Log(logComponent, inputAddress + " reversed to: " + HostEntry.HostName);
+                        _logger.Log(inputAddress + " reversed to: " + HostEntry.HostName);
                     }
 
                     return HostEntry.HostName;
@@ -111,7 +111,7 @@ namespace WindowsLibrary
             {
                 if (!hideOutput)
                 {
-                    Logger.Log(logComponent, "Unable to reverse [" + inputAddress + "] to hostname.");
+                    _logger.Log("Unable to reverse [" + inputAddress + "] to hostname.");
                 }
 
                 return null;
@@ -120,7 +120,7 @@ namespace WindowsLibrary
             {
                 if (!hideOutput)
                 {
-                    Logger.Log(logComponent, e, "Reverse name lookup exception.");
+                    _logger.Log(e, "Reverse name lookup exception.");
                 }
 
                 return null;
@@ -146,9 +146,9 @@ namespace WindowsLibrary
             return splitValues.All(r => byte.TryParse(r, out tempForParsing));
         }
 
-        public bool TestURL(string logComponent, string url, TimeSpan timeout)
+        public bool TestURL(string url, TimeSpan timeout)
         {
-            Logger.Log(logComponent, "Test URL: " + url + " [Timeout=" + timeout.TotalSeconds + "s]");
+            _logger.Log("Test URL: " + url + " [Timeout=" + timeout.TotalSeconds + "s]");
 
             try
             {
@@ -158,7 +158,7 @@ namespace WindowsLibrary
 
                 if (result.Status == System.Threading.Tasks.TaskStatus.RanToCompletion)
                 {
-                    Logger.Log(logComponent, "HTTP Response: " + result.Result.StatusCode.ToString());
+                    _logger.Log("HTTP Response: " + result.Result.StatusCode.ToString());
 
                     if (result.Result.StatusCode == HttpStatusCode.OK)
                     {
@@ -171,13 +171,13 @@ namespace WindowsLibrary
                 }
                 else
                 {
-                    Logger.Log(logComponent, "HTTP Response: TIMEOUT ERROR [" + result.Status.ToString() + "].");
+                    _logger.Log("HTTP Response: TIMEOUT ERROR [" + result.Status.ToString() + "].");
                     return false;
                 }
             }
             catch (Exception e)
             {
-                Logger.Log(logComponent, e, "Test connection failed to [" + url + "].");
+                _logger.Log(e, "Test connection failed to [" + url + "].");
                 return false;
             }
         }
