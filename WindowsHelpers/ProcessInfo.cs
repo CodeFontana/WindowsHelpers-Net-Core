@@ -57,7 +57,7 @@ namespace WindowsLibrary
                 PID.ToString(),
                 UserName,
                 CPUTime,
-                FileSystemHelper.GetInstance(null).BytesToReadableValue(NumBytes),
+                new FileSystemHelper(null).BytesToReadableValue(NumBytes),
                 HandleCount.ToString(),
                 ThreadCount.ToString(),
                 ProcessName + " " + CommandLineArgs };
