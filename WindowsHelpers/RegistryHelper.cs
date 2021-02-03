@@ -2,9 +2,11 @@
 using LoggerLibrary;
 using System;
 using System.Linq;
+using System.Runtime.Versioning;
 
 namespace WindowsLibrary
 {
+    [SupportedOSPlatform("windows")]
     public class RegistryHelper
     {
         private Logger _logger;
