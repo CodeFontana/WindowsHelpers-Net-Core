@@ -166,7 +166,7 @@ namespace WindowsLibrary
                 {
                     _logger.Log("Check drive [read-only]: " + d.Name);
 
-                    Tuple<long, string> result = ProcessHelper.GetInstance(_logger).RunProcess(logComponent,
+                    Tuple<long, string> result = new ProcessHelper(_logger).RunProcess(logComponent,
                         "chkdsk.exe",
                         d.Name.Substring(0, 2),
                         Environment.GetEnvironmentVariable("windir") + "\\System32",
