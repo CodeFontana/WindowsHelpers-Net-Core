@@ -17,22 +17,11 @@ namespace WindowsLibrary
     [SupportedOSPlatform("windows")]
     public class FileSystemHelper
     {
-        private static FileSystemHelper _instance;
         private Logger _logger;
 
-        private FileSystemHelper(Logger logger)
+        public FileSystemHelper(Logger logger)
         {
             _logger = logger;
-        }
-
-        public static FileSystemHelper GetInstance(Logger logger)
-        {
-            if (_instance == null)
-            {
-                _instance = new FileSystemHelper(logger);
-            }
-
-            return _instance;
         }
 
         public bool AddDirectorySecurity(
@@ -85,7 +74,7 @@ namespace WindowsLibrary
                         return false;
                     }
 
-                    if (!WindowsHelper.GetInstance(_logger).EnablePrivilege(hToken, NativeMethods.SE_TAKE_OWNERSHIP_NAME))
+                    if (!new WindowsHelper(_logger).EnablePrivilege(hToken, NativeMethods.SE_TAKE_OWNERSHIP_NAME))
                     {
                         _logger.Log("Failed to enable privilege [SeTakeOwnershipPrivilege].", Logger.MsgType.ERROR);
                         Marshal.FreeHGlobal(hToken);
