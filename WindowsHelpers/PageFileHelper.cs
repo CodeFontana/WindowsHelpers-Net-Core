@@ -12,24 +12,13 @@ namespace WindowsLibrary
     [SupportedOSPlatform("windows")]
     public class PageFileHelper
     {
-        private static PageFileHelper _instance;
         private Logger _logger;
         public static List<PageFile> PageFiles = new List<PageFile>();
 
-        private PageFileHelper(Logger logger)
+        public PageFileHelper(Logger logger)
         {
             _logger = logger;
             ReadConfig();
-        }
-
-        public static PageFileHelper GetInstance(Logger logger)
-        {
-            if (_instance == null)
-            {
-                _instance = new PageFileHelper(logger);
-            }
-
-            return _instance;
         }
 
         public class PageFile
@@ -189,7 +178,7 @@ namespace WindowsLibrary
                     _logger.Log("ERROR: Unable to open specified process token [OpenProcessToken=" + Marshal.GetLastWin32Error().ToString() + "].");
                 }
 
-                WindowsHelper.GetInstance(_logger).EnablePrivilege(hToken, NativeMethods.SE_CREATE_PAGEFILE_NAME);
+                new WindowsHelper(_logger).EnablePrivilege(hToken, NativeMethods.SE_CREATE_PAGEFILE_NAME);
                 _logger.Log($"Configure automatic page file management [Enable={enable.ToString().ToUpper()}]...");
 
                 var scope = new ManagementScope(@"\\.\root\cimv2");
