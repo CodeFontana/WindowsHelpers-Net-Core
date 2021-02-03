@@ -16,22 +16,11 @@ namespace WindowsLibrary
     [SupportedOSPlatform("windows")]
     public class ProcessHelper
     {
-        private static ProcessHelper _instance;
         private Logger _logger;
 
-        private ProcessHelper(Logger logger)
+        public ProcessHelper(Logger logger)
         {
             _logger = logger;
-        }
-
-        public static ProcessHelper GetInstance(Logger logger)
-        {
-            if (_instance == null)
-            {
-                _instance = new ProcessHelper(logger);
-            }
-
-            return _instance;
         }
 
         public Tuple<bool, int> CreateProcessAsUser(IntPtr hUserToken, string appFileName, string appArgs)
@@ -44,7 +33,7 @@ namespace WindowsLibrary
                 userId.Dispose();
 
                 // Obtain duplicated user token (elevated if UAC is turned on/enabled).
-                IntPtr hDuplicateToken = WindowsHelper.GetInstance(_logger).DuplicateToken(hUserToken);
+                IntPtr hDuplicateToken = new WindowsHelper(_logger).DuplicateToken(hUserToken);
 
                 // Initialize process info and startup info.
                 NativeMethods.PROCESS_INFORMATION pi = new NativeMethods.PROCESS_INFORMATION();
@@ -117,7 +106,7 @@ namespace WindowsLibrary
             try
             {
                 _logger.Log("Create process for: " + userId.Name);
-                List<Tuple<uint, string>> userSessions = WindowsHelper.GetInstance(_logger).GetUserSessions();
+                List<Tuple<uint, string>> userSessions = new WindowsHelper(_logger).GetUserSessions();
                 int sessionId = -1;
 
                 foreach (Tuple<uint, string> logonSession in userSessions)
@@ -142,7 +131,7 @@ namespace WindowsLibrary
                 }
 
                 // Obtain duplicated user token (elevated if UAC is turned on/enabled).
-                IntPtr hDuplicateToken = WindowsHelper.GetInstance(_logger).DuplicateToken(hUserToken, (uint)sessionId);
+                IntPtr hDuplicateToken = new WindowsHelper(_logger).DuplicateToken(hUserToken, (uint)sessionId);
                 Marshal.FreeHGlobal(hUserToken);
 
                 // Initialize process info and startup info.
