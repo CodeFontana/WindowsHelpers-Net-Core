@@ -10,9 +10,27 @@ using System.Runtime.Versioning;
 namespace WindowsLibrary
 {
     [SupportedOSPlatform("windows")]
-    public static class NetworkHelper
+    public class NetworkHelper
     {
-        public static Tuple<bool, List<string>> ResolveHostToIP(string logComponent,
+        private static NetworkHelper _instance;
+        private Logger _logger;
+
+        private NetworkHelper(Logger logger)
+        {
+            _logger = logger;
+        }
+
+        public static NetworkHelper GetInstance(Logger logger)
+        {
+            if (_instance == null)
+            {
+                _instance = new NetworkHelper(logger);
+            }
+
+            return _instance;
+        }
+
+        public Tuple<bool, List<string>> ResolveHostToIP(string logComponent,
             string hostAddress, bool hideOutput = false)
         {
             try
@@ -70,7 +88,7 @@ namespace WindowsLibrary
             }
         }
 
-        public static string ResolveIPtoHost(string logComponent, string inputAddress, bool hideOutput = false)
+        public string ResolveIPtoHost(string logComponent, string inputAddress, bool hideOutput = false)
         {
             try
             {
@@ -120,7 +138,7 @@ namespace WindowsLibrary
             }
         }
 
-        public static bool ValidateIPv4(string ipString)
+        public bool ValidateIPv4(string ipString)
         {
             if (string.IsNullOrWhiteSpace(ipString))
             {
@@ -139,7 +157,7 @@ namespace WindowsLibrary
             return splitValues.All(r => byte.TryParse(r, out tempForParsing));
         }
 
-        public static bool TestURL(string logComponent, string url, TimeSpan timeout)
+        public bool TestURL(string logComponent, string url, TimeSpan timeout)
         {
             Logger.Log(logComponent, "Test URL: " + url + " [Timeout=" + timeout.TotalSeconds + "s]");
 
