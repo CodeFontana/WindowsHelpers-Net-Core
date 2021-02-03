@@ -12,22 +12,11 @@ namespace WindowsLibrary
     [SupportedOSPlatform("windows")]
     public class NetworkHelper
     {
-        private static NetworkHelper _instance;
         private Logger _logger;
 
-        private NetworkHelper(Logger logger)
+        public NetworkHelper(Logger logger)
         {
             _logger = logger;
-        }
-
-        public static NetworkHelper GetInstance(Logger logger)
-        {
-            if (_instance == null)
-            {
-                _instance = new NetworkHelper(logger);
-            }
-
-            return _instance;
         }
 
         public Tuple<bool, List<string>> ResolveHostToIP(string logComponent,
