@@ -19,6 +19,35 @@ namespace WindowsLibrary
             _logger = logger;
         }
 
+        public static void SampleUsage()
+        {
+            var logFile = new Logger("WMI_Sample_Usage");
+            WMIHelper wmi = new WMIHelper(logFile);
+
+            // EXAMPLE: Get Manufacturer + Model info.
+            logFile.Log("Example: Win32_ComputerSystem [Manufacturer and Model]\n");
+            List<string[]> wmiData = wmi.GetWMIData("root\\cimv2", "Win32_ComputerSystem", new List<string>{ "Manufacturer", "Model" });
+            logFile.Log($"Manufacturer: {wmiData[1][0]}");
+            logFile.Log($"Model: {wmiData[1][1]}");
+
+            // EXAMPLE: Get all columns.
+            logFile.Log("Example: Win32_QuickFixEngineering [ALL COLUMNS]\n" +
+                wmi.GetFormattedWMIData(
+                    "root\\cimv2",
+                    "Win32_QuickFixEngineering",
+                    null));
+
+            // EXAMPLE: Get specified columns.
+            logFile.Log("Example: Win32_QuickFixEngineering [SPECIFIC COLUMNS]\n" +
+                wmi.GetFormattedWMIData(
+                    "root\\cimv2",
+                    "Win32_QuickFixEngineering",
+                    new List<string> { "HotFixID", "Description", "InstalledOn", "Caption" },
+                    4));
+
+            logFile.Close();
+        }
+
         /// <summary>
         /// Gets the available WMI namespaces for the specified management scope.
         /// </summary>
