@@ -110,7 +110,7 @@ namespace WindowsLibrary
         /// <summary>
         /// Gets a list of properties (column names) for the specified WMI class.
         /// </summary>
-        /// <param name="namespaceName">The WMI namespace which contains the class.</param>
+        /// <param name="namespaceName">The WMI namespace which contains the class, e.g. root\\cimv2.</param>
         /// <param name="wmiClassName">The WMI class for obtaining the properties list.</param>
         /// <returns>A list of properties.</returns>
         public List<string> GetPropertiesOfWmiClass(string namespaceName, string wmiClassName)
@@ -149,7 +149,7 @@ namespace WindowsLibrary
         /// <summary>
         /// Gets a list of WMI data, including property names, for the specified WMI class.
         /// </summary>
-        /// <param name="namespaceName">The WMI namespace which contains the class.</param>
+        /// <param name="namespaceName">The WMI namespace which contains the class, e.g. root\\cimv2.</param>
         /// <param name="wmiClassName">The WMI class for obtaining the properties list.</param>
         /// <param name="columns">The list of columns to retrieve, the default is null/* for all columns.</param>
         /// <returns>A list representing each row of data from the WMI class.</returns>
@@ -223,7 +223,7 @@ namespace WindowsLibrary
         /// <summary>
         /// Gets a formatted list of WMI data, including property names, for the specified WMI class.
         /// </summary>
-        /// <param name="namespaceName">The WMI namespace which contains the class.</param>
+        /// <param name="namespaceName">The WMI namespace which contains the class, e.g. root\\cimv2.</param>
         /// <param name="wmiClassName">The WMI class for obtaining the properties list.</param>
         /// <param name="columns">The list of columns to retrieve, the default is null/* for all columns.</param>
         /// <param name="columnPadding">Padding (number of spaces) to add between columns of data in the return string.</param>
