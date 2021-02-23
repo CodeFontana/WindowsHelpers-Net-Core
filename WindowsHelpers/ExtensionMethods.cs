@@ -23,20 +23,25 @@ namespace WindowsLibrary
                 return null;
             }
 
-            var serializer = new JsonSerializer { ReferenceLoopHandling = ReferenceLoopHandling.Ignore };
+            var serializer = new JsonSerializer
+            { 
+                ReferenceLoopHandling = ReferenceLoopHandling.Ignore 
+            };
             var token = metaToken as JToken;
+
             if (token == null)
             {
-                // Modified by me: use serializer defined above
                 return ToKeyValue(JObject.FromObject(metaToken, serializer));
             }
 
             if (token.HasValues)
             {
                 var contentData = new Dictionary<string, string>();
+                
                 foreach (var child in token.Children().ToList())
                 {
                     var childContent = child.ToKeyValue();
+                    
                     if (childContent != null)
                     {
                         contentData = contentData.Concat(childContent)
@@ -48,6 +53,7 @@ namespace WindowsLibrary
             }
 
             var jValue = token as JValue;
+            
             if (jValue?.Value == null)
             {
                 return null;
