@@ -19,6 +19,9 @@ namespace WindowsLibrary
             _logger = logger;
         }
 
+        /// <summary>
+        /// Quick sample usages for the WMI helpers to obtain system information.
+        /// </summary>
         public static void SampleUsage()
         {
             var logFile = new Logger("WMI_Sample_Usage");
@@ -179,7 +182,7 @@ namespace WindowsLibrary
                 ManagementObjectSearcher searcher = new ManagementObjectSearcher(managementScope, objectQuery);
                 ManagementObjectCollection objectCollection = searcher.Get();
 
-                foreach(ManagementObject obj in objectCollection)
+                foreach (ManagementObject obj in objectCollection)
                 {
                     var row = new List<string>();
                     PropertyDataCollection props = obj.Properties;
