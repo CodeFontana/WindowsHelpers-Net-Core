@@ -17,9 +17,9 @@ namespace WindowsLibrary
     [SupportedOSPlatform("windows")]
     public class FileSystemHelper
     {
-        private Logger _logger;
+        private ILogger _logger;
 
-        public FileSystemHelper(Logger logger)
+        public FileSystemHelper(ILogger logger)
         {
             _logger = logger;
         }
