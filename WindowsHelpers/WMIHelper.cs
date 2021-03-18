@@ -12,9 +12,9 @@ namespace WindowsLibrary
     [SupportedOSPlatform("windows")]
     public class WMIHelper
     {
-        private Logger _logger;
+        private ILogger _logger;
 
-        public WMIHelper(Logger logger)
+        public WMIHelper(ILogger logger)
         {
             _logger = logger;
         }

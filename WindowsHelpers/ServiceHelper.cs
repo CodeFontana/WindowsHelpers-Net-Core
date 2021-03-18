@@ -10,9 +10,9 @@ namespace WindowsLibrary
     [SupportedOSPlatform("windows")]
     public class ServiceHelper
     {
-        private Logger _logger;
+        private ILogger _logger;
 
-        public ServiceHelper(Logger logger)
+        public ServiceHelper(ILogger logger)
         {
             _logger = logger;
         }

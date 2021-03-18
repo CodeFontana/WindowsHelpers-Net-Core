@@ -20,9 +20,9 @@ namespace WindowsLibrary
     [SupportedOSPlatform("windows")]
     public class WindowsHelper
     {
-        private Logger _logger;
+        private ILogger _logger;
 
-        public WindowsHelper(Logger logger)
+        public WindowsHelper(ILogger logger)
         {
             _logger = logger;
         }
