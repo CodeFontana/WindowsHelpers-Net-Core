@@ -6,7 +6,7 @@ using System.Linq;
 
 namespace LoggerLibrary
 {
-    public class Logger
+    public class Logger : ILogger
     {
         public static List<Tuple<string, Logger>> LogManager { get; } = new List<Tuple<string, Logger>>();
 
@@ -15,7 +15,7 @@ namespace LoggerLibrary
         private readonly object _lockObj = new object();
         private bool _rollMode = false;
 
-        public string LogComponent { get; private set; }
+        public string LogName { get; private set; }
         public string LogFilename { get; private set; }
         public string LogFolder { get; private set; } = "";
         public int LogIncrement { get; private set; } = 0;
@@ -75,7 +75,7 @@ namespace LoggerLibrary
             }
 
             // Set log properties.
-            LogComponent = logName;
+            LogName = logName;
             LogMaxBytes = maxBytes;
             LogMaxCount = maxCount;
 
@@ -96,9 +96,9 @@ namespace LoggerLibrary
             //       existing instance.
             //   --> Think of static Log(component) as 'GetInstance(component)',
             //       but shortened to 'Log(component)'.
-            if (!LogManager.Any(tup => tup.Item1.ToLower().Equals(LogComponent.ToLower())))
+            if (!LogManager.Any(tup => tup.Item1.ToLower().Equals(LogName.ToLower())))
             {
-                LogManager.Add(new Tuple<string, Logger>(LogComponent, this));
+                LogManager.Add(new Tuple<string, Logger>(LogName, this));
             }
         }
 
@@ -120,7 +120,7 @@ namespace LoggerLibrary
                 //              to start writing a new file.
                 for (int i = 0; i < LogMaxCount; i++)
                 {
-                    string fileName = $"{LogFolder}\\{LogComponent}_{i}.log";
+                    string fileName = $"{LogFolder}\\{LogName}_{i}.log";
 
                     if (File.Exists(fileName))
                     {
@@ -144,7 +144,7 @@ namespace LoggerLibrary
                 }
 
                 // Full house? -- Start over from the top.
-                LogFilename = $"{LogFolder}\\{LogComponent}_0.log";
+                LogFilename = $"{LogFolder}\\{LogName}_0.log";
                 LogIncrement = 0;
             }
             else
@@ -155,12 +155,12 @@ namespace LoggerLibrary
                 if (LogIncrement + 1 < LogMaxCount)
                 {
                     // Next log increment.
-                    LogFilename = $"{LogFolder}\\{LogComponent}_{++LogIncrement}.log";
+                    LogFilename = $"{LogFolder}\\{LogName}_{++LogIncrement}.log";
                 }
                 else
                 {
                     // Start over from the top.
-                    LogFilename = $"{LogFolder}\\{LogComponent}_0.log";
+                    LogFilename = $"{LogFolder}\\{LogName}_0.log";
                     LogIncrement = 0;
                 }
             }
@@ -249,13 +249,13 @@ namespace LoggerLibrary
 
                 if (logSizeBytes >= LogMaxBytes)
                 {
-                    Open(LogComponent, LogFolder, LogMaxBytes, LogMaxCount);
+                    Open(LogName, LogFolder, LogMaxBytes, LogMaxCount);
                 }
 
                 lock (_lockObj)
                 {
-                    Console.WriteLine(MsgHeader(LogComponent, logLevel) + message);
-                    _logWriter.WriteLine(MsgHeader(LogComponent, logLevel) + message);
+                    Console.WriteLine(MsgHeader(LogName, logLevel) + message);
+                    _logWriter.WriteLine(MsgHeader(LogName, logLevel) + message);
                 }
             }
         }
@@ -271,18 +271,18 @@ namespace LoggerLibrary
 
             if (logSizeBytes >= LogMaxBytes)
             {
-                Open(LogComponent, LogFolder, LogMaxBytes, LogMaxCount);
+                Open(LogName, LogFolder, LogMaxBytes, LogMaxCount);
             }
 
             lock (_lockObj)
             {
-                Console.WriteLine(MsgHeader(LogComponent, MsgType.ERROR) + e.Message);
-                _logWriter.WriteLine(MsgHeader(LogComponent, MsgType.ERROR) + e.Message);
+                Console.WriteLine(MsgHeader(LogName, MsgType.ERROR) + e.Message);
+                _logWriter.WriteLine(MsgHeader(LogName, MsgType.ERROR) + e.Message);
 
                 if (!string.IsNullOrEmpty(message) && !string.IsNullOrWhiteSpace(message))
                 {
-                    Console.WriteLine(MsgHeader(LogComponent, MsgType.ERROR) + message);
-                    _logWriter.WriteLine(MsgHeader(LogComponent, MsgType.ERROR) + message);
+                    Console.WriteLine(MsgHeader(LogName, MsgType.ERROR) + message);
+                    _logWriter.WriteLine(MsgHeader(LogName, MsgType.ERROR) + message);
                 }
             }
         }
