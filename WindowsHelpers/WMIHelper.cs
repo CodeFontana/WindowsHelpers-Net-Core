@@ -12,9 +12,9 @@ namespace WindowsLibrary
     [SupportedOSPlatform("windows")]
     public class WMIHelper
     {
-        private ILogger _logger;
+        private ISimpleLogger _logger;
 
-        public WMIHelper(ILogger logger)
+        public WMIHelper(ISimpleLogger logger)
         {
             _logger = logger;
         }
@@ -24,7 +24,7 @@ namespace WindowsLibrary
         /// </summary>
         public static void SampleUsage()
         {
-            var logFile = new Logger("WMI_Sample_Usage");
+            var logFile = new SimpleLogger("WMI_Sample_Usage");
             WMIHelper wmi = new WMIHelper(logFile);
 
             // EXAMPLE: Get Manufacturer + Model info.

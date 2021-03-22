@@ -6,9 +6,9 @@ using System.Linq;
 
 namespace LoggerLibrary
 {
-    public class Logger : ILogger
+    public class SimpleLogger : ISimpleLogger
     {
-        public static List<Tuple<string, Logger>> LogManager { get; } = new List<Tuple<string, Logger>>();
+        public static List<Tuple<string, SimpleLogger>> LogManager { get; } = new List<Tuple<string, SimpleLogger>>();
 
         private FileStream _logStream = null;
         private StreamWriter _logWriter = null;
@@ -35,7 +35,7 @@ namespace LoggerLibrary
         /// <param name="logPath">Path where logs file(s) will be saved.</param>
         /// <param name="maxBytes">Maximum size (in bytes) for the log file. If unspecified, the default is 50MB per log.</param>
         /// <param name="maxCount">Maximum count of log files for rotation. If unspecified, the default is 10 logs.</param>
-        public Logger(string logName, string logPath = null, long maxBytes = 50 * 1048576, uint maxCount = 10)
+        public SimpleLogger(string logName, string logPath = null, long maxBytes = 50 * 1048576, uint maxCount = 10)
         {
             Open(logName, logPath, maxBytes, maxCount);
         }
@@ -98,7 +98,7 @@ namespace LoggerLibrary
             //       but shortened to 'Log(component)'.
             if (!LogManager.Any(tup => tup.Item1.ToLower().Equals(LogName.ToLower())))
             {
-                LogManager.Add(new Tuple<string, Logger>(LogName, this));
+                LogManager.Add(new Tuple<string, SimpleLogger>(LogName, this));
             }
         }
 

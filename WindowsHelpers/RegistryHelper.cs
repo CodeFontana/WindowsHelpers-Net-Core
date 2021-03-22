@@ -9,9 +9,9 @@ namespace WindowsLibrary
     [SupportedOSPlatform("windows")]
     public class RegistryHelper
     {
-        private ILogger _logger;
+        private ISimpleLogger _logger;
 
-        public RegistryHelper(ILogger logger)
+        public RegistryHelper(ISimpleLogger logger)
         {
             _logger = logger;
         }
@@ -54,7 +54,7 @@ namespace WindowsLibrary
             {
                 if (sourceKey.GetValue(sourceValueName) == null)
                 {
-                    _logger.Log("Source value [" + sourceValueName + "] does not exist in [" + sourceKey.Name + "].", Logger.MsgType.ERROR);
+                    _logger.Log("Source value [" + sourceValueName + "] does not exist in [" + sourceKey.Name + "].", SimpleLogger.MsgType.ERROR);
                 }
 
                 destKey.SetValue(destValueName,
@@ -364,7 +364,7 @@ namespace WindowsLibrary
             {
                 if (sourceKey.GetValue(sourceValueName) == null)
                 {
-                    _logger.Log("Source value [" + sourceValueName + "] does not exist in [" + sourceKey.Name + "].", Logger.MsgType.ERROR);
+                    _logger.Log("Source value [" + sourceValueName + "] does not exist in [" + sourceKey.Name + "].", SimpleLogger.MsgType.ERROR);
                 }
 
                 destKey.SetValue(destValueName, 

@@ -17,9 +17,9 @@ namespace WindowsLibrary
     [SupportedOSPlatform("windows")]
     public class FileSystemHelper
     {
-        private ILogger _logger;
+        private ISimpleLogger _logger;
 
-        public FileSystemHelper(ILogger logger)
+        public FileSystemHelper(ISimpleLogger logger)
         {
             _logger = logger;
         }
@@ -53,7 +53,7 @@ namespace WindowsLibrary
                 }
                 else
                 {
-                    _logger.Log($"Specified file or folder [{fileOrFolder}] does not exist.", Logger.MsgType.ERROR);
+                    _logger.Log($"Specified file or folder [{fileOrFolder}] does not exist.", SimpleLogger.MsgType.ERROR);
                     return false;
                 }
 
@@ -76,7 +76,7 @@ namespace WindowsLibrary
 
                     if (!new WindowsHelper(_logger).EnablePrivilege(hToken, NativeMethods.SE_TAKE_OWNERSHIP_NAME))
                     {
-                        _logger.Log("Failed to enable privilege [SeTakeOwnershipPrivilege].", Logger.MsgType.ERROR);
+                        _logger.Log("Failed to enable privilege [SeTakeOwnershipPrivilege].", SimpleLogger.MsgType.ERROR);
                         Marshal.FreeHGlobal(hToken);
                         return false;
                     }
@@ -241,7 +241,7 @@ namespace WindowsLibrary
 
                 if (!smartOK)
                 {
-                    _logger.Log("SMART status failure detected.", Logger.MsgType.ERROR);
+                    _logger.Log("SMART status failure detected.", SimpleLogger.MsgType.ERROR);
                     return false;
                 }
                 else
@@ -271,13 +271,13 @@ namespace WindowsLibrary
                 {
                     if (!File.Exists(sourceFileName))
                     {
-                        _logger.Log("Source file does not exist [" + sourceFileName + "].", Logger.MsgType.ERROR);
+                        _logger.Log("Source file does not exist [" + sourceFileName + "].", SimpleLogger.MsgType.ERROR);
                         return false;
                     }
 
                     if (sourceFileName.ToLower().Equals(destFileName.ToLower()))
                     {
-                        _logger.Log("Source and destination files must be different [" + sourceFileName + "].", Logger.MsgType.ERROR);
+                        _logger.Log("Source and destination files must be different [" + sourceFileName + "].", SimpleLogger.MsgType.ERROR);
                         return false;
                     }
 
@@ -387,7 +387,7 @@ namespace WindowsLibrary
                                 }
                                 else if (!moveSuccess && !handleInUseOnReboot)
                                 {
-                                    _logger.Log("Destination file is in-use [" + destFileName + "].", Logger.MsgType.ERROR);
+                                    _logger.Log("Destination file is in-use [" + destFileName + "].", SimpleLogger.MsgType.ERROR);
                                     return false;
                                 }
                                 else
@@ -425,13 +425,13 @@ namespace WindowsLibrary
         {
             if (!Directory.Exists(sourceFolder))
             {
-                _logger.Log("Source folder does not exist [" + sourceFolder + "].", Logger.MsgType.ERROR);
+                _logger.Log("Source folder does not exist [" + sourceFolder + "].", SimpleLogger.MsgType.ERROR);
                 return false;
             }
 
             if (sourceFolder.ToLower().Equals(targetFolder.ToLower()))
             {
-                _logger.Log("Source and destination folders must be different [" + sourceFolder + "].", Logger.MsgType.ERROR);
+                _logger.Log("Source and destination folders must be different [" + sourceFolder + "].", SimpleLogger.MsgType.ERROR);
                 return false;
             }
 
@@ -462,7 +462,7 @@ namespace WindowsLibrary
                         {
                             if (sourceFile.ToLower().EndsWith(str.ToLower()))
                             {
-                                _logger.Log("Reserved file: " + sourceFile, Logger.MsgType.DEBUG);
+                                _logger.Log("Reserved file: " + sourceFile, SimpleLogger.MsgType.DEBUG);
                                 skipItem = true;
                             }
                         }
@@ -493,7 +493,7 @@ namespace WindowsLibrary
                                 {
                                     if (verboseOutput)
                                     {
-                                        _logger.Log("Reserved folder: " + sourceDir, Logger.MsgType.DEBUG);
+                                        _logger.Log("Reserved folder: " + sourceDir, SimpleLogger.MsgType.DEBUG);
                                     }
 
                                     skipItem = true;
@@ -506,7 +506,7 @@ namespace WindowsLibrary
                         {
                             if (verboseOutput)
                             {
-                                _logger.Log("Reserved folder: " + sourceDir, Logger.MsgType.DEBUG);
+                                _logger.Log("Reserved folder: " + sourceDir, SimpleLogger.MsgType.DEBUG);
                             }
 
                             skipItem = true;
@@ -517,7 +517,7 @@ namespace WindowsLibrary
                         {
                             if (verboseOutput)
                             {
-                                _logger.Log("Reserved folder: " + sourceDir, Logger.MsgType.DEBUG);
+                                _logger.Log("Reserved folder: " + sourceDir, SimpleLogger.MsgType.DEBUG);
                             }
 
                             skipItem = true;
@@ -628,7 +628,7 @@ namespace WindowsLibrary
                         else if (fileName.ToLower().Contains(".delete_on_reboot"))
                         {
                             fileDeleted = false;
-                            _logger.Log("Deleted after reboot: " + fileName, Logger.MsgType.DEBUG);
+                            _logger.Log("Deleted after reboot: " + fileName, SimpleLogger.MsgType.DEBUG);
                         }
                         else
                         {
@@ -776,7 +776,7 @@ namespace WindowsLibrary
                             {
                                 if (folderList[n].ToString().ToLower().EndsWith(str.ToLower()))
                                 {
-                                    _logger.Log("Reserved folder: " + folderList[n].ToString(), Logger.MsgType.DEBUG);
+                                    _logger.Log("Reserved folder: " + folderList[n].ToString(), SimpleLogger.MsgType.DEBUG);
                                     skipItem = true;
                                 }
                             }
@@ -839,7 +839,7 @@ namespace WindowsLibrary
                             {
                                 if (fileList[n].ToString().ToLower().EndsWith(str.ToLower()))
                                 {
-                                    _logger.Log("Reserved file: " + fileList[n].ToString(), Logger.MsgType.DEBUG);
+                                    _logger.Log("Reserved file: " + fileList[n].ToString(), SimpleLogger.MsgType.DEBUG);
                                     skipItem = true;
                                 }
                             }

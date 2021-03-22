@@ -12,9 +12,9 @@ namespace WindowsLibrary
     [SupportedOSPlatform("windows")]
     public class NetworkHelper
     {
-        private ILogger _logger;
+        private ISimpleLogger _logger;
 
-        public NetworkHelper(ILogger logger)
+        public NetworkHelper(ISimpleLogger logger)
         {
             _logger = logger;
         }

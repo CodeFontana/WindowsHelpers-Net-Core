@@ -10,9 +10,9 @@ namespace WindowsLibrary
     [SupportedOSPlatform("windows")]
     public class ServiceHelper
     {
-        private ILogger _logger;
+        private ISimpleLogger _logger;
 
-        public ServiceHelper(ILogger logger)
+        public ServiceHelper(ISimpleLogger logger)
         {
             _logger = logger;
         }
@@ -42,7 +42,7 @@ namespace WindowsLibrary
 
                 if (scManagerHandle == IntPtr.Zero)
                 {
-                    _logger.Log("Unable to open service control manager.", Logger.MsgType.ERROR);
+                    _logger.Log("Unable to open service control manager.", SimpleLogger.MsgType.ERROR);
                     return false;
                 }
 
@@ -53,7 +53,7 @@ namespace WindowsLibrary
 
                 if (serviceHandle == IntPtr.Zero)
                 {
-                    _logger.Log("Unable to open specified service [" + serviceName + "].", Logger.MsgType.ERROR);
+                    _logger.Log("Unable to open specified service [" + serviceName + "].", SimpleLogger.MsgType.ERROR);
                     return false;
                 }
 
@@ -73,7 +73,7 @@ namespace WindowsLibrary
                 if (!configSuccess)
                 {
                     _logger.Log("Unable to configure service logon user [ChangeServiceConfig=" +
-                        Marshal.GetLastWin32Error().ToString() + "].", Logger.MsgType.ERROR);
+                        Marshal.GetLastWin32Error().ToString() + "].", SimpleLogger.MsgType.ERROR);
                     return false;
                 }
             }
@@ -103,7 +103,7 @@ namespace WindowsLibrary
 
                 if (scManagerHandle == IntPtr.Zero)
                 {
-                    _logger.Log("Unable to open service control manager.", Logger.MsgType.ERROR);
+                    _logger.Log("Unable to open service control manager.", SimpleLogger.MsgType.ERROR);
                     return false;
                 }
 
@@ -114,7 +114,7 @@ namespace WindowsLibrary
 
                 if (serviceHandle == IntPtr.Zero)
                 {
-                    _logger.Log("Unable to open specified service [" + serviceName + "].", Logger.MsgType.ERROR);
+                    _logger.Log("Unable to open specified service [" + serviceName + "].", SimpleLogger.MsgType.ERROR);
                     return false;
                 }
 
@@ -134,7 +134,7 @@ namespace WindowsLibrary
                 if (!configSuccess)
                 {
                     _logger.Log("Unable to configure service startup mode [ChangeServiceConfig=" +
-                        Marshal.GetLastWin32Error().ToString() + "].", Logger.MsgType.ERROR);
+                        Marshal.GetLastWin32Error().ToString() + "].", SimpleLogger.MsgType.ERROR);
                     return false;
                 }
             }

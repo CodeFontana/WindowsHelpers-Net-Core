@@ -20,9 +20,9 @@ namespace WindowsLibrary
     [SupportedOSPlatform("windows")]
     public class WindowsHelper
     {
-        private ILogger _logger;
+        private ISimpleLogger _logger;
 
-        public WindowsHelper(ILogger logger)
+        public WindowsHelper(ISimpleLogger logger)
         {
             _logger = logger;
         }
@@ -219,7 +219,7 @@ namespace WindowsLibrary
 
                 if (hUserToken == IntPtr.Zero)
                 {
-                    _logger.Log("No token was provided.", Logger.MsgType.ERROR);
+                    _logger.Log("No token was provided.", SimpleLogger.MsgType.ERROR);
                     return IntPtr.Zero;
                 }
 
@@ -233,7 +233,7 @@ namespace WindowsLibrary
 
                         if (pLinkedToken == IntPtr.Zero)
                         {
-                            _logger.Log("Failed to allocate memory for linked token check.", Logger.MsgType.ERROR);
+                            _logger.Log("Failed to allocate memory for linked token check.", SimpleLogger.MsgType.ERROR);
                             return IntPtr.Zero;
                         }
 
@@ -245,7 +245,7 @@ namespace WindowsLibrary
                             out cbSize))
                         {
                             _logger.Log("Failed to query LINKED token [GetTokenInformation=" + 
-                                Marshal.GetLastWin32Error().ToString() + "].", Logger.MsgType.ERROR);
+                                Marshal.GetLastWin32Error().ToString() + "].", SimpleLogger.MsgType.ERROR);
                             Marshal.FreeHGlobal(pLinkedToken);
                             return IntPtr.Zero;
                         }
@@ -282,7 +282,7 @@ namespace WindowsLibrary
                                                  ref hDuplicateToken))
                 {
                     _logger.Log("Failed to duplicate token [DuplicateTokenEx=" + 
-                        Marshal.GetLastWin32Error().ToString() + "].", Logger.MsgType.ERROR);
+                        Marshal.GetLastWin32Error().ToString() + "].", SimpleLogger.MsgType.ERROR);
                     Marshal.FreeHGlobal(hTokenToDup);
                     return IntPtr.Zero;
                 }
@@ -295,7 +295,7 @@ namespace WindowsLibrary
                 if (!NativeMethods.GetTokenInformation(hDuplicateToken, NativeMethods.TOKEN_INFORMATION_CLASS.TokenSessionId, pSessionId, cbSize, out cbSize))
                 {
                     _logger.Log("Failed to token's session id [GetTokenInformation=" + 
-                        Marshal.GetLastWin32Error().ToString() + "].", Logger.MsgType.ERROR);
+                        Marshal.GetLastWin32Error().ToString() + "].", SimpleLogger.MsgType.ERROR);
                     Marshal.FreeHGlobal(pSessionId);
                     return IntPtr.Zero;
                 }
@@ -312,7 +312,7 @@ namespace WindowsLibrary
                     if (!NativeMethods.SetTokenInformation(hDuplicateToken, NativeMethods.TOKEN_INFORMATION_CLASS.TokenSessionId, ref sessionId, (uint)Marshal.SizeOf(sessionId)))
                     {
                         _logger.Log("Failed to assign token session [SetTokenInformation=" + 
-                            Marshal.GetLastWin32Error().ToString() + "].", Logger.MsgType.ERROR);
+                            Marshal.GetLastWin32Error().ToString() + "].", SimpleLogger.MsgType.ERROR);
                         return hDuplicateToken;
                     }
                 }
@@ -339,7 +339,7 @@ namespace WindowsLibrary
                 if (!NativeMethods.WTSEnumerateSessions(hServer, 0, 1, ref hSessionInfo, out UInt32 sessionCount))
                 {
                     _logger.Log("Failed to enumerate user sessions [WTSEnumerateSessions=" + 
-                        Marshal.GetLastWin32Error().ToString() + "].", Logger.MsgType.ERROR);
+                        Marshal.GetLastWin32Error().ToString() + "].", SimpleLogger.MsgType.ERROR);
                 }
                 else
                 {
@@ -353,7 +353,7 @@ namespace WindowsLibrary
                         if (!NativeMethods.WTSQueryUserToken(si.SessionID, out IntPtr hUserToken))
                         {
                             _logger.Log("Failed to query terminal user token [WTSQueryUserToken=" + 
-                                Marshal.GetLastWin32Error().ToString() + "] in session [" + si.SessionID.ToString() + "].", Logger.MsgType.ERROR);
+                                Marshal.GetLastWin32Error().ToString() + "] in session [" + si.SessionID.ToString() + "].", SimpleLogger.MsgType.ERROR);
                         }
                         else
                         {
@@ -391,7 +391,7 @@ namespace WindowsLibrary
             if (!NativeMethods.LookupPrivilegeValue(null, privilege, ref luid))
             {
                 _logger.Log("Unable to lookup privilege (LookupPrivilegeValue=" + 
-                    Marshal.GetLastWin32Error().ToString() + ").", Logger.MsgType.ERROR);
+                    Marshal.GetLastWin32Error().ToString() + ").", SimpleLogger.MsgType.ERROR);
                 return false;
             }
 
@@ -401,7 +401,7 @@ namespace WindowsLibrary
             if (!NativeMethods.AdjustTokenPrivileges(hToken, false, ref newState, (UInt32)Marshal.SizeOf(newState), out NativeMethods.TOKEN_PRIVILEGES oldState, out UInt32 outBytes))
             {
                 _logger.Log("Unable to adjust token privileges (AdjustTokenPrivileges=" + 
-                    Marshal.GetLastWin32Error().ToString() + ").", Logger.MsgType.ERROR);
+                    Marshal.GetLastWin32Error().ToString() + ").", SimpleLogger.MsgType.ERROR);
                 return false;
             }
 
@@ -420,7 +420,7 @@ namespace WindowsLibrary
 
                     if (!NativeMethods.WTSQueryUserToken(consoleSessionId, out IntPtr hUserToken))
                     {
-                        _logger.Log("Failed to query console user token [WTSQueryUserToken=" + Marshal.GetLastWin32Error().ToString() + "].", Logger.MsgType.ERROR);
+                        _logger.Log("Failed to query console user token [WTSQueryUserToken=" + Marshal.GetLastWin32Error().ToString() + "].", SimpleLogger.MsgType.ERROR);
                     }
                     else
                     {
@@ -430,7 +430,7 @@ namespace WindowsLibrary
 
                         if (!IsUserInAdminGroup(hUserToken))
                         {
-                            _logger.Log("Console user is not an administrator.", Logger.MsgType.WARN);
+                            _logger.Log("Console user is not an administrator.", SimpleLogger.MsgType.WARN);
                         }
                         else
                         {
@@ -453,7 +453,7 @@ namespace WindowsLibrary
                 if (!NativeMethods.WTSEnumerateSessions(hServer, 0, 1, ref hSessionInfo, out UInt32 sessionCount))
                 {
                     _logger.Log("Failed to enumerate user sessions [WTSEnumerateSessions=" + 
-                        Marshal.GetLastWin32Error().ToString() + "].", Logger.MsgType.ERROR);
+                        Marshal.GetLastWin32Error().ToString() + "].", SimpleLogger.MsgType.ERROR);
                 }
                 else
                 {
@@ -468,7 +468,7 @@ namespace WindowsLibrary
                         if (!NativeMethods.WTSQueryUserToken(si.SessionID, out IntPtr hUserToken))
                         {
                             _logger.Log("Failed to query terminal user token [WTSQueryUserToken=" + 
-                                Marshal.GetLastWin32Error().ToString() + "].", Logger.MsgType.ERROR);
+                                Marshal.GetLastWin32Error().ToString() + "].", SimpleLogger.MsgType.ERROR);
                         }
                         else
                         {
@@ -478,7 +478,7 @@ namespace WindowsLibrary
 
                             if (!IsUserInAdminGroup(hUserToken))
                             {
-                                _logger.Log("Terminal user is not an administrator.", Logger.MsgType.WARN);
+                                _logger.Log("Terminal user is not an administrator.", SimpleLogger.MsgType.WARN);
                             }
                             else
                             {
@@ -516,7 +516,7 @@ namespace WindowsLibrary
                     if (!NativeMethods.WTSQueryUserToken(consoleSessionId, out IntPtr hUserToken))
                     {
                         _logger.Log("Failed to query console user token [WTSQueryUserToken=" + 
-                            Marshal.GetLastWin32Error().ToString() + "].", Logger.MsgType.ERROR);
+                            Marshal.GetLastWin32Error().ToString() + "].", SimpleLogger.MsgType.ERROR);
                     }
                     else
                     {
@@ -739,7 +739,7 @@ namespace WindowsLibrary
             {
                 if (!File.Exists(certFilename))
                 {
-                    _logger.Log("Specified certifcate file does not exist [" + certFilename + "].", Logger.MsgType.ERROR);
+                    _logger.Log("Specified certifcate file does not exist [" + certFilename + "].", SimpleLogger.MsgType.ERROR);
                     return false;
                 }
 
@@ -785,7 +785,7 @@ namespace WindowsLibrary
             if (!NativeMethods.OpenProcessToken(hProcess, NativeMethods.TOKEN_ALL_ACCESS, out IntPtr hToken))
             {
                 _logger.Log("Unable to open specified process token [OpenProcessToken=" + 
-                    Marshal.GetLastWin32Error().ToString() + "].", Logger.MsgType.ERROR);
+                    Marshal.GetLastWin32Error().ToString() + "].", SimpleLogger.MsgType.ERROR);
                 return false;
             }
 
@@ -796,63 +796,63 @@ namespace WindowsLibrary
         {
             if (!EnablePrivilege(hToken, NativeMethods.SE_INCREASE_QUOTA_NAME))
             {
-                _logger.Log("Failed to enable privilege [SeIncreaseQuotaPrivilege].", Logger.MsgType.ERROR);
+                _logger.Log("Failed to enable privilege [SeIncreaseQuotaPrivilege].", SimpleLogger.MsgType.ERROR);
                 Marshal.FreeHGlobal(hToken);
                 return false;
             }
 
             if (!EnablePrivilege(hToken, NativeMethods.SE_ASSIGNPRIMARYTOKEN_NAME))
             {
-                _logger.Log("Failed to enable privilege [SeAssignPrimaryTokenPrivilege].", Logger.MsgType.ERROR);
+                _logger.Log("Failed to enable privilege [SeAssignPrimaryTokenPrivilege].", SimpleLogger.MsgType.ERROR);
                 Marshal.FreeHGlobal(hToken);
                 return false;
             }
 
             if (!EnablePrivilege(hToken, NativeMethods.SE_TCB_NAME))
             {
-                _logger.Log("Failed to enable privilege [SeTcbPrivilege].", Logger.MsgType.ERROR);
+                _logger.Log("Failed to enable privilege [SeTcbPrivilege].", SimpleLogger.MsgType.ERROR);
                 Marshal.FreeHGlobal(hToken);
                 return false;
             }
 
             if (!EnablePrivilege(hToken, NativeMethods.SE_DEBUG_NAME))
             {
-                _logger.Log("Failed to enable privilege [SeDebugPrivilege].", Logger.MsgType.ERROR);
+                _logger.Log("Failed to enable privilege [SeDebugPrivilege].", SimpleLogger.MsgType.ERROR);
                 Marshal.FreeHGlobal(hToken);
                 return false;
             }
 
             if (!EnablePrivilege(hToken, NativeMethods.SE_IMPERSONATE_NAME))
             {
-                _logger.Log("Failed to enable privilege [SeImpersonatePrivilege].", Logger.MsgType.ERROR);
+                _logger.Log("Failed to enable privilege [SeImpersonatePrivilege].", SimpleLogger.MsgType.ERROR);
                 Marshal.FreeHGlobal(hToken);
                 return false;
             }
 
             if (!EnablePrivilege(hToken, NativeMethods.SE_TIME_ZONE_NAME))
             {
-                _logger.Log("Failed to enable privilege [SeTimeZonePrivilege].", Logger.MsgType.ERROR);
+                _logger.Log("Failed to enable privilege [SeTimeZonePrivilege].", SimpleLogger.MsgType.ERROR);
                 Marshal.FreeHGlobal(hToken);
                 return false;
             }
 
             if (!EnablePrivilege(hToken, NativeMethods.SE_SYSTEMTIME_NAME))
             {
-                _logger.Log("Failed to enable privilege [SeSystemtimePrivilege].", Logger.MsgType.ERROR);
+                _logger.Log("Failed to enable privilege [SeSystemtimePrivilege].", SimpleLogger.MsgType.ERROR);
                 Marshal.FreeHGlobal(hToken);
                 return false;
             }
 
             if (!EnablePrivilege(hToken, NativeMethods.SE_SHUTDOWN_NAME))
             {
-                _logger.Log("Failed to enable privilege [SeShutdownPrivilege].", Logger.MsgType.ERROR);
+                _logger.Log("Failed to enable privilege [SeShutdownPrivilege].", SimpleLogger.MsgType.ERROR);
                 Marshal.FreeHGlobal(hToken);
                 return false;
             }
 
             if (!EnablePrivilege(hToken, NativeMethods.SE_TAKE_OWNERSHIP_NAME))
             {
-                _logger.Log("Failed to enable privilege [SeTakeOwnershipPrivilege].", Logger.MsgType.ERROR);
+                _logger.Log("Failed to enable privilege [SeTakeOwnershipPrivilege].", SimpleLogger.MsgType.ERROR);
                 Marshal.FreeHGlobal(hToken);
                 return false;
             }
@@ -1101,7 +1101,7 @@ namespace WindowsLibrary
 
                 if (pElevationType == IntPtr.Zero)
                 {
-                    _logger.Log("Failed to allocate memory for token elevation check.", Logger.MsgType.ERROR);
+                    _logger.Log("Failed to allocate memory for token elevation check.", SimpleLogger.MsgType.ERROR);
                     Marshal.FreeHGlobal(hToken);
                     return false;
                 }
@@ -1113,7 +1113,7 @@ namespace WindowsLibrary
                     out cbSize))
                 {
                     _logger.Log("Failed to query user-token elevation type [GetTokenInformation=" + 
-                        Marshal.GetLastWin32Error().ToString() + "].", Logger.MsgType.ERROR);
+                        Marshal.GetLastWin32Error().ToString() + "].", SimpleLogger.MsgType.ERROR);
 
                     Marshal.FreeHGlobal(hToken);
                     Marshal.FreeHGlobal(pElevationType);
@@ -1269,13 +1269,13 @@ namespace WindowsLibrary
 
                         if (pElevationType == IntPtr.Zero)
                         {
-                            _logger.Log("Failed to allocate memory for token elevation check.", Logger.MsgType.ERROR);
+                            _logger.Log("Failed to allocate memory for token elevation check.", SimpleLogger.MsgType.ERROR);
                             return false;
                         }
 
                         if (!NativeMethods.GetTokenInformation(hToken, NativeMethods.TOKEN_INFORMATION_CLASS.TokenElevationType, pElevationType, cbSize, out cbSize))
                         {
-                            _logger.Log("Failed to query token elevation type [GetTokenInformation=" + Marshal.GetLastWin32Error().ToString() + "].", Logger.MsgType.ERROR);
+                            _logger.Log("Failed to query token elevation type [GetTokenInformation=" + Marshal.GetLastWin32Error().ToString() + "].", SimpleLogger.MsgType.ERROR);
                             return false;
                         }
 
@@ -1289,33 +1289,33 @@ namespace WindowsLibrary
 
                             if (pLinkedToken == IntPtr.Zero)
                             {
-                                _logger.Log("Failed to allocate memory for linked token check.", Logger.MsgType.ERROR);
+                                _logger.Log("Failed to allocate memory for linked token check.", SimpleLogger.MsgType.ERROR);
                                 return false;
                             }
 
                             if (!NativeMethods.GetTokenInformation(hToken, NativeMethods.TOKEN_INFORMATION_CLASS.TokenLinkedToken, pLinkedToken, cbSize, out cbSize))
                             {
-                                _logger.Log("Failed to query LINKED token [GetTokenInformation=" + Marshal.GetLastWin32Error().ToString() + "].", Logger.MsgType.ERROR);
+                                _logger.Log("Failed to query LINKED token [GetTokenInformation=" + Marshal.GetLastWin32Error().ToString() + "].", SimpleLogger.MsgType.ERROR);
                                 return false;
                             }
                             else
                             {
-                                _logger.Log("Token has a Linked token.", Logger.MsgType.DEBUG);
+                                _logger.Log("Token has a Linked token.", SimpleLogger.MsgType.DEBUG);
                             }
 
                             hTokenToCheck = Marshal.ReadIntPtr(pLinkedToken);
                         }
                         else if (elevType == NativeMethods.TOKEN_ELEVATION_TYPE.TokenElevationTypeDefault)
                         {
-                            _logger.Log("Token elevation type: Default.", Logger.MsgType.DEBUG);
+                            _logger.Log("Token elevation type: Default.", SimpleLogger.MsgType.DEBUG);
                         }
                         else if (elevType == NativeMethods.TOKEN_ELEVATION_TYPE.TokenElevationTypeFull)
                         {
-                            _logger.Log("Token elevation type: Full.", Logger.MsgType.DEBUG);
+                            _logger.Log("Token elevation type: Full.", SimpleLogger.MsgType.DEBUG);
                         }
                         else
                         {
-                            _logger.Log("Token elevation type: Unknown.", Logger.MsgType.DEBUG);
+                            _logger.Log("Token elevation type: Unknown.", SimpleLogger.MsgType.DEBUG);
                         }
                     }
 
@@ -1324,7 +1324,7 @@ namespace WindowsLibrary
                         if (!NativeMethods.DuplicateToken(hToken, NativeMethods.SECURITY_IMPERSONATION_LEVEL.SecurityIdentification, out hTokenToCheck))
                         {
                             _logger.Log("Failed to duplicate ORIGNAL access token [DuplicateToken=" + 
-                                Marshal.GetLastWin32Error().ToString() + "].", Logger.MsgType.ERROR);
+                                Marshal.GetLastWin32Error().ToString() + "].", SimpleLogger.MsgType.ERROR);
                             return false;
                         }
                     }
@@ -1425,7 +1425,7 @@ namespace WindowsLibrary
 
                         string currentGroupName = Marshal.PtrToStringAuto(groupInfo.lpszGroupName);
 
-                        _logger.Log("Group: " + currentGroupName, Logger.MsgType.DEBUG);
+                        _logger.Log("Group: " + currentGroupName, SimpleLogger.MsgType.DEBUG);
 
                         if (currentGroupName.ToLower().Equals("administrators"))
                         {
@@ -1451,7 +1451,7 @@ namespace WindowsLibrary
 
                                 string currentUserName = Marshal.PtrToStringAuto(memberInfo.lgrmi1_name);
 
-                                _logger.Log("  Member: " + currentUserName, Logger.MsgType.DEBUG);
+                                _logger.Log("  Member: " + currentUserName, SimpleLogger.MsgType.DEBUG);
 
                                 if (currentUserName.ToLower().Equals(userToCheck.Name.ToLower()) ||
                                     (userToCheck.Name.Contains("\\") && currentUserName.ToLower().Equals(
@@ -1514,7 +1514,7 @@ namespace WindowsLibrary
 
                         string currentGroupName = Marshal.PtrToStringAuto(groupInfo.lpszGroupName);
 
-                        _logger.Log("Group: " + currentGroupName, Logger.MsgType.DEBUG);
+                        _logger.Log("Group: " + currentGroupName, SimpleLogger.MsgType.DEBUG);
 
                         if (currentGroupName.ToLower().Equals("administrators"))
                         {
@@ -1540,7 +1540,7 @@ namespace WindowsLibrary
 
                                 string currentUserName = Marshal.PtrToStringAuto(memberInfo.lgrmi1_name);
 
-                                _logger.Log("  Member: " + currentUserName, Logger.MsgType.DEBUG);
+                                _logger.Log("  Member: " + currentUserName, SimpleLogger.MsgType.DEBUG);
 
                                 if (currentUserName.ToLower().Equals(userName.ToLower()) ||
                                     (userName.Contains("\\") && currentUserName.ToLower().Equals(
@@ -1579,14 +1579,14 @@ namespace WindowsLibrary
 
             if (!NativeMethods.OpenProcessToken(hProcess, NativeMethods.TOKEN_ALL_ACCESS, out IntPtr hToken))
             {
-                _logger.Log("Unable to open specified process token [OpenProcessToken=" + Marshal.GetLastWin32Error().ToString() + "].", Logger.MsgType.ERROR);
+                _logger.Log("Unable to open specified process token [OpenProcessToken=" + Marshal.GetLastWin32Error().ToString() + "].", SimpleLogger.MsgType.ERROR);
                 Marshal.FreeHGlobal(hProcess);
                 return false;
             }
 
             if (!EnablePrivilege(hToken, NativeMethods.SE_SHUTDOWN_NAME))
             {
-                _logger.Log("Failed to enable privilege [SeShutdownPrivilege].", Logger.MsgType.WARN);
+                _logger.Log("Failed to enable privilege [SeShutdownPrivilege].", SimpleLogger.MsgType.WARN);
                 Marshal.FreeHGlobal(hProcess);
                 Marshal.FreeHGlobal(hToken);
                 return false;
@@ -1616,7 +1616,7 @@ namespace WindowsLibrary
                 if (lastError != 1115 && lastError != 1190)
                 {
                     _logger.Log("Failed to initiate reboot [InitiateSystemShutdownEx=" + 
-                        Marshal.GetLastWin32Error().ToString() + "].", Logger.MsgType.ERROR);
+                        Marshal.GetLastWin32Error().ToString() + "].", SimpleLogger.MsgType.ERROR);
                     return false;
                 }
                 else if (lastError == 1115)

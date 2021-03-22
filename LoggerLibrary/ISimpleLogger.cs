@@ -2,7 +2,7 @@
 
 namespace LoggerLibrary
 {
-    public interface ILogger
+    public interface ISimpleLogger
     {
         string LogFilename { get; }
         string LogFolder { get; }
@@ -13,6 +13,6 @@ namespace LoggerLibrary
 
         bool Close();
         void Log(Exception e, string message);
-        void Log(string message, Logger.MsgType logLevel = Logger.MsgType.INFO);
+        void Log(string message, SimpleLogger.MsgType logLevel = SimpleLogger.MsgType.INFO);
     }
 }

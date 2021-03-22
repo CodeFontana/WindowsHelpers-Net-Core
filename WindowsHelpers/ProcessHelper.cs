@@ -16,9 +16,9 @@ namespace WindowsLibrary
     [SupportedOSPlatform("windows")]
     public class ProcessHelper
     {
-        private ILogger _logger;
+        private ISimpleLogger _logger;
 
-        public ProcessHelper(ILogger logger)
+        public ProcessHelper(ISimpleLogger logger)
         {
             _logger = logger;
         }
@@ -46,7 +46,7 @@ namespace WindowsLibrary
 
                 if (!NativeMethods.CreateEnvironmentBlock(out hEnvironment, hDuplicateToken, true))
                 {
-                    _logger.Log("Unable to create environment block [CreateEnvironmentBlock=" + Marshal.GetLastWin32Error().ToString() + "].", Logger.MsgType.WARN);
+                    _logger.Log("Unable to create environment block [CreateEnvironmentBlock=" + Marshal.GetLastWin32Error().ToString() + "].", SimpleLogger.MsgType.WARN);
                 }
 
                 if (!NativeMethods.CreateProcessAsUser(
@@ -64,7 +64,7 @@ namespace WindowsLibrary
                     ref si,
                     out pi))
                 {
-                    _logger.Log("Unable to create user process [CreateProcessAsUser=" + Marshal.GetLastWin32Error().ToString() + "].", Logger.MsgType.ERROR);
+                    _logger.Log("Unable to create user process [CreateProcessAsUser=" + Marshal.GetLastWin32Error().ToString() + "].", SimpleLogger.MsgType.ERROR);
 
                     Marshal.FreeHGlobal(hDuplicateToken);
                     Marshal.FreeHGlobal(hEnvironment);
@@ -120,13 +120,13 @@ namespace WindowsLibrary
 
                 if (sessionId == -1)
                 {
-                    _logger.Log("Failed to match any/existing logon session with user [" + userId.Name + "].", Logger.MsgType.ERROR);
+                    _logger.Log("Failed to match any/existing logon session with user [" + userId.Name + "].", SimpleLogger.MsgType.ERROR);
                     return false;
                 }
 
                 if (!NativeMethods.WTSQueryUserToken((uint)sessionId, out IntPtr hUserToken))
                 {
-                    _logger.Log("Failed to query user token [WTSQueryUserToken=" + Marshal.GetLastWin32Error().ToString() + "].", Logger.MsgType.ERROR);
+                    _logger.Log("Failed to query user token [WTSQueryUserToken=" + Marshal.GetLastWin32Error().ToString() + "].", SimpleLogger.MsgType.ERROR);
                     return false;
                 }
 
@@ -145,7 +145,7 @@ namespace WindowsLibrary
 
                 if (!NativeMethods.CreateEnvironmentBlock(out hEnvironment, hDuplicateToken, true))
                 {
-                    _logger.Log("Unable to create environment block [CreateEnvironmentBlock=" + Marshal.GetLastWin32Error().ToString() + "].", Logger.MsgType.WARN);
+                    _logger.Log("Unable to create environment block [CreateEnvironmentBlock=" + Marshal.GetLastWin32Error().ToString() + "].", SimpleLogger.MsgType.WARN);
                 }
 
                 if (!NativeMethods.CreateProcessAsUser(
@@ -637,7 +637,7 @@ namespace WindowsLibrary
                     // Last chance.
                     if (!File.Exists(appFileName) && !File.Exists(appFileName.TrimStart('\\')))
                     {
-                        _logger.Log("Application not found [" + origAppToExecute + "].", Logger.MsgType.ERROR);
+                        _logger.Log("Application not found [" + origAppToExecute + "].", SimpleLogger.MsgType.ERROR);
                         return Tuple.Create((long)-1, "");
                     }
                 }
@@ -732,7 +732,7 @@ namespace WindowsLibrary
 
                         if (!hideStreamOutput && !hideExecution)
                         {
-                            _logger.Log(textLine, Logger.MsgType.INFO);
+                            _logger.Log(textLine, SimpleLogger.MsgType.INFO);
                         }
                     }
                 }
@@ -762,7 +762,7 @@ namespace WindowsLibrary
                 if (!p.HasExited)
                 {
                     p.Kill();
-                    _logger.Log("Killed: " + Path.GetFileName(appFileName) + " [Timeout breached]", Logger.MsgType.ERROR);
+                    _logger.Log("Killed: " + Path.GetFileName(appFileName) + " [Timeout breached]", SimpleLogger.MsgType.ERROR);
                 }
                 else
                 {
@@ -864,7 +864,7 @@ namespace WindowsLibrary
                 // Last chance.
                 if (!File.Exists(appFileName) && !File.Exists(appFileName.TrimStart('\\')))
                 {
-                    _logger.Log("Application not found [" + origAppToExecute + "].", Logger.MsgType.ERROR);
+                    _logger.Log("Application not found [" + origAppToExecute + "].", SimpleLogger.MsgType.ERROR);
                     return false;
                 }
             }
