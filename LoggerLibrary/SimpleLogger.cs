@@ -6,6 +6,11 @@ using System.Linq;
 
 namespace LoggerLibrary
 {
+    /// <summary>
+    /// An implementation of SimpleLogger, providing basic logging functionality
+    /// to disk. Features include log size and maximum increment setting, along
+    /// with automatic rollover from one file to the next.
+    /// </summary>
     public class SimpleLogger : ISimpleLogger
     {
         public static List<Tuple<string, SimpleLogger>> LogManager { get; } = new List<Tuple<string, SimpleLogger>>();
@@ -24,21 +29,17 @@ namespace LoggerLibrary
 
         public enum MsgType { NONE, INFO, DEBUG, WARN, ERROR };
 
+        /// <summary>
+        /// Default constructor takes no parameters, to facilitate dependency injection.
+        /// </summary>
+        public SimpleLogger()
+        {
+            
+        }
+
         // For reference:
         //   1 MB = 1000000 Bytes (in decimal)
         //   1 MB = 1048576 Bytes (in binary)
-
-        /// <summary>
-        /// Instantiates a new log file, or resumes an existing file.
-        /// </summary>
-        /// <param name="logName">Component name for log file.</param>
-        /// <param name="logPath">Path where logs file(s) will be saved.</param>
-        /// <param name="maxBytes">Maximum size (in bytes) for the log file. If unspecified, the default is 50MB per log.</param>
-        /// <param name="maxCount">Maximum count of log files for rotation. If unspecified, the default is 10 logs.</param>
-        public SimpleLogger(string logName, string logPath = null, long maxBytes = 50 * 1048576, uint maxCount = 10)
-        {
-            Open(logName, logPath, maxBytes, maxCount);
-        }
 
         /// <summary>
         /// Opens a new log file or resumes an existing one.
@@ -47,7 +48,7 @@ namespace LoggerLibrary
         /// <param name="logPath">Path where logs file(s) will be saved.</param>
         /// <param name="maxBytes">Maximum size (in bytes) for the log file. If unspecified, the default is 50MB per log.</param>
         /// <param name="maxCount">Maximum count of log files for rotation. If unspecified, the default is 10 logs.</param>
-        private void Open(string logName, string logPath = null, long maxBytes = 50 * 1048576, uint maxCount = 10)
+        public void Open(string logName, string logPath = null, long maxBytes = 50 * 1048576, uint maxCount = 10)
         {
             // If open, close the log file.
             if (LogFilename != null &&
