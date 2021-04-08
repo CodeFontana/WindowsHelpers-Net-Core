@@ -13,7 +13,7 @@ namespace LoggerLibrary
     /// </summary>
     public class SimpleLogger : ISimpleLogger
     {
-        public static List<Tuple<string, SimpleLogger>> LogManager { get; } = new List<Tuple<string, SimpleLogger>>();
+        public static List<SimpleLogger> LogManager { get; } = new List<SimpleLogger>();
 
         private FileStream _logStream = null;
         private StreamWriter _logWriter = null;
@@ -50,6 +50,15 @@ namespace LoggerLibrary
         /// <param name="maxCount">Maximum count of log files for rotation. If unspecified, the default is 10 logs.</param>
         public void Open(string logName, string logPath = null, long maxBytes = 50 * 1048576, uint maxCount = 10)
         {
+            // Check for exisitng logger before creating a new one.
+            var existingLogger = LogManager.Where(l => l.LogName.ToLower().Equals(logName.ToLower())).FirstOrDefault();
+
+            if (existingLogger != null)
+            {
+                existingLogger.Open(logName, logPath, maxBytes, maxCount);
+                return;
+            }
+
             // If open, close the log file.
             if (LogFilename != null &&
                 _logWriter != null &&
@@ -65,7 +74,7 @@ namespace LoggerLibrary
                 string processPath = processName.Substring(0, processName.LastIndexOf("\\"));
                 LogFolder = processPath;
             }
-            else if (!Directory.Exists(logPath))
+            else if (Directory.Exists(logPath) == false)
             {
                 Directory.CreateDirectory(logPath);
                 LogFolder = logPath;
@@ -97,10 +106,7 @@ namespace LoggerLibrary
             //       existing instance.
             //   --> Think of static Log(component) as 'GetInstance(component)',
             //       but shortened to 'Log(component)'.
-            if (!LogManager.Any(tup => tup.Item1.ToLower().Equals(LogName.ToLower())))
-            {
-                LogManager.Add(new Tuple<string, SimpleLogger>(LogName, this));
-            }
+            LogManager.Add(this);
         }
 
         /// <summary>
@@ -109,7 +115,7 @@ namespace LoggerLibrary
         /// </summary>
         private void IncrementLog()
         {
-            if (!_rollMode)
+            if (_rollMode == false)
             {
                 // After we find our starting point, we will permanetly be in 
                 // rollMode, meaning we will always increment/wrap to the next
@@ -244,7 +250,8 @@ namespace LoggerLibrary
         /// <param name="logLevel">Log level specification. If unspecified, the default is 'INFO'.</param>
         public void Log(string message, MsgType logLevel = MsgType.INFO)
         {
-            if (!string.IsNullOrEmpty(message) && !string.IsNullOrWhiteSpace(message))
+            if (string.IsNullOrEmpty(message) == false && 
+                string.IsNullOrWhiteSpace(message) == false)
             {
                 long logSizeBytes = new FileInfo(LogFilename).Length;
 
@@ -280,7 +287,7 @@ namespace LoggerLibrary
                 Console.WriteLine(MsgHeader(LogName, MsgType.ERROR) + e.Message);
                 _logWriter.WriteLine(MsgHeader(LogName, MsgType.ERROR) + e.Message);
 
-                if (!string.IsNullOrEmpty(message) && !string.IsNullOrWhiteSpace(message))
+                if (string.IsNullOrEmpty(message) == false && string.IsNullOrWhiteSpace(message) == false)
                 {
                     Console.WriteLine(MsgHeader(LogName, MsgType.ERROR) + message);
                     _logWriter.WriteLine(MsgHeader(LogName, MsgType.ERROR) + message);
@@ -317,12 +324,12 @@ namespace LoggerLibrary
         public static void Log(string component, string message, MsgType logLevel = MsgType.INFO)
         {
             var logger = LogManager
-                .Where(l => l.Item1.ToLower().Equals(component.ToLower()))
+                .Where(l => l.LogName.ToLower().Equals(component.ToLower()))
                 .FirstOrDefault();
 
             if (logger != null)
             {
-                logger.Item2.Log(message, logLevel);
+                logger.Log(message, logLevel);
             }
             else
             {
@@ -339,12 +346,12 @@ namespace LoggerLibrary
         public static void Log(string component, Exception e, string message)
         {
             var logger = LogManager
-                .Where(l => l.Item1.ToLower().Equals(component.ToLower()))
+                .Where(l => l.LogName.ToLower().Equals(component.ToLower()))
                 .FirstOrDefault();
 
             if (logger != null)
             {
-                logger.Item2.Log(e, message);
+                logger.Log(e, message);
             }
             else
             {
