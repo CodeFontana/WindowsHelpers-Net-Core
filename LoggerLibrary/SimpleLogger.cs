@@ -55,7 +55,6 @@ namespace LoggerLibrary
 
             if (existingLogger != null)
             {
-                existingLogger.Open(logName, logPath, maxBytes, maxCount);
                 return;
             }
 
