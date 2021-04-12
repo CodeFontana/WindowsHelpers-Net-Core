@@ -51,7 +51,9 @@ namespace LoggerLibrary
         public void Open(string logName, string logPath = null, long maxBytes = 50 * 1048576, uint maxCount = 10)
         {
             // Check for exisitng logger before creating a new one.
-            var existingLogger = LogManager.Where(l => l.LogName.ToLower().Equals(logName.ToLower())).FirstOrDefault();
+            var existingLogger = LogManager
+                .Where(l => l.LogName.ToLower().Equals(logName.ToLower()))
+                .FirstOrDefault();
 
             if (existingLogger != null)
             {
