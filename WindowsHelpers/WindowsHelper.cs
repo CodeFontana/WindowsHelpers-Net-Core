@@ -14,6 +14,8 @@ using System.Security.Cryptography.X509Certificates;
 using LoggerLibrary;
 using System.Runtime.Versioning;
 using System.DirectoryServices.AccountManagement;
+using System.Linq;
+using System.Management;
 
 namespace WindowsLibrary
 {
@@ -570,6 +572,57 @@ namespace WindowsLibrary
             }
 
             return IntPtr.Zero;
+        }
+
+        public List<Tuple<uint, string>> GetParentProcesses()
+        {
+            var ParentProcessList = new List<Tuple<uint, string>>();
+            int currentPID = Process.GetCurrentProcess().Id;
+            var loopSafetyList = new List<uint>();
+            loopSafetyList.Add((uint)currentPID);
+
+            for (int i = 0; i <= Process.GetProcesses().Count() / 2; i++)
+            {
+                var wmiQuery = new ManagementObjectSearcher("SELECT ParentProcessId FROM Win32_Process WHERE ProcessId=" + currentPID);
+                var wmiResult = wmiQuery.Get().GetEnumerator();
+                wmiResult.MoveNext();
+                ManagementBaseObject currentObject = wmiResult.Current;
+                uint parentPID = (uint)currentObject["ParentProcessId"];
+                wmiQuery.Dispose();
+                currentObject.Dispose();
+
+                if (int.TryParse(parentPID.ToString(), out int result) == false)
+                {
+                    break; // Invalid PPID -- PPID has terminated already.
+                }
+
+                if (loopSafetyList.Contains(parentPID))
+                {
+                    break; // Loop safety -- We've traversed this PPID already.
+                }
+                else
+                {
+                    loopSafetyList.Add(parentPID);
+                }
+
+                try
+                {
+                    string parentProcessName = Process.GetProcessById((int)parentPID).ProcessName;
+                    _logger.Log($"Parent: {parentPID}/{parentProcessName}");
+                    ParentProcessList.Add(new Tuple<uint, string>(parentPID, parentProcessName.ToLower()));
+                    currentPID = (int)parentPID;
+                }
+                catch (ArgumentException)
+                {
+                    break; // Parent process has probably terminated.
+                }
+                catch (Exception)
+                {
+                    break; // Catch all.
+                }
+            }
+
+            return ParentProcessList;
         }
 
         public string GetTimeStamp()
