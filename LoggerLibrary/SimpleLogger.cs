@@ -17,6 +17,7 @@ namespace LoggerLibrary
 
         private FileStream _logStream = null;
         private StreamWriter _logWriter = null;
+        private List<string> _logBuffer = new List<string>();
         private readonly object _lockObj = new object();
         private bool _rollMode = false;
 
@@ -108,6 +109,18 @@ namespace LoggerLibrary
             //   --> Think of static Log(component) as 'GetInstance(component)',
             //       but shortened to 'Log(component)'.
             LogManager.Add(this);
+
+            // Push any buffered messages.
+            lock (_lockObj)
+            {
+                foreach (var msg in _logBuffer)
+                {
+                    Console.WriteLine(msg);
+                    _logWriter.WriteLine(msg);
+                }
+
+                _logBuffer.Clear();
+            }
         }
 
         /// <summary>
@@ -254,17 +267,35 @@ namespace LoggerLibrary
             if (string.IsNullOrEmpty(message) == false && 
                 string.IsNullOrWhiteSpace(message) == false)
             {
-                long logSizeBytes = new FileInfo(LogFilename).Length;
-
-                if (logSizeBytes >= LogMaxBytes)
+                if (LogFilename == null)
                 {
-                    Open(LogName, LogFolder, LogMaxBytes, LogMaxCount);
+                    lock (_lockObj)
+                    {
+                        _logBuffer.Add(MsgHeader(LogName, logLevel) + message);
+                    }
                 }
-
-                lock (_lockObj)
+                else
                 {
-                    Console.WriteLine(MsgHeader(LogName, logLevel) + message);
-                    _logWriter.WriteLine(MsgHeader(LogName, logLevel) + message);
+                    long logSizeBytes = new FileInfo(LogFilename).Length;
+
+                    if (logSizeBytes >= LogMaxBytes)
+                    {
+                        Open(LogName, LogFolder, LogMaxBytes, LogMaxCount);
+                    }
+
+                    lock (_lockObj)
+                    {
+                        foreach(var msg in _logBuffer)
+                        {
+                            Console.WriteLine(msg);
+                            _logWriter.WriteLine(msg);
+                        }
+
+                        _logBuffer.Clear();
+
+                        Console.WriteLine(MsgHeader(LogName, logLevel) + message);
+                        _logWriter.WriteLine(MsgHeader(LogName, logLevel) + message);
+                    }
                 }
             }
         }
@@ -276,22 +307,42 @@ namespace LoggerLibrary
         /// <param name="message">Additional message for debugging purposes.</param>
         public void Log(Exception e, string message)
         {
-            long logSizeBytes = new FileInfo(LogFilename).Length;
-
-            if (logSizeBytes >= LogMaxBytes)
+            if (LogFilename == null)
             {
-                Open(LogName, LogFolder, LogMaxBytes, LogMaxCount);
-            }
-
-            lock (_lockObj)
-            {
-                Console.WriteLine(MsgHeader(LogName, MsgType.ERROR) + e.Message);
-                _logWriter.WriteLine(MsgHeader(LogName, MsgType.ERROR) + e.Message);
-
-                if (string.IsNullOrEmpty(message) == false && string.IsNullOrWhiteSpace(message) == false)
+                lock (_lockObj)
                 {
-                    Console.WriteLine(MsgHeader(LogName, MsgType.ERROR) + message);
-                    _logWriter.WriteLine(MsgHeader(LogName, MsgType.ERROR) + message);
+                    _logBuffer.Add(MsgHeader(LogName, MsgType.ERROR) + e.Message);
+                    _logBuffer.Add(MsgHeader(LogName, MsgType.ERROR) + message);
+                }
+            }
+            else
+            {
+                long logSizeBytes = new FileInfo(LogFilename).Length;
+
+                if (logSizeBytes >= LogMaxBytes)
+                {
+                    Open(LogName, LogFolder, LogMaxBytes, LogMaxCount);
+                }
+
+                lock (_lockObj)
+                {
+                    foreach (var msg in _logBuffer)
+                    {
+                        Console.WriteLine(msg);
+                        _logWriter.WriteLine(msg);
+                    }
+
+                    _logBuffer.Clear();
+
+                    Console.WriteLine(MsgHeader(LogName, MsgType.ERROR) + e.Message);
+                    _logWriter.WriteLine(MsgHeader(LogName, MsgType.ERROR) + e.Message);
+
+                    if (string.IsNullOrEmpty(message) == false && 
+                        string.IsNullOrWhiteSpace(message) == false)
+                    {
+                        Console.WriteLine(MsgHeader(LogName, MsgType.ERROR) + message);
+                        _logWriter.WriteLine(MsgHeader(LogName, MsgType.ERROR) + message);
+                    }
                 }
             }
         }
