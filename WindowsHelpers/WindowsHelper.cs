@@ -26,6 +26,7 @@ namespace WindowsLibrary
         {
             _logger = logger;
         }
+
         public bool AddHostFileEntry(string entry)
         {
             try
@@ -38,6 +39,42 @@ namespace WindowsLibrary
             catch (Exception e)
             {
                 _logger.Log(e, "Failed to add hosts file entry.");
+                return false;
+            }
+
+            return true;
+        }
+
+        public bool AddToSystemPath(string folder)
+        {
+            try
+            {
+                if (Directory.Exists(folder) == false)
+                {
+                    return false;
+                }
+
+                bool existsOnPath = false;
+                string pathVariable = Environment.GetEnvironmentVariable("PATH", EnvironmentVariableTarget.Machine);
+
+                foreach (string path in pathVariable.Split(';'))
+                {
+                    if (path.ToLower().Equals(folder.ToLower()))
+                    {
+                        existsOnPath = true;
+                        break;
+                    }
+                }
+
+                if (!existsOnPath)
+                {
+                    string newPathVariable = pathVariable + ";" + folder;
+                    Environment.SetEnvironmentVariable("Path", newPathVariable, EnvironmentVariableTarget.Machine);
+                }
+            }
+            catch (Exception e)
+            {
+                _logger.Log(e, $"Failed to add {folder} to system PATH variable.");
                 return false;
             }
 
@@ -1703,12 +1740,12 @@ namespace WindowsLibrary
                         synthArgs[i] = synthArgs[i].Substring(1, synthArgs[i].Length - 2);
                     }
 
-                    _logger.Log("Argument [" + i.ToString() + "]: " + synthArgs[i]);
+                    _logger?.Log("Argument [" + i.ToString() + "]: " + synthArgs[i]);
                 }
             }
             else
             {
-                _logger.Log("Arguments: <None>");
+                _logger?.Log("Arguments: <None>");
             }
 
             return synthArgs;
