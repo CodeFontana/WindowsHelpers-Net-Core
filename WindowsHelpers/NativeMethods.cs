@@ -138,10 +138,14 @@ namespace WindowsLibrary
             uint dwErrorControl,
             string lpBinaryPathName,
             string lpLoadOrderGroup,
-            string lpdwTagId,
+            IntPtr lpdwTagId,
             string lpDependencies,
             string lpServiceStartName,
             string lpPassword);
+
+        [DllImport("advapi32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool DeleteService(IntPtr hService);
 
         [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
         public static extern bool DeviceIoControl(
@@ -990,7 +994,7 @@ namespace WindowsLibrary
         }
 
         [Flags]
-        public enum SERVICE_TYPES : int
+        public enum SERVICE_TYPES : uint
         {
             SERVICE_KERNEL_DRIVER = 0x00000001,
             SERVICE_FILE_SYSTEM_DRIVER = 0x00000002,
@@ -999,7 +1003,7 @@ namespace WindowsLibrary
             SERVICE_INTERACTIVE_PROCESS = 0x00000100
         }
 
-        public enum SERVICE_START_TYPES : int
+        public enum SERVICE_START_TYPES : uint
         {
             SERVICE_AUTO_START = 0x00000002,
             SERVICE_BOOT_START = 0x00000000,
@@ -1008,7 +1012,7 @@ namespace WindowsLibrary
             SERVICE_SYSTEM_START = 0x00000001
         }
 
-        public enum SERVICE_ERROR_CONTROL : int
+        public enum SERVICE_ERROR_CONTROL : uint
         {
             SERVICE_ERROR_CRITICAL = 0x00000003,
             SERVICE_ERROR_IGNORE = 0x00000000,
