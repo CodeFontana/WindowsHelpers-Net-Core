@@ -5,9 +5,6 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Security.Principal;
 using System.Collections.Generic;
-using System.Drawing;
-using System.Windows.Forms;
-using System.Drawing.Imaging;
 using System.Security.AccessControl;
 using System.Text;
 using System.Security.Cryptography.X509Certificates;
@@ -83,7 +80,9 @@ namespace WindowsLibrary
             return true;
         }
 
-        public List<Tuple<string, Bitmap>> CaptureScreen()
+        // Replace with: https://stackoverflow.com/questions/52443399/c-net-code-to-screen-capture-multiple-monitors-with-scaling
+
+        /*public List<Tuple<string, Bitmap>> CaptureScreen()
         {
             try
             {
@@ -109,9 +108,9 @@ namespace WindowsLibrary
             }
 
             return null;
-        }
+        }*/
 
-        public bool CaptureScreen(string outputFolder)
+        /*public bool CaptureScreen(string outputFolder)
         {
             try
             {
@@ -136,7 +135,7 @@ namespace WindowsLibrary
             }
 
             return false;
-        }
+        }*/
 
         public void CreateShortcut(
             string shortcutFileName,
