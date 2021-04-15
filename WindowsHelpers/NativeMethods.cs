@@ -320,6 +320,9 @@ namespace WindowsLibrary
         [DllImport("User32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
         public static extern IntPtr OpenWindowStation(string name, bool fInherit, uint needAccess);
 
+        [DllImport("advapi32.dll", SetLastError = true)]
+        public static extern bool QueryServiceStatusEx(SafeHandle hService, int infoLevel, IntPtr lpBuffer, uint cbBufSize, out uint pcbBytesNeeded);
+
         [DllImport("advapi32.dll", CharSet = CharSet.Auto, SetLastError = true)]
         public static extern bool RevertToSelf();
 
@@ -817,6 +820,29 @@ namespace WindowsLibrary
             public string lpCommand;
             public int cActions;
             public IntPtr lpsaActions;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public sealed class SERVICE_STATUS_PROCESS
+        {
+            [MarshalAs(UnmanagedType.U4)]
+            public uint dwServiceType;
+            [MarshalAs(UnmanagedType.U4)]
+            public uint dwCurrentState;
+            [MarshalAs(UnmanagedType.U4)]
+            public uint dwControlsAccepted;
+            [MarshalAs(UnmanagedType.U4)]
+            public uint dwWin32ExitCode;
+            [MarshalAs(UnmanagedType.U4)]
+            public uint dwServiceSpecificExitCode;
+            [MarshalAs(UnmanagedType.U4)]
+            public uint dwCheckPoint;
+            [MarshalAs(UnmanagedType.U4)]
+            public uint dwWaitHint;
+            [MarshalAs(UnmanagedType.U4)]
+            public uint dwProcessId;
+            [MarshalAs(UnmanagedType.U4)]
+            public uint dwServiceFlags;
         }
 
         // ******************************
@@ -1937,6 +1963,9 @@ namespace WindowsLibrary
         public const int TIME_ZONE_ID_UNKNOWN = 0;
         public const int TIME_ZONE_ID_STANDARD = 1;
         public const int TIME_ZONE_ID_DAYLIGHT = 2;
+
+        public const int ERROR_INSUFFICIENT_BUFFER = 0x7a;
+        public const int SC_STATUS_PROCESS_INFO = 0;
 
         // ******************************
         // Definitations.

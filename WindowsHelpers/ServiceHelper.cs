@@ -262,6 +262,56 @@ namespace WindowsLibrary
             return true;
         }
 
+        public int GetServiceProcessId(ServiceController sc)
+        {
+            if (sc == null)
+            {
+                throw new ArgumentNullException("sc");
+            }
+
+            IntPtr buffer = IntPtr.Zero;
+
+            try
+            {
+                UInt32 dwBytesNeeded;
+                
+                // Call once to figure the size of the output buffer.
+                NativeMethods.QueryServiceStatusEx(
+                    sc.ServiceHandle, 
+                    NativeMethods.SC_STATUS_PROCESS_INFO, 
+                    buffer, 
+                    0, 
+                    out dwBytesNeeded);
+
+                if (Marshal.GetLastWin32Error() == NativeMethods.ERROR_INSUFFICIENT_BUFFER)
+                {
+                    // Allocate required buffer and call again.
+                    buffer = Marshal.AllocHGlobal((int)dwBytesNeeded);
+
+                    if (NativeMethods.QueryServiceStatusEx(
+                        sc.ServiceHandle, 
+                        NativeMethods.SC_STATUS_PROCESS_INFO, 
+                        buffer, 
+                        dwBytesNeeded, 
+                        out dwBytesNeeded))
+                    {
+                        var ssp = new NativeMethods.SERVICE_STATUS_PROCESS();
+                        Marshal.PtrToStructure(buffer, ssp);
+                        return (int)ssp.dwProcessId;
+                    }
+                }
+            }
+            finally
+            {
+                if (buffer != IntPtr.Zero)
+                {
+                    Marshal.FreeHGlobal(buffer);
+                }
+            }
+
+            return -1;
+        }
+
         public bool ServiceExists(string serviceName)
         {
             ServiceController[] sc = ServiceController.GetServices();
