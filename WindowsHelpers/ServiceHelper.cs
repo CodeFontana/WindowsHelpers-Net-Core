@@ -312,6 +312,104 @@ namespace WindowsLibrary
             return -1;
         }
 
+        public bool InstallService(
+            string serviceName, 
+            string serviceFileName, 
+            string displayName,
+            NativeMethods.SERVICE_START_TYPES startType)
+        {
+            try
+            {
+                IntPtr hServiceManager = NativeMethods.OpenSCManager(
+                    null, 
+                    null, 
+                    NativeMethods.SC_MANAGER_ALL_ACCESS);
+
+                if (hServiceManager == IntPtr.Zero)
+                {
+                    _logger.Log("Unable to open service control manager.", SimpleLogger.MsgType.ERROR);
+                    return false;
+                }
+
+                IntPtr hNewService = NativeMethods.CreateService(
+                    hServiceManager, 
+                    serviceName, 
+                    displayName, 
+                    NativeMethods.SC_MANAGER_ALL_ACCESS, 
+                    (uint)NativeMethods.SERVICE_TYPES.SERVICE_WIN32_OWN_PROCESS | (uint)NativeMethods.SERVICE_TYPES.SERVICE_INTERACTIVE_PROCESS, 
+                    (uint)startType, 
+                    (uint)NativeMethods.SERVICE_ERROR_CONTROL.SERVICE_ERROR_NORMAL, 
+                    serviceFileName, 
+                    null, 
+                    IntPtr.Zero, 
+                    null, 
+                    null, 
+                    null);
+
+                NativeMethods.CloseServiceHandle(hServiceManager);
+
+                if (hNewService == IntPtr.Zero)
+                {
+                    _logger.Log("Failed to create new Windows service.", SimpleLogger.MsgType.ERROR);
+                    return false;
+                }
+                else
+                {
+                    return true;
+                }
+            }
+            catch (Exception e)
+            {
+                _logger.Log(e, "Failed to create new Windows service.");
+                return false;
+            }
+        }
+
+        public bool UninstallService(string serviceName)
+        {
+            try
+            {
+                IntPtr hServiceManager = NativeMethods.OpenSCManager(
+                    null,
+                    null,
+                    NativeMethods.SC_MANAGER_ALL_ACCESS);
+
+                if (hServiceManager == IntPtr.Zero)
+                {
+                    _logger.Log("Unable to open service control manager.", SimpleLogger.MsgType.ERROR);
+                    return false;
+                }
+
+                IntPtr hServiceHandle = NativeMethods.OpenService(
+                    hServiceManager,
+                    serviceName,
+                    NativeMethods.DELETE);
+
+                if (hServiceHandle == IntPtr.Zero)
+                {
+                    _logger.Log($"Failed to open requested service [{serviceName}].", SimpleLogger.MsgType.ERROR);
+                    NativeMethods.CloseServiceHandle(hServiceManager);
+                    return false;
+                }
+
+                NativeMethods.CloseServiceHandle(hServiceManager);
+
+                if (NativeMethods.DeleteService(hServiceHandle))
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            catch (Exception e)
+            {
+                _logger.Log(e, $"Failed to delete Windows service [{serviceName}].");
+                return false;
+            }
+        }
+
         public bool ServiceExists(string serviceName)
         {
             ServiceController[] sc = ServiceController.GetServices();
