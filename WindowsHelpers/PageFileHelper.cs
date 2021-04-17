@@ -12,10 +12,10 @@ namespace WindowsLibrary
     [SupportedOSPlatform("windows")]
     public class PageFileHelper
     {
-        private ISimpleLogger _logger;
+        private SimpleLogger _logger;
         public static List<PageFile> PageFiles = new List<PageFile>();
 
-        public PageFileHelper(ISimpleLogger logger)
+        public PageFileHelper(SimpleLogger logger)
         {
             _logger = logger;
             ReadConfig();

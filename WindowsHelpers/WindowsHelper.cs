@@ -19,9 +19,9 @@ namespace WindowsLibrary
     [SupportedOSPlatform("windows")]
     public class WindowsHelper
     {
-        private ISimpleLogger _logger;
+        private SimpleLogger _logger;
 
-        public WindowsHelper(ISimpleLogger logger)
+        public WindowsHelper(SimpleLogger logger)
         {
             _logger = logger;
         }
@@ -65,7 +65,7 @@ namespace WindowsLibrary
                     }
                 }
 
-                if (!existsOnPath)
+                if (existsOnPath == false)
                 {
                     string newPathVariable = pathVariable + ";" + folder;
                     Environment.SetEnvironmentVariable("Path", newPathVariable, EnvironmentVariableTarget.Machine);

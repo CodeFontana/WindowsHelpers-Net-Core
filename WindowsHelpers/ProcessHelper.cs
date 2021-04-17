@@ -16,9 +16,9 @@ namespace WindowsLibrary
     [SupportedOSPlatform("windows")]
     public class ProcessHelper
     {
-        private ISimpleLogger _logger;
+        private SimpleLogger _logger;
 
-        public ProcessHelper(ISimpleLogger logger)
+        public ProcessHelper(SimpleLogger logger)
         {
             _logger = logger;
         }

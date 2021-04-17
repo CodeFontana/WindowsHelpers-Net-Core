@@ -10,11 +10,11 @@ using System.Threading.Tasks;
 namespace WindowsLibrary
 {
     [SupportedOSPlatform("windows")]
-    public class WMIHelper
+    public class WmiHelper
     {
-        private ISimpleLogger _logger;
+        private SimpleLogger _logger;
 
-        public WMIHelper(ISimpleLogger logger)
+        public WmiHelper(SimpleLogger logger)
         {
             _logger = logger;
         }
@@ -24,9 +24,9 @@ namespace WindowsLibrary
         /// </summary>
         public static void SampleUsage()
         {
-            var logFile = new SimpleLogger();
-            logFile.Open("WMI_Sample_Usage");
-            WMIHelper wmi = new WMIHelper(logFile);
+            var logFile = SimpleLogger.CreateLog("WmiHelperSampleUsage");
+            logFile.Open();
+            WmiHelper wmi = new WmiHelper(logFile);
 
             // EXAMPLE: Get Manufacturer + Model info.
             logFile.Log("Example: Win32_ComputerSystem [Manufacturer and Model]\n");

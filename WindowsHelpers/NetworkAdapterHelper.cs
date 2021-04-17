@@ -9,10 +9,10 @@ namespace WindowsLibrary
     [SupportedOSPlatform("windows")]
     public class NetworkAdapterHelper
     {
-        private ISimpleLogger _logger;
+        private SimpleLogger _logger;
         public List<NetworkAdapter> adapterList;
 
-        public NetworkAdapterHelper(ISimpleLogger logger)
+        public NetworkAdapterHelper(SimpleLogger logger)
         {
             _logger = logger;
             QueryNetworkAdapters();
