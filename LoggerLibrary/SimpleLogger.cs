@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace LoggerLibrary
 {
@@ -11,7 +12,7 @@ namespace LoggerLibrary
     /// to disk. Features include log size and maximum increment setting, along
     /// with automatic rollover from one file to the next.
     /// </summary>
-    public class SimpleLogger : ISimpleLogger
+    public class SimpleLogger
     {
         public static List<SimpleLogger> LogManager { get; } = new List<SimpleLogger>();
 
@@ -30,26 +31,31 @@ namespace LoggerLibrary
 
         public enum MsgType { NONE, INFO, DEBUG, WARN, ERROR };
 
-        /// <summary>
-        /// Default constructor takes no parameters, to facilitate dependency injection.
-        /// </summary>
-        public SimpleLogger()
-        {
-            
-        }
-
         // For reference:
         //   1 MB = 1000000 Bytes (in decimal)
         //   1 MB = 1048576 Bytes (in binary)
 
         /// <summary>
-        /// Opens a new log file or resumes an existing one.
+        /// Default constructor.
+        /// </summary>
+        private SimpleLogger()
+        {
+            
+        }
+
+        /// <summary>
+        /// 
         /// </summary>
         /// <param name="logName">Component name for log file.</param>
-        /// <param name="logPath">Path where logs file(s) will be saved.</param>
-        /// <param name="maxBytes">Maximum size (in bytes) for the log file. If unspecified, the default is 50MB per log.</param>
-        /// <param name="maxCount">Maximum count of log files for rotation. If unspecified, the default is 10 logs.</param>
-        public void Open(string logName, string logPath = null, long maxBytes = 50 * 1048576, uint maxCount = 10)
+        /// <param name="logFolder">Path where logs file(s) will be saved.</param>
+        /// <param name="logMaxBytes">Maximum size (in bytes) for the log file. If unspecified, the default is 50MB per log.</param>
+        /// <param name="logMaxCount">Maximum count of log files for rotation. If unspecified, the default is 10 logs.</param>
+        /// <returns></returns>
+        public static SimpleLogger CreateLog(
+            string logName,
+            string logFolder = null,
+            long logMaxBytes = 50 * 1048576,
+            uint logMaxCount = 10)
         {
             // Check for exisitng logger before creating a new one.
             var existingLogger = LogManager
@@ -58,9 +64,41 @@ namespace LoggerLibrary
 
             if (existingLogger != null)
             {
-                return;
+                return existingLogger;
             }
 
+            // Create a new logger.
+            var newLogger = new SimpleLogger();
+
+            // Set log path.
+            if (logFolder == null)
+            {
+                string processName = Process.GetCurrentProcess().MainModule.FileName;
+                string processPath = processName.Substring(0, processName.LastIndexOf("\\"));
+                newLogger.LogFolder = processPath;
+            }
+            else if (Directory.Exists(logFolder) == false)
+            {
+                Directory.CreateDirectory(logFolder);
+                newLogger.LogFolder = logFolder;
+            }
+            else
+            {
+                newLogger.LogFolder = logFolder;
+            }
+
+            // Set logger properties.
+            newLogger.LogName = logName;
+            newLogger.LogMaxBytes = logMaxBytes;
+            newLogger.LogMaxCount = logMaxCount;
+            return newLogger;
+        }
+
+        /// <summary>
+        /// Opens a new log file or resumes an existing one.
+        /// </summary>
+        public void Open()
+        {
             // If open, close the log file.
             if (LogFilename != null &&
                 _logWriter != null &&
@@ -68,28 +106,6 @@ namespace LoggerLibrary
             {
                 Close();
             }
-
-            // Set log path.
-            if (logPath == null)
-            {
-                string processName = Process.GetCurrentProcess().MainModule.FileName;
-                string processPath = processName.Substring(0, processName.LastIndexOf("\\"));
-                LogFolder = processPath;
-            }
-            else if (Directory.Exists(logPath) == false)
-            {
-                Directory.CreateDirectory(logPath);
-                LogFolder = logPath;
-            }
-            else
-            {
-                LogFolder = logPath;
-            }
-
-            // Set log properties.
-            LogName = logName;
-            LogMaxBytes = maxBytes;
-            LogMaxCount = maxCount;
 
             // Select next available log increment (sets LogFilename).
             IncrementLog();
@@ -109,6 +125,9 @@ namespace LoggerLibrary
             //   --> Think of static Log(component) as 'GetInstance(component)',
             //       but shortened to 'Log(component)'.
             LogManager.Add(this);
+
+            // Write breakpoint.
+            _logWriter.WriteLine("########################################");
 
             // Push any buffered messages.
             lock (_lockObj)
@@ -264,8 +283,7 @@ namespace LoggerLibrary
         /// <param name="logLevel">Log level specification. If unspecified, the default is 'INFO'.</param>
         public void Log(string message, MsgType logLevel = MsgType.INFO)
         {
-            if (string.IsNullOrEmpty(message) == false && 
-                string.IsNullOrWhiteSpace(message) == false)
+            if (string.IsNullOrEmpty(message) == false && string.IsNullOrWhiteSpace(message) == false)
             {
                 if (LogFilename == null)
                 {
@@ -280,7 +298,7 @@ namespace LoggerLibrary
 
                     if (logSizeBytes >= LogMaxBytes)
                     {
-                        Open(LogName, LogFolder, LogMaxBytes, LogMaxCount);
+                        Open();
                     }
 
                     lock (_lockObj)
@@ -321,7 +339,7 @@ namespace LoggerLibrary
 
                 if (logSizeBytes >= LogMaxBytes)
                 {
-                    Open(LogName, LogFolder, LogMaxBytes, LogMaxCount);
+                    Open();
                 }
 
                 lock (_lockObj)
