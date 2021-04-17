@@ -1,5 +1,6 @@
 ﻿using LoggerLibrary;
 using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
@@ -10,11 +11,15 @@ namespace WindowsLibrary
     [SupportedOSPlatform("windows")]
     public class ServiceHelper
     {
-        private ISimpleLogger _logger;
+        private SimpleLogger _logger;
+        private readonly ProcessHelper _psHelper;
 
-        public ServiceHelper(ISimpleLogger logger)
+        public ServiceHelper(
+            SimpleLogger logger,
+            ProcessHelper psHelper)
         {
             _logger = logger;
+            _psHelper = psHelper;
         }
 
         public enum ServiceStart // For reference.
@@ -153,6 +158,78 @@ namespace WindowsLibrary
             return true;
         }
 
+        public bool ConfigureDescription(string serviceName, string description)
+        {
+            IntPtr scManagerHandle = IntPtr.Zero;
+            IntPtr scManagerLockHandle = IntPtr.Zero;
+            IntPtr serviceHandle = IntPtr.Zero;
+
+            try
+            {
+                if (ServiceExists(serviceName) == false)
+                {
+                    _logger.Log($"ERROR: Service does not exist [{serviceName}].");
+                    return false;
+                }
+
+                scManagerHandle = NativeMethods.OpenSCManagerA(
+                    null, null,
+                    NativeMethods.ServiceControlManagerType.SC_MANAGER_ALL_ACCESS);
+
+                if (scManagerHandle == IntPtr.Zero)
+                {
+                    _logger.Log("ERROR: Unable to open service control manager.");
+                    return false;
+                }
+
+                scManagerLockHandle = NativeMethods.LockServiceDatabase(scManagerHandle);
+
+                if (scManagerLockHandle == IntPtr.Zero)
+                {
+                    _logger.Log("ERROR: Unable to lock service control manager database.");
+                    return false;
+                }
+
+                serviceHandle = NativeMethods.OpenServiceA(
+                    scManagerHandle,
+                    serviceName,
+                    NativeMethods.ACCESS_TYPE.SERVICE_ALL_ACCESS);
+
+                if (serviceHandle == IntPtr.Zero)
+                {
+                    _logger.Log("ERROR: Unable to open specified service [" + serviceName + "].");
+                    return false;
+                }
+
+                NativeMethods.SERVICE_DESCRIPTION serviceDesc;
+                serviceDesc.lpDescription = description;
+
+                bool configSuccess = NativeMethods.ChangeServiceConfig2A(
+                    serviceHandle,
+                    NativeMethods.InfoLevel.SERVICE_CONFIG_DESCRIPTION,
+                    ref serviceDesc);
+
+                if (configSuccess == false)
+                {
+                    _logger.Log("ERROR: Unable to configure service failure actions [ChangeServiceConfig2A=" +
+                        Marshal.GetLastWin32Error().ToString() + "].");
+                    return false;
+                }
+            }
+            catch (Exception e)
+            {
+                _logger.Log(e, "Failed to configure service failure actions.");
+            }
+            finally
+            {
+                if (serviceHandle != IntPtr.Zero) { NativeMethods.CloseServiceHandle(serviceHandle); }
+                if (scManagerLockHandle != IntPtr.Zero) { NativeMethods.UnlockServiceDatabase(scManagerLockHandle); }
+                if (scManagerHandle != IntPtr.Zero) { NativeMethods.CloseServiceHandle(scManagerHandle); }
+            }
+
+            return true;
+        }
+
         public bool ConfigureRestartActions(string serviceName)
         {
             /* Note: For now, this function is hard-coded to set recovery actions
@@ -220,12 +297,14 @@ namespace WindowsLibrary
                 NativeMethods.CopyMemory(actionsBuffer, scActions, Marshal.SizeOf(new NativeMethods.SC_ACTION()) * 3);
                 serviceFailureActions.lpsaActions = actionsBuffer;
 
+                IntPtr lpInfo = Marshal.AllocHGlobal(Marshal.SizeOf(serviceFailureActions));
+
                 bool configSuccess = NativeMethods.ChangeServiceConfig2A(
                     serviceHandle,
                     NativeMethods.InfoLevel.SERVICE_CONFIG_FAILURE_ACTIONS,
                     ref serviceFailureActions);
 
-                if (!configSuccess)
+                if (configSuccess == false)
                 {
                     _logger.Log("ERROR: Unable to configure service failure actions [ChangeServiceConfig2A=" +
                         Marshal.GetLastWin32Error().ToString() + "].");
@@ -238,25 +317,10 @@ namespace WindowsLibrary
             }
             finally
             {
-                if (actionsBuffer != IntPtr.Zero)
-                {
-                    Marshal.FreeHGlobal(actionsBuffer);
-                }
-
-                if (serviceHandle != IntPtr.Zero)
-                {
-                    NativeMethods.CloseServiceHandle(serviceHandle);
-                }
-
-                if (scManagerLockHandle != IntPtr.Zero)
-                {
-                    NativeMethods.UnlockServiceDatabase(scManagerLockHandle);
-                }
-
-                if (scManagerHandle != IntPtr.Zero)
-                {
-                    NativeMethods.CloseServiceHandle(scManagerHandle);
-                }
+                if (actionsBuffer != IntPtr.Zero) { Marshal.FreeHGlobal(actionsBuffer); }
+                if (serviceHandle != IntPtr.Zero) { NativeMethods.CloseServiceHandle(serviceHandle); }
+                if (scManagerLockHandle != IntPtr.Zero) { NativeMethods.UnlockServiceDatabase(scManagerLockHandle); }
+                if (scManagerHandle != IntPtr.Zero) { NativeMethods.CloseServiceHandle(scManagerHandle); }
             }
 
             return true;
@@ -273,7 +337,7 @@ namespace WindowsLibrary
 
             try
             {
-                UInt32 dwBytesNeeded;
+                uint dwBytesNeeded;
                 
                 // Call once to figure the size of the output buffer.
                 NativeMethods.QueryServiceStatusEx(
@@ -318,9 +382,13 @@ namespace WindowsLibrary
             string displayName,
             NativeMethods.SERVICE_START_TYPES startType)
         {
+            IntPtr hServiceManager = IntPtr.Zero;
+            IntPtr scManagerLockHandle = IntPtr.Zero;
+            IntPtr hNewService = IntPtr.Zero;
+
             try
             {
-                IntPtr hServiceManager = NativeMethods.OpenSCManager(
+                hServiceManager = NativeMethods.OpenSCManager(
                     null, 
                     null, 
                     NativeMethods.SC_MANAGER_ALL_ACCESS);
@@ -331,7 +399,15 @@ namespace WindowsLibrary
                     return false;
                 }
 
-                IntPtr hNewService = NativeMethods.CreateService(
+                scManagerLockHandle = NativeMethods.LockServiceDatabase(hServiceManager);
+
+                if (scManagerLockHandle == IntPtr.Zero)
+                {
+                    _logger.Log("ERROR: Unable to lock service control manager database.");
+                    return false;
+                }
+
+                hNewService = NativeMethods.CreateService(
                     hServiceManager, 
                     serviceName, 
                     displayName, 
@@ -345,8 +421,6 @@ namespace WindowsLibrary
                     null, 
                     null, 
                     null);
-
-                NativeMethods.CloseServiceHandle(hServiceManager);
 
                 if (hNewService == IntPtr.Zero)
                 {
@@ -363,13 +437,115 @@ namespace WindowsLibrary
                 _logger.Log(e, "Failed to create new Windows service.");
                 return false;
             }
+            finally
+            {
+                if (hNewService != IntPtr.Zero) { NativeMethods.CloseServiceHandle(hNewService); }
+                if (scManagerLockHandle != IntPtr.Zero) { NativeMethods.UnlockServiceDatabase(scManagerLockHandle); }
+                if (hServiceManager != IntPtr.Zero) { NativeMethods.CloseServiceHandle(hServiceManager); }
+            }
+        }
+
+        public bool StartService(string serviceName)
+        {
+            try
+            {
+                if (ServiceExists(serviceName))
+                {
+                    _logger.Log($"Start service [{serviceName}]...");
+                    var sc = new ServiceController(serviceName);
+
+                    if (sc.Status != ServiceControllerStatus.Stopped)
+                    {
+                        _logger.Log("Service is already running.");
+                    }
+                    else
+                    {
+                        sc.Start();
+                        _logger.Log("Service started.");
+                    }
+
+                    sc.Dispose();
+                    return true;
+                }
+                else
+                {
+                    _logger.Log($"Service does not exist [{serviceName}].", SimpleLogger.MsgType.ERROR);
+                    return false;
+                }
+            }
+            catch (Exception e)
+            {
+                _logger.Log(e, $"Failed to start requested service [{serviceName}].");
+                return false;
+            }
+        }
+
+        public bool StopService(string serviceName)
+        {
+            try
+            {
+                if (ServiceExists(serviceName))
+                {
+                    var svcCtrl = new ServiceController(serviceName);
+
+                    if (svcCtrl.Status != ServiceControllerStatus.Stopped)
+                    {
+                        int pid = GetServiceProcessId(svcCtrl);
+
+                        try
+                        {
+                            _logger.Log($"Service running [{serviceName}], send stop request...");
+                            svcCtrl.Stop();
+                            svcCtrl.WaitForStatus(ServiceControllerStatus.Stopped, 
+                                new TimeSpan(0, 2, 0));
+                        }
+                        catch (Exception e)
+                        {
+                            _logger.Log(e, "Failed to gracefully stop service.");
+                        }
+                        finally
+                        {
+                            if (Process.GetProcessById(pid) != null)
+                            {
+                                _logger.Log("Killing service...");
+                                _psHelper.KillProcess(pid);
+                            }
+
+                            _logger.Log("Service stopped.");
+                        }
+                    }
+                    else
+                    {
+                        _logger.Log($"Service not running [{serviceName}].");
+                    }
+
+                    svcCtrl.Dispose();
+                    return true;
+                }
+                else
+                {
+                    _logger.Log($"Service does not exist [{serviceName}].", SimpleLogger.MsgType.ERROR);
+                    return false;
+                }
+            }
+            catch (Exception e)
+            {
+                _logger.Log(e, $"Failed to stop requested service [{serviceName}].");
+                return false;
+            }
         }
 
         public bool UninstallService(string serviceName)
         {
+            IntPtr hServiceManager = IntPtr.Zero;
+            IntPtr scManagerLockHandle = IntPtr.Zero;
+            IntPtr hServiceHandle = IntPtr.Zero;
+
             try
             {
-                IntPtr hServiceManager = NativeMethods.OpenSCManager(
+                StopService(serviceName);
+
+                hServiceManager = NativeMethods.OpenSCManager(
                     null,
                     null,
                     NativeMethods.SC_MANAGER_ALL_ACCESS);
@@ -380,7 +556,15 @@ namespace WindowsLibrary
                     return false;
                 }
 
-                IntPtr hServiceHandle = NativeMethods.OpenService(
+                scManagerLockHandle = NativeMethods.LockServiceDatabase(hServiceManager);
+
+                if (scManagerLockHandle == IntPtr.Zero)
+                {
+                    _logger.Log("ERROR: Unable to lock service control manager database.");
+                    return false;
+                }
+
+                hServiceHandle = NativeMethods.OpenService(
                     hServiceManager,
                     serviceName,
                     NativeMethods.DELETE);
@@ -388,11 +572,8 @@ namespace WindowsLibrary
                 if (hServiceHandle == IntPtr.Zero)
                 {
                     _logger.Log($"Failed to open requested service [{serviceName}].", SimpleLogger.MsgType.ERROR);
-                    NativeMethods.CloseServiceHandle(hServiceManager);
                     return false;
                 }
-
-                NativeMethods.CloseServiceHandle(hServiceManager);
 
                 if (NativeMethods.DeleteService(hServiceHandle))
                 {
@@ -407,6 +588,12 @@ namespace WindowsLibrary
             {
                 _logger.Log(e, $"Failed to delete Windows service [{serviceName}].");
                 return false;
+            }
+            finally
+            {
+                if (hServiceHandle != IntPtr.Zero) { NativeMethods.CloseServiceHandle(hServiceHandle); }
+                if (scManagerLockHandle != IntPtr.Zero) { NativeMethods.UnlockServiceDatabase(scManagerLockHandle); }
+                if (hServiceManager != IntPtr.Zero) { NativeMethods.CloseServiceHandle(hServiceManager); }
             }
         }
 
