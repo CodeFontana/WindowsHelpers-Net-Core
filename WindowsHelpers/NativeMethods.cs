@@ -67,7 +67,13 @@ namespace WindowsLibrary
         public static extern bool ChangeServiceConfig2A(
             IntPtr hService,
             InfoLevel dwInfoLevel,
-            [MarshalAs(UnmanagedType.Struct)] ref SERVICE_FAILURE_ACTIONS lpInfo);
+            ref SERVICE_FAILURE_ACTIONS lpInfo);
+
+        [DllImport("advapi32.dll")]
+        public static extern bool ChangeServiceConfig2A(
+            IntPtr hService,
+            InfoLevel dwInfoLevel,
+            ref SERVICE_DESCRIPTION lpInfo);
 
         [DllImport("User32.Dll")]
         public static extern bool ClientToScreen(IntPtr hWnd, ref POINT point);
@@ -85,7 +91,7 @@ namespace WindowsLibrary
         [DllImport("User32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
         public static extern IntPtr CloseWindowStation(IntPtr hWinSta);
 
-        [DllImport("kernel32.dll")]
+        [DllImport("kernel32.dll", EntryPoint = "RtlCopyMemory")]
         public static extern void CopyMemory(IntPtr pDst, SC_ACTION[] pSrc, int ByteLen);
 
         [DllImport("userenv.dll", SetLastError = true)]
@@ -808,6 +814,15 @@ namespace WindowsLibrary
         {
             public SC_ACTION_TYPE SCActionType;
             public int Delay;
+        }
+
+        // The following structs are outlined here:
+        // https://docs.microsoft.com/en-us/windows/win32/api/winsvc/nf-winsvc-changeserviceconfig2a?redirectedfrom=MSDN
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct SERVICE_DELAYED_AUTO_START_INFO
+        {
+            public bool fDelayedAutostart;
         }
 
         [StructLayout(LayoutKind.Sequential)]
@@ -1608,7 +1623,12 @@ namespace WindowsLibrary
         public enum InfoLevel : int
         {
             SERVICE_CONFIG_DESCRIPTION = 1,
-            SERVICE_CONFIG_FAILURE_ACTIONS = 2
+            SERVICE_CONFIG_FAILURE_ACTIONS = 2,
+            SERVICE_CONFIG_DELAYED_AUTO_START_INFO = 3,
+            SERVICE_CONFIG_FAILURE_ACTIONS_FLAG = 4,
+            SERVICE_CONFIG_SERVICE_SID_INFO = 5,
+            SERVICE_CONFIG_REQUIRED_PRIVILEGES_INFO = 6,
+            SERVICE_CONFIG_PRESHUTDOWN_INFO = 7
         }
 
         // ******************************
