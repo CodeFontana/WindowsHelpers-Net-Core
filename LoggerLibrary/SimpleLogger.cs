@@ -14,12 +14,12 @@ namespace LoggerLibrary
     /// </summary>
     public class SimpleLogger
     {
-        public static List<SimpleLogger> LogManager { get; } = new List<SimpleLogger>();
+        public static List<SimpleLogger> LogManager { get; } = new();
 
         private FileStream _logStream = null;
         private StreamWriter _logWriter = null;
-        private List<string> _logBuffer = new List<string>();
-        private readonly object _lockObj = new object();
+        private List<string> _logBuffer = new();
+        private readonly object _lockObj = new();
         private bool _rollMode = false;
 
         public string LogName { get; private set; }
@@ -68,7 +68,7 @@ namespace LoggerLibrary
             }
 
             // Create a new logger.
-            var newLogger = new SimpleLogger();
+            SimpleLogger newLogger = new();
 
             // Set log path.
             if (logFolder == null)
