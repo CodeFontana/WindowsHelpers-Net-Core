@@ -26,7 +26,7 @@ namespace WindowsLibrary
         {
             var logFile = SimpleLogger.CreateLog("WmiHelperSampleUsage");
             logFile.Open();
-            WmiHelper wmi = new WmiHelper(logFile);
+            WmiHelper wmi = new(logFile);
 
             // EXAMPLE: Get Manufacturer + Model info.
             logFile.Log("Example: Win32_ComputerSystem [Manufacturer and Model]\n");
@@ -59,11 +59,11 @@ namespace WindowsLibrary
         /// <returns>Returns a list of available WMI namespaces.</returns>
         public List<string> GetWmiNamespaces(string rootPath = "root")
         {
-            var namespaces = new List<string>();
+            List<string> namespaces = new();
 
             try
             {
-                ManagementClass nsClass = new ManagementClass(new ManagementScope(rootPath), new ManagementPath("__namespace"), null);
+                ManagementClass nsClass = new(new ManagementScope(rootPath), new ManagementPath("__namespace"), null);
                 
                 foreach (ManagementObject ns in nsClass.GetInstances())
                 {
@@ -87,7 +87,7 @@ namespace WindowsLibrary
         /// <returns>Returns a list of available classes in the WMI namespace.</returns>
         public List<string> GetClassNamesWithinWmiNamespace(string wmiNamespaceName)
         {
-            var classes = new List<string>();
+            List<string> classes = new();
 
             try
             {
@@ -119,15 +119,15 @@ namespace WindowsLibrary
         /// <returns>A list of properties.</returns>
         public List<string> GetPropertiesOfWmiClass(string namespaceName, string wmiClassName)
         {
-            var output = new List<string>();
+            List<string> output = new();
             
             try
             {
-                ManagementPath managementPath = new ManagementPath();
+                ManagementPath managementPath = new();
                 managementPath.Path = namespaceName;
-                ManagementScope managementScope = new ManagementScope(managementPath);
-                ObjectQuery objectQuery = new ObjectQuery($"SELECT * FROM {wmiClassName}");
-                ManagementObjectSearcher objectSearcher = new ManagementObjectSearcher(managementScope, objectQuery);
+                ManagementScope managementScope = new(managementPath);
+                ObjectQuery objectQuery = new($"SELECT * FROM {wmiClassName}");
+                ManagementObjectSearcher objectSearcher = new(managementScope, objectQuery);
                 ManagementObjectCollection objectCollection = objectSearcher.Get();
 
                 foreach (ManagementObject obj in objectCollection)
@@ -162,35 +162,35 @@ namespace WindowsLibrary
             string wmiClassName,
             List<string> columns = null)
         {
-            var output = new List<string[]>();
+            List<string[]> output = new();
 
             try
             {
-                ManagementPath managementPath = new ManagementPath();
+                ManagementPath managementPath = new();
                 managementPath.Path = namespaceName;
-                ManagementScope managementScope = new ManagementScope(managementPath);
-                ObjectQuery objectQuery = new ObjectQuery($"SELECT * FROM {wmiClassName}");
+                ManagementScope managementScope = new(managementPath);
+                ObjectQuery objectQuery = new($"SELECT * FROM {wmiClassName}");
 
                 if (columns == null || columns[0].Equals("*"))
                 {
-                    objectQuery = new ObjectQuery($"SELECT * FROM {wmiClassName}");
+                    objectQuery = new($"SELECT * FROM {wmiClassName}");
                 }
                 else
                 {
-                    objectQuery = new ObjectQuery($"SELECT {string.Join(",", columns)} FROM {wmiClassName}");
+                    objectQuery = new($"SELECT {string.Join(",", columns)} FROM {wmiClassName}");
                 }
 
-                ManagementObjectSearcher searcher = new ManagementObjectSearcher(managementScope, objectQuery);
+                ManagementObjectSearcher searcher = new(managementScope, objectQuery);
                 ManagementObjectCollection objectCollection = searcher.Get();
 
                 foreach (ManagementObject obj in objectCollection)
                 {
-                    var row = new List<string>();
+                    List<string> row = new();
                     PropertyDataCollection props = obj.Properties;
 
                     if (output.Count == 0)
                     {
-                        var columnNames = new List<string>();
+                        List<string> columnNames = new();
 
                         foreach (PropertyData p in props)
                         {
@@ -238,35 +238,35 @@ namespace WindowsLibrary
             List<string> columns = null,
             int columnPadding = 1)
         {
-            var output = new List<string[]>();
+            List<string[]> output = new();
 
             try
             {
-                ManagementPath managementPath = new ManagementPath();
+                ManagementPath managementPath = new();
                 managementPath.Path = namespaceName;
-                ManagementScope managementScope = new ManagementScope(managementPath);
-                ObjectQuery objectQuery = new ObjectQuery($"SELECT * FROM {wmiClassName}");
+                ManagementScope managementScope = new(managementPath);
+                ObjectQuery objectQuery = new($"SELECT * FROM {wmiClassName}");
 
                 if (columns == null || columns[0].Equals("*"))
                 {
-                    objectQuery = new ObjectQuery($"SELECT * FROM {wmiClassName}");
+                    objectQuery = new($"SELECT * FROM {wmiClassName}");
                 }
                 else
                 {
-                    objectQuery = new ObjectQuery($"SELECT {string.Join(",", columns)} FROM {wmiClassName}");
+                    objectQuery = new($"SELECT {string.Join(",", columns)} FROM {wmiClassName}");
                 }
 
-                ManagementObjectSearcher searcher = new ManagementObjectSearcher(managementScope, objectQuery);
+                ManagementObjectSearcher searcher = new(managementScope, objectQuery);
                 ManagementObjectCollection objectCollection = searcher.Get();
 
                 foreach (ManagementObject obj in objectCollection)
                 {
-                    var row = new List<string>();
+                    List<string> row = new();
                     PropertyDataCollection props = obj.Properties;
 
                     if (output.Count == 0)
                     {
-                        var columnNames = new List<string>();
+                        List<string> columnNames = new();
 
                         foreach (PropertyData p in props)
                         {

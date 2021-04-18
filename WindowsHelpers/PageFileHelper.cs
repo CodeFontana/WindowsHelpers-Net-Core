@@ -13,7 +13,7 @@ namespace WindowsLibrary
     public class PageFileHelper
     {
         private SimpleLogger _logger;
-        public static List<PageFile> PageFiles = new List<PageFile>();
+        public static List<PageFile> PageFiles = new();
 
         public PageFileHelper(SimpleLogger logger)
         {
@@ -35,7 +35,7 @@ namespace WindowsLibrary
                 {
                     if (d.DriveType.ToString().ToLower().Equals("fixed"))
                     {
-                        var p = new PageFile();
+                        PageFile p = new();
                         p.Name = "<No page file>";
                         p.DriveLetter = d.Name.ToUpper();
                         p.Comment = "No page file";
@@ -55,9 +55,9 @@ namespace WindowsLibrary
                 // Query PageFile Usage Stats by Disk Drive.
                 // ******************************
 
-                var scope = new ManagementScope(@"\\.\root\cimv2");
+                ManagementScope scope = new(@"\\.\root\cimv2");
                 scope.Connect();
-                var searcher = new ManagementObjectSearcher("SELECT * FROM Win32_PageFileUsage");
+                ManagementObjectSearcher searcher = new("SELECT * FROM Win32_PageFileUsage");
 
                 foreach (ManagementBaseObject obj in searcher.Get())
                 {
@@ -76,8 +76,8 @@ namespace WindowsLibrary
                             // Query PageFile Settings by Drive.
                             // ******************************
 
-                            var settingsQuery = new ObjectQuery("SELECT * FROM Win32_PageFileSetting");
-                            var innerSearcher = new ManagementObjectSearcher(scope, settingsQuery);
+                            ObjectQuery settingsQuery = new("SELECT * FROM Win32_PageFileSetting");
+                            ManagementObjectSearcher innerSearcher = new(scope, settingsQuery);
                             ManagementObjectCollection queryCollection = innerSearcher.Get();
 
                             foreach (ManagementObject m in queryCollection)
@@ -114,7 +114,7 @@ namespace WindowsLibrary
                 // Query PageFile Automatic Management Setting.
                 // ******************************
 
-                var autoQuery = new ObjectQuery("SELECT AutomaticManagedPagefile FROM Win32_ComputerSystem");
+                ObjectQuery autoQuery = new("SELECT AutomaticManagedPagefile FROM Win32_ComputerSystem");
                 searcher = new ManagementObjectSearcher(scope, autoQuery);
 
                 foreach (ManagementObject m in searcher.Get())
@@ -167,10 +167,10 @@ namespace WindowsLibrary
                 new WindowsHelper(_logger).EnablePrivilege(hToken, NativeMethods.SE_CREATE_PAGEFILE_NAME);
                 _logger.Log($"Configure automatic page file management [Enable={enable.ToString().ToUpper()}]...");
 
-                var scope = new ManagementScope(@"\\.\root\cimv2");
+                ManagementScope scope = new(@"\\.\root\cimv2");
                 scope.Connect();
-                var query = new ObjectQuery($"SELECT * FROM Win32_ComputerSystem");
-                var searcher = new ManagementObjectSearcher(scope, query);
+                ObjectQuery query = new($"SELECT * FROM Win32_ComputerSystem");
+                ManagementObjectSearcher searcher = new(scope, query);
 
                 foreach (ManagementObject m in searcher.Get())
                 {
@@ -259,10 +259,10 @@ namespace WindowsLibrary
                 // Update Page File Settings.
                 // ******************************
 
-                var scope = new ManagementScope(@"\\.\root\cimv2");
+                ManagementScope scope = new(@"\\.\root\cimv2");
                 scope.Connect();
-                var query = new ObjectQuery("SELECT * FROM Win32_PageFileSetting");
-                var searcher = new ManagementObjectSearcher(scope, query);
+                ObjectQuery query = new("SELECT * FROM Win32_PageFileSetting");
+                ManagementObjectSearcher searcher = new(scope, query);
                 ManagementObjectCollection queryCollection = searcher.Get();
                 bool matchFound = false;
 
@@ -282,7 +282,7 @@ namespace WindowsLibrary
                 if (queryCollection.Count == 0 || !matchFound)
                 {
                     _logger.Log("Create new page file configuration...");
-                    var mc = new ManagementClass(@"\\.\root\cimv2", "Win32_PageFileSetting", null);
+                    ManagementClass mc = new(@"\\.\root\cimv2", "Win32_PageFileSetting", null);
                     ManagementObject mo = mc.CreateInstance();
                     mo["Caption"] = $"{driveLetter.ToUpper()}:\\ 'pagefile.sys'";
                     mo["Description"] = $"'pagefile.sys' @ {driveLetter.ToUpper()}:\\";
@@ -290,7 +290,7 @@ namespace WindowsLibrary
                     mo["MaximumSize"] = maxSize;
                     mo["Name"] = $"{driveLetter.ToUpper()}:\\pagefile.sys";
                     mo["SettingID"] = $"pagefile.sys @ {driveLetter.ToUpper()}:";
-                    var options = new PutOptions();
+                    PutOptions options = new();
                     options.Type = PutType.CreateOnly;
                     mo.Put(options);
                     mo.Dispose();
@@ -331,10 +331,10 @@ namespace WindowsLibrary
 
                 _logger.Log("Remove page file configuration...");
                 _logger.Log($"  Drive letter: {driveLetter}");
-                var scope = new ManagementScope(@"\\.\root\cimv2");
+                ManagementScope scope = new(@"\\.\root\cimv2");
                 scope.Connect();
-                var query = new ObjectQuery("SELECT * FROM Win32_PageFileSetting");
-                var searcher = new ManagementObjectSearcher(scope, query);
+                ObjectQuery query = new("SELECT * FROM Win32_PageFileSetting");
+                ManagementObjectSearcher searcher = new(scope, query);
                 ManagementObjectCollection queryCollection = searcher.Get();
                 bool matchFound = false;
 

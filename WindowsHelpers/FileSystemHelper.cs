@@ -74,7 +74,7 @@ namespace WindowsLibrary
                         return false;
                     }
 
-                    if (!new WindowsHelper(_logger).EnablePrivilege(hToken, NativeMethods.SE_TAKE_OWNERSHIP_NAME))
+                    if (new WindowsHelper(_logger).EnablePrivilege(hToken, NativeMethods.SE_TAKE_OWNERSHIP_NAME) == false)
                     {
                         _logger.Log("Failed to enable privilege [SeTakeOwnershipPrivilege].", SimpleLogger.MsgType.ERROR);
                         Marshal.FreeHGlobal(hToken);
@@ -82,7 +82,7 @@ namespace WindowsLibrary
                     }
 
                     // Administrators group trustee control information.
-                    NativeMethods.EXPLICIT_ACCESS adminGroupAccess = new NativeMethods.EXPLICIT_ACCESS();
+                    NativeMethods.EXPLICIT_ACCESS adminGroupAccess = new();
                     NativeMethods.BuildExplicitAccessWithName(
                         ref adminGroupAccess,
                         "Administrators",
@@ -191,7 +191,7 @@ namespace WindowsLibrary
         {
             try
             {
-                var wmiQuery = new ManagementObjectSearcher(
+                ManagementObjectSearcher wmiQuery = new (
                     "SELECT Model,SerialNumber,InterfaceType,Partitions,Status,Size FROM Win32_DiskDrive");
                 bool smartOK = true;
 
@@ -746,8 +746,8 @@ namespace WindowsLibrary
             try
             {
                 // Adjust TargetFolder ACL, add permissions for BUILTIN\Administrators group.
-                var targetFolderInfo = new DirectoryInfo(targetFolder);
-                var targetFolderACL = new DirectorySecurity(targetFolder, AccessControlSections.Access);
+                DirectoryInfo targetFolderInfo = new(targetFolder);
+                DirectorySecurity targetFolderACL = new(targetFolder, AccessControlSections.Access);
                 targetFolderACL.AddAccessRule(
                     new FileSystemAccessRule(
                         new SecurityIdentifier(WellKnownSidType.BuiltinAdministratorsSid, null),
@@ -784,7 +784,7 @@ namespace WindowsLibrary
 
                         if (!skipItem)
                         {
-                            var folderInfo = new DirectoryInfo(folderList[n].ToString());
+                            DirectoryInfo folderInfo = new(folderList[n].ToString());
 
                             if (folderInfo.Attributes.HasFlag(FileAttributes.ReparsePoint))
                             {
@@ -868,7 +868,7 @@ namespace WindowsLibrary
 
         public string GetAceInformation(FileSystemAccessRule ace)
         {
-            StringBuilder info = new StringBuilder();
+            StringBuilder info = new();
             info.AppendLine(string.Format("Account: {0}", ace.IdentityReference.Value));
             info.AppendLine(string.Format("Type: {0}", ace.AccessControlType));
             info.AppendLine(string.Format("Rights: {0}", ace.FileSystemRights));
@@ -878,7 +878,7 @@ namespace WindowsLibrary
 
         public bool IsFileOpen(string fileName)
         {
-            FileInfo fileInfo = new FileInfo(fileName);
+            FileInfo fileInfo = new(fileName);
             FileStream fileStream = null;
 
             try
@@ -895,7 +895,7 @@ namespace WindowsLibrary
 
         public string ListFolderContents( string folderPath)
         {
-            List<string[]> foldersAndFiles = new List<string[]>();
+            List<string[]> foldersAndFiles = new();
 
             try
             {
@@ -992,7 +992,7 @@ namespace WindowsLibrary
         private static SafeFileHandle OpenReparsePoint(string reparsePoint, NativeMethods.EFileAccess accessMode)
         {
             // Open handle to reparse point.
-            SafeFileHandle reparsePointHandle = new SafeFileHandle(
+            SafeFileHandle reparsePointHandle = new(
                 NativeMethods.CreateFile(reparsePoint,
                     accessMode,
                     NativeMethods.EFileShare.Read | NativeMethods.EFileShare.Write | NativeMethods.EFileShare.Delete,
@@ -1146,7 +1146,7 @@ namespace WindowsLibrary
                 else if (Directory.Exists(fileOrFolder))
                 {
                     long totalSize = 0;
-                    DirectoryInfo dirInfo = new DirectoryInfo(fileOrFolder);
+                    DirectoryInfo dirInfo = new(fileOrFolder);
                     FileInfo[] files = dirInfo.GetFiles();
 
                     foreach (FileInfo fi in files)

@@ -11,7 +11,7 @@ namespace WindowsLibrary
 {
     public class JsonHelper
     {
-        private static readonly JsonHelper _instance = new JsonHelper();
+        private static readonly JsonHelper _instance = new();
 
         private JsonHelper()
         {
@@ -32,7 +32,7 @@ namespace WindowsLibrary
 
         public string Merge(string originalJson, string newContent)
         {
-            var outputBuffer = new ArrayBufferWriter<byte>();
+            ArrayBufferWriter<byte> outputBuffer = new();
 
             using (JsonDocument jDoc1 = JsonDocument.Parse(originalJson))
             using (JsonDocument jDoc2 = JsonDocument.Parse(newContent))

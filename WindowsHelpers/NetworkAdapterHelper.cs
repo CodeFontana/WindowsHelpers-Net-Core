@@ -20,7 +20,7 @@ namespace WindowsLibrary
 
         public Tuple<bool, NetworkAdapter> In(List<NetworkAdapter> adapterList)
         {
-            Tuple<bool, NetworkAdapter> returnTuple = new Tuple<bool, NetworkAdapter>(false, null);
+            Tuple<bool, NetworkAdapter> returnTuple = new(false, null);
             
             foreach (NetworkAdapter nic in adapterList)
             {
@@ -37,7 +37,7 @@ namespace WindowsLibrary
         public List<NetworkAdapter> QueryNetworkAdapters()
         {
             adapterList = new List<NetworkAdapter>();
-            var adapterQuery = new ManagementObjectSearcher("SELECT NetConnectionId,Index,Name,NetEnabled,NetConnectionStatus FROM Win32_NetworkAdapter WHERE NetConnectionId != NULL");
+            ManagementObjectSearcher adapterQuery = new("SELECT NetConnectionId,Index,Name,NetEnabled,NetConnectionStatus FROM Win32_NetworkAdapter WHERE NetConnectionId != NULL");
 
             foreach (ManagementObject adapterResult in adapterQuery.Get())
             {
@@ -49,8 +49,8 @@ namespace WindowsLibrary
                     string adapterName = adapterResult["Name"].ToString();
                     bool adapterEnabled = bool.Parse(adapterResult["NetEnabled"].ToString());
                     int adapterStatus = int.Parse(adapterResult["NetConnectionStatus"].ToString());
-                    var newAdapter = new NetworkAdapter(adapterIndex, adapterName, adapterEnabled, adapterStatus);
-                    var configQuery = new ManagementObjectSearcher(
+                    NetworkAdapter newAdapter = new(adapterIndex, adapterName, adapterEnabled, adapterStatus);
+                    ManagementObjectSearcher configQuery = new(
                         "SELECT DHCPEnabled,IPAddress,IPSubnet,DefaultIPGateway FROM Win32_NetworkAdapterConfiguration WHERE Index = " + 
                         newAdapter.AdapterIndex.ToString());
 

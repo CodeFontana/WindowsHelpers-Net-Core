@@ -65,7 +65,7 @@ namespace WindowsLibrary
 
         public static string GetProcessCLIArgsWMI(int processId)
         {
-            using (var searcher = new ManagementObjectSearcher("SELECT CommandLine FROM Win32_Process WHERE ProcessId = " + processId.ToString()))
+            using (ManagementObjectSearcher searcher = new("SELECT CommandLine FROM Win32_Process WHERE ProcessId = " + processId.ToString()))
             {
                 using (ManagementObjectCollection objects = searcher.Get())
                 {
@@ -80,7 +80,7 @@ namespace WindowsLibrary
             //       P/Invoke is significantly faster than WMI.
 
             string wmiQuery = "Select * From Win32_Process Where ProcessID = " + processID;
-            var wmiSearcher = new ManagementObjectSearcher(wmiQuery);
+            ManagementObjectSearcher wmiSearcher = new(wmiQuery);
             ManagementObjectCollection processList = wmiSearcher.Get();
 
             foreach (ManagementObject obj in processList)

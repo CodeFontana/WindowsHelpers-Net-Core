@@ -359,7 +359,7 @@ namespace WindowsLibrary
                         dwBytesNeeded, 
                         out dwBytesNeeded))
                     {
-                        var ssp = new NativeMethods.SERVICE_STATUS_PROCESS();
+                        NativeMethods.SERVICE_STATUS_PROCESS ssp = new();
                         Marshal.PtrToStructure(buffer, ssp);
                         return (int)ssp.dwProcessId;
                     }
@@ -452,7 +452,7 @@ namespace WindowsLibrary
                 if (ServiceExists(serviceName))
                 {
                     _logger.Log($"Start service [{serviceName}]...");
-                    var sc = new ServiceController(serviceName);
+                    ServiceController sc = new(serviceName);
 
                     if (sc.Status != ServiceControllerStatus.Stopped)
                     {
@@ -486,7 +486,7 @@ namespace WindowsLibrary
             {
                 if (ServiceExists(serviceName))
                 {
-                    var svcCtrl = new ServiceController(serviceName);
+                    ServiceController svcCtrl = new(serviceName);
 
                     if (svcCtrl.Status != ServiceControllerStatus.Stopped)
                     {

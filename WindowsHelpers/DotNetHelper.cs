@@ -8,7 +8,7 @@ namespace WindowsLibrary
 {
     public class DotNetHelper
     {
-        private static readonly DotNetHelper _instance = new DotNetHelper();
+        private static readonly DotNetHelper _instance = new();
         private static bool bacon = false;
 
         private DotNetHelper()
@@ -30,7 +30,7 @@ namespace WindowsLibrary
 
         public void CreateBufferOverflow()
         {
-            BufferOverflow x = new BufferOverflow();
+            BufferOverflow x = new();
             x.after = 1;
 
             for (int i = 0; i <= 16; ++i)
@@ -190,10 +190,10 @@ namespace WindowsLibrary
                 "venison", "pork belly", "pig tongue", "brisket", "picanha", "ball", "tip",
                 "corned beef" };
 
-            var rand = new Random();
+            Random rand = new();
             int numSentences = rand.Next(maxSentences - minSentences) + minSentences + 1;
             int numWords = rand.Next(maxWords - minWords) + minWords + 1;
-            StringBuilder result = new StringBuilder();
+            StringBuilder result = new();
             CultureInfo cultureInfo = Thread.CurrentThread.CurrentCulture;
             TextInfo textInfo = cultureInfo.TextInfo;
 
@@ -234,13 +234,13 @@ namespace WindowsLibrary
             // the number of columns each string array has. As we are displaying
             // a chart of information, it is presumed that all elements have the
             // same number of columns.
-            var numColumns = inputList[0].Length;
+            int numColumns = inputList[0].Length;
 
             // An array for storing the max length of each column, for all
             // elements in the chart. This way content+padding of each element
             // in the chart is equal to the max length, so all columns are
             // properly aligned.
-            var maxValues = new int[numColumns];
+            int[] maxValues = new int[numColumns];
 
             // Iterate each column.
             for (int i = 0; i < numColumns; i++)
@@ -270,7 +270,7 @@ namespace WindowsLibrary
                 maxValues[i] = maxColLength + columnPadding;
             }
 
-            var outputString = new StringBuilder();
+            StringBuilder outputString = new();
             bool isFirst = true;
 
             // Iterate list elements (each string array)

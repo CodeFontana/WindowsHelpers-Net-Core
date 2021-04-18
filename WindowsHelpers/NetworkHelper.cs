@@ -6,6 +6,7 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Sockets;
 using System.Runtime.Versioning;
+using System.Threading.Tasks;
 
 namespace WindowsLibrary
 {
@@ -35,7 +36,7 @@ namespace WindowsLibrary
                 }
 
                 bool successFlag = false;
-                List<string> addresses = new List<string>();
+                List<string> addresses = new();
                 IPHostEntry hostEntry = Dns.GetHostEntry(hostAddress);
 
                 if (hostEntry.AddressList.Length > 0)
@@ -152,11 +153,11 @@ namespace WindowsLibrary
 
             try
             {
-                var client = new HttpClient();
-                var result = client.GetAsync(url);
+                HttpClient client = new();
+                Task<HttpResponseMessage> result = client.GetAsync(url);
                 result.Wait(timeout);
 
-                if (result.Status == System.Threading.Tasks.TaskStatus.RanToCompletion)
+                if (result.Status == TaskStatus.RanToCompletion)
                 {
                     _logger.Log("HTTP Response: " + result.Result.StatusCode.ToString());
 

@@ -13,6 +13,7 @@ using System.Runtime.Versioning;
 using System.DirectoryServices.AccountManagement;
 using System.Linq;
 using System.Management;
+using static System.Management.ManagementObjectCollection;
 
 namespace WindowsLibrary
 {
@@ -30,7 +31,7 @@ namespace WindowsLibrary
         {
             try
             {
-                var hostsWriter = new StreamWriter(Environment.GetEnvironmentVariable("windir") + "\\system32\\drivers\\etc\\hosts", true);
+                StreamWriter hostsWriter = new(Environment.GetEnvironmentVariable("windir") + "\\system32\\drivers\\etc\\hosts", true);
                 hostsWriter.AutoFlush = true;
                 hostsWriter.WriteLine(entry);
                 hostsWriter.Dispose();
@@ -86,7 +87,7 @@ namespace WindowsLibrary
         {
             try
             {
-                var bitmapList = new List<Tuple<string, Bitmap>>();
+                List<Tuple<string, Bitmap>> bitmapList = new();
 
                 foreach (Screen s in Screen.AllScreens)
                 {
@@ -94,7 +95,7 @@ namespace WindowsLibrary
                     _logger.Log("Capture screen: " + s.DeviceName +
                         " [" + s.Bounds.Width + "x" + s.Bounds.Height + "] [" + captureFileShortName + "].");
 
-                    var bmpScreenshot = new Bitmap(s.Bounds.Width, s.Bounds.Height, PixelFormat.Format32bppArgb);
+                    Bitmap bmpScreenshot = new(s.Bounds.Width, s.Bounds.Height, PixelFormat.Format32bppArgb);
                     Graphics gfxScreenshot = Graphics.FromImage(bmpScreenshot);
                     gfxScreenshot.CopyFromScreen(s.Bounds.X, s.Bounds.Y, 0, 0, s.Bounds.Size, CopyPixelOperation.SourceCopy);
                     bitmapList.Add(new Tuple<string, Bitmap>(captureFileShortName, bmpScreenshot));
@@ -120,7 +121,7 @@ namespace WindowsLibrary
                     _logger.Log("Capture screen: " + s.DeviceName +
                         " [" + s.Bounds.Width + "x" + s.Bounds.Height + "] [" + captureFileShortName + "].");
 
-                    Bitmap bmpScreenshot = new Bitmap(s.Bounds.Width, s.Bounds.Height, PixelFormat.Format32bppArgb);
+                    Bitmap bmpScreenshot = new(s.Bounds.Width, s.Bounds.Height, PixelFormat.Format32bppArgb);
                     Graphics gfxScreenshot = Graphics.FromImage(bmpScreenshot);
                     gfxScreenshot.CopyFromScreen(s.Bounds.X, s.Bounds.Y, 0, 0, s.Bounds.Size, CopyPixelOperation.SourceCopy);
                     _logger.Log("Save: " + outputFolder + "\\" + captureFileShortName + ".png");
@@ -188,7 +189,7 @@ namespace WindowsLibrary
             {
                 _logger.Log("Configure automatic logon user: " + logonUser);
 
-                RegistryHelper reg = new RegistryHelper(_logger);
+                RegistryHelper reg = new(_logger);
                 RegistryKey winLogonKey = reg.OpenKey("SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon", true, RegistryHive.LocalMachine);
                 winLogonKey.SetValue("AutoAdminLogon", "1", RegistryValueKind.String);
                 winLogonKey.SetValue("DefaultUserName", logonUser, RegistryValueKind.String);
@@ -252,7 +253,7 @@ namespace WindowsLibrary
 
             try
             {
-                NativeMethods.SECURITY_ATTRIBUTES sa = new NativeMethods.SECURITY_ATTRIBUTES();
+                NativeMethods.SECURITY_ATTRIBUTES sa = new();
                 sa.nLength = Marshal.SizeOf(sa);
 
                 if (hUserToken == IntPtr.Zero)
@@ -367,7 +368,7 @@ namespace WindowsLibrary
 
         public List<Tuple<uint, string>> GetUserSessions()
         {
-            var userSessions = new List<Tuple<uint, string>>();
+            List<Tuple<uint, string>> userSessions = new();
 
             try
             {
@@ -395,7 +396,7 @@ namespace WindowsLibrary
                         }
                         else
                         {
-                            WindowsIdentity userId = new WindowsIdentity(hUserToken);
+                            WindowsIdentity userId = new(hUserToken);
                             _logger.Log("Found session: " + si.SessionID.ToString() + "/" + userId.Name);
                             userSessions.Add(new Tuple<uint, string>(si.SessionID, userId.Name));
                             userId.Dispose();
@@ -421,7 +422,7 @@ namespace WindowsLibrary
         {
             _logger.Log("Enable: " + privilege);
 
-            NativeMethods.LUID luid = new NativeMethods.LUID();
+            NativeMethods.LUID luid = new();
             NativeMethods.TOKEN_PRIVILEGES newState;
             newState.PrivilegeCount = 1;
             newState.Privileges = new NativeMethods.LUID_AND_ATTRIBUTES[1];
@@ -462,7 +463,7 @@ namespace WindowsLibrary
                     }
                     else
                     {
-                        WindowsIdentity userId = new WindowsIdentity(hUserToken);
+                        WindowsIdentity userId = new(hUserToken);
                         _logger.Log("Console user: " + userId.Name);
                         userId.Dispose();
 
@@ -510,7 +511,7 @@ namespace WindowsLibrary
                         }
                         else
                         {
-                            WindowsIdentity userId = new WindowsIdentity(hUserToken);
+                            WindowsIdentity userId = new(hUserToken);
                             _logger.Log("Terminal user: " + userId.Name);
                             userId.Dispose();
 
@@ -558,7 +559,7 @@ namespace WindowsLibrary
                     }
                     else
                     {
-                        WindowsIdentity userId = new WindowsIdentity(hUserToken);
+                        WindowsIdentity userId = new(hUserToken);
                         _logger.Log("Console user: " + userId.Name);
                         userId.Dispose();
                         return hUserToken;
@@ -575,15 +576,15 @@ namespace WindowsLibrary
 
         public List<Tuple<uint, string>> GetParentProcesses()
         {
-            var ParentProcessList = new List<Tuple<uint, string>>();
+            List<Tuple<uint, string>> ParentProcessList = new();
             int currentPID = Process.GetCurrentProcess().Id;
-            var loopSafetyList = new List<uint>();
+            List<uint> loopSafetyList = new();
             loopSafetyList.Add((uint)currentPID);
 
             for (int i = 0; i <= Process.GetProcesses().Count() / 2; i++)
             {
-                var wmiQuery = new ManagementObjectSearcher("SELECT ParentProcessId FROM Win32_Process WHERE ProcessId=" + currentPID);
-                var wmiResult = wmiQuery.Get().GetEnumerator();
+                ManagementObjectSearcher wmiQuery = new("SELECT ParentProcessId FROM Win32_Process WHERE ProcessId=" + currentPID);
+                ManagementObjectEnumerator wmiResult = wmiQuery.Get().GetEnumerator();
                 wmiResult.MoveNext();
                 ManagementBaseObject currentObject = wmiResult.Current;
                 uint parentPID = (uint)currentObject["ParentProcessId"];
@@ -836,14 +837,14 @@ namespace WindowsLibrary
 
                 if (certPassword != "")
                 {
-                    importCert = new X509Certificate2(certFilename, certPassword);
+                    importCert = new(certFilename, certPassword);
                 }
                 else
                 {
-                    importCert = new X509Certificate2(certFilename);
+                    importCert = new(certFilename);
                 }
 
-                var store = new X509Store(certStore, certLocation);
+                X509Store store = new(certStore, certLocation);
                 store.Open(OpenFlags.ReadWrite);
 
                 if (!store.Certificates.Contains(importCert))
@@ -883,63 +884,63 @@ namespace WindowsLibrary
 
         public bool IncreaseTokenPrivileges(IntPtr hToken)
         {
-            if (!EnablePrivilege(hToken, NativeMethods.SE_INCREASE_QUOTA_NAME))
+            if (EnablePrivilege(hToken, NativeMethods.SE_INCREASE_QUOTA_NAME) == false)
             {
                 _logger.Log("Failed to enable privilege [SeIncreaseQuotaPrivilege].", SimpleLogger.MsgType.ERROR);
                 Marshal.FreeHGlobal(hToken);
                 return false;
             }
 
-            if (!EnablePrivilege(hToken, NativeMethods.SE_ASSIGNPRIMARYTOKEN_NAME))
+            if (EnablePrivilege(hToken, NativeMethods.SE_ASSIGNPRIMARYTOKEN_NAME) == false)
             {
                 _logger.Log("Failed to enable privilege [SeAssignPrimaryTokenPrivilege].", SimpleLogger.MsgType.ERROR);
                 Marshal.FreeHGlobal(hToken);
                 return false;
             }
 
-            if (!EnablePrivilege(hToken, NativeMethods.SE_TCB_NAME))
+            if (EnablePrivilege(hToken, NativeMethods.SE_TCB_NAME) == false)
             {
                 _logger.Log("Failed to enable privilege [SeTcbPrivilege].", SimpleLogger.MsgType.ERROR);
                 Marshal.FreeHGlobal(hToken);
                 return false;
             }
 
-            if (!EnablePrivilege(hToken, NativeMethods.SE_DEBUG_NAME))
+            if (EnablePrivilege(hToken, NativeMethods.SE_DEBUG_NAME) == false)
             {
                 _logger.Log("Failed to enable privilege [SeDebugPrivilege].", SimpleLogger.MsgType.ERROR);
                 Marshal.FreeHGlobal(hToken);
                 return false;
             }
 
-            if (!EnablePrivilege(hToken, NativeMethods.SE_IMPERSONATE_NAME))
+            if (EnablePrivilege(hToken, NativeMethods.SE_IMPERSONATE_NAME) == false)
             {
                 _logger.Log("Failed to enable privilege [SeImpersonatePrivilege].", SimpleLogger.MsgType.ERROR);
                 Marshal.FreeHGlobal(hToken);
                 return false;
             }
 
-            if (!EnablePrivilege(hToken, NativeMethods.SE_TIME_ZONE_NAME))
+            if (EnablePrivilege(hToken, NativeMethods.SE_TIME_ZONE_NAME) == false)
             {
                 _logger.Log("Failed to enable privilege [SeTimeZonePrivilege].", SimpleLogger.MsgType.ERROR);
                 Marshal.FreeHGlobal(hToken);
                 return false;
             }
 
-            if (!EnablePrivilege(hToken, NativeMethods.SE_SYSTEMTIME_NAME))
+            if (EnablePrivilege(hToken, NativeMethods.SE_SYSTEMTIME_NAME) == false)
             {
                 _logger.Log("Failed to enable privilege [SeSystemtimePrivilege].", SimpleLogger.MsgType.ERROR);
                 Marshal.FreeHGlobal(hToken);
                 return false;
             }
 
-            if (!EnablePrivilege(hToken, NativeMethods.SE_SHUTDOWN_NAME))
+            if (EnablePrivilege(hToken, NativeMethods.SE_SHUTDOWN_NAME) == false)
             {
                 _logger.Log("Failed to enable privilege [SeShutdownPrivilege].", SimpleLogger.MsgType.ERROR);
                 Marshal.FreeHGlobal(hToken);
                 return false;
             }
 
-            if (!EnablePrivilege(hToken, NativeMethods.SE_TAKE_OWNERSHIP_NAME))
+            if (EnablePrivilege(hToken, NativeMethods.SE_TAKE_OWNERSHIP_NAME) == false)
             {
                 _logger.Log("Failed to enable privilege [SeTakeOwnershipPrivilege].", SimpleLogger.MsgType.ERROR);
                 Marshal.FreeHGlobal(hToken);
@@ -1137,7 +1138,7 @@ namespace WindowsLibrary
 
             try
             {
-                using (var domainContext = new PrincipalContext(ContextType.Domain, domainName))
+                using (PrincipalContext domainContext = new(ContextType.Domain, domainName))
                 {
                     using (var foundUser = UserPrincipal.FindByIdentity(domainContext, IdentityType.SamAccountName, userName))
                     {
@@ -1162,7 +1163,7 @@ namespace WindowsLibrary
 
             try
             {
-                using (var localContext = new PrincipalContext(ContextType.Machine))
+                using (PrincipalContext localContext = new(ContextType.Machine))
                 {
                     using (var foundUser = UserPrincipal.FindByIdentity(localContext, IdentityType.SamAccountName, userName))
                     {
@@ -1418,8 +1419,8 @@ namespace WindowsLibrary
                         }
                     }
 
-                    WindowsIdentity id = new WindowsIdentity(hTokenToCheck);
-                    WindowsPrincipal principal = new WindowsPrincipal(id);
+                    WindowsIdentity id = new(hTokenToCheck);
+                    WindowsPrincipal principal = new(id);
                     fInAdminGroup = principal.IsInRole(WindowsBuiltInRole.Administrator);
                     id.Dispose();
                 }
@@ -1458,8 +1459,8 @@ namespace WindowsLibrary
             }
             else
             {
-                WindowsIdentity userId = new WindowsIdentity(hToken);
-                WindowsPrincipal userPrincipal = new WindowsPrincipal(userId);
+                WindowsIdentity userId = new(hToken);
+                WindowsPrincipal userPrincipal = new(userId);
 
                 if (userPrincipal.IsInRole("Administrators") || userPrincipal.IsInRole(WindowsBuiltInRole.Administrator))
                 {
@@ -1727,7 +1728,7 @@ namespace WindowsLibrary
 
         public string[] SynthesizeCommandLineArgs()
         {
-            StringBuilder argCrawler = new StringBuilder(Environment.CommandLine);
+            StringBuilder argCrawler = new(Environment.CommandLine);
             char nextChar = '\0';
             char currentChar = '\0';
             char previousChar = '\0';

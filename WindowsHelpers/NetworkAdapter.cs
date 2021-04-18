@@ -113,7 +113,7 @@ namespace WindowsLibrary
         {
             try
             {
-                var searchProcedure = new ManagementObjectSearcher("SELECT * FROM Win32_NetworkAdapter WHERE Index = " + AdapterIndex);
+                ManagementObjectSearcher searchProcedure = new("SELECT * FROM Win32_NetworkAdapter WHERE Index = " + AdapterIndex);
 
                 foreach (ManagementObject item in searchProcedure.Get())
                 {
@@ -134,7 +134,7 @@ namespace WindowsLibrary
         {
             try
             {
-                var configQuery = new ManagementObjectSearcher("SELECT * FROM Win32_NetworkAdapterConfiguration WHERE Index = " + AdapterIndex.ToString());
+                ManagementObjectSearcher configQuery = new("SELECT * FROM Win32_NetworkAdapterConfiguration WHERE Index = " + AdapterIndex.ToString());
 
                 foreach (ManagementObject configResult in configQuery.Get())
                 {

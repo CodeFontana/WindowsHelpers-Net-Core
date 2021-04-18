@@ -5,7 +5,7 @@ namespace WindowsLibrary
 {
 	public class NumericComparer : IComparer
 	{
-		private static readonly NumericComparer _instance = new NumericComparer();
+		private static readonly NumericComparer _instance = new();
 
 		private NumericComparer()
 		{ 

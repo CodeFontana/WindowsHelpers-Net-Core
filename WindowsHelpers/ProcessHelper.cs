@@ -10,6 +10,7 @@ using System.Runtime.Versioning;
 using System.Security.Principal;
 using System.Threading;
 using System.Threading.Tasks;
+using static System.Management.ManagementObjectCollection;
 
 namespace WindowsLibrary
 {
@@ -28,7 +29,7 @@ namespace WindowsLibrary
             try
             {
                 // Identify user from access token.
-                WindowsIdentity userId = new WindowsIdentity(hUserToken);
+                WindowsIdentity userId = new(hUserToken);
                 _logger.Log("Create process for: " + userId.Name + " [" + appFileName + " " + appArgs + "].");
                 userId.Dispose();
 
@@ -36,12 +37,12 @@ namespace WindowsLibrary
                 IntPtr hDuplicateToken = new WindowsHelper(_logger).DuplicateToken(hUserToken);
 
                 // Initialize process info and startup info.
-                NativeMethods.PROCESS_INFORMATION pi = new NativeMethods.PROCESS_INFORMATION();
-                NativeMethods.STARTUPINFO si = new NativeMethods.STARTUPINFO();
+                NativeMethods.PROCESS_INFORMATION pi = new();
+                NativeMethods.STARTUPINFO si = new();
                 si.cb = Marshal.SizeOf(si);
                 si.lpDesktop = "winsta0\\default";
-                NativeMethods.SECURITY_ATTRIBUTES lpProcessAttributes = new NativeMethods.SECURITY_ATTRIBUTES();
-                NativeMethods.SECURITY_ATTRIBUTES lpThreadAttributes = new NativeMethods.SECURITY_ATTRIBUTES();
+                NativeMethods.SECURITY_ATTRIBUTES lpProcessAttributes = new();
+                NativeMethods.SECURITY_ATTRIBUTES lpThreadAttributes = new();
                 IntPtr hEnvironment = IntPtr.Zero;
 
                 if (!NativeMethods.CreateEnvironmentBlock(out hEnvironment, hDuplicateToken, true))
@@ -135,12 +136,12 @@ namespace WindowsLibrary
                 Marshal.FreeHGlobal(hUserToken);
 
                 // Initialize process info and startup info.
-                NativeMethods.PROCESS_INFORMATION pi = new NativeMethods.PROCESS_INFORMATION();
-                NativeMethods.STARTUPINFO si = new NativeMethods.STARTUPINFO();
+                NativeMethods.PROCESS_INFORMATION pi = new();
+                NativeMethods.STARTUPINFO si = new();
                 si.cb = Marshal.SizeOf(si);
                 si.lpDesktop = "winsta0\\default";
-                NativeMethods.SECURITY_ATTRIBUTES lpProcessAttributes = new NativeMethods.SECURITY_ATTRIBUTES();
-                NativeMethods.SECURITY_ATTRIBUTES lpThreadAttributes = new NativeMethods.SECURITY_ATTRIBUTES();
+                NativeMethods.SECURITY_ATTRIBUTES lpProcessAttributes = new();
+                NativeMethods.SECURITY_ATTRIBUTES lpThreadAttributes = new();
                 IntPtr hEnvironment = IntPtr.Zero;
 
                 if (!NativeMethods.CreateEnvironmentBlock(out hEnvironment, hDuplicateToken, true))
@@ -206,7 +207,7 @@ namespace WindowsLibrary
 
                         try
                         {
-                            var wmiQuery = new ManagementObjectSearcher("SELECT CommandLine FROM Win32_Process WHERE ProcessId='" + runningProcess.Id.ToString() + "'");
+                            ManagementObjectSearcher wmiQuery = new("SELECT CommandLine FROM Win32_Process WHERE ProcessId='" + runningProcess.Id.ToString() + "'");
 
                             foreach (ManagementObject wmiProcess in wmiQuery.Get())
                             {
@@ -234,8 +235,8 @@ namespace WindowsLibrary
                             // Iterate no more than the process count, divided by 2.
                             for (int i = 0; i <= Process.GetProcesses().Count() / 2; i++)
                             {
-                                var wmiQuery = new ManagementObjectSearcher("SELECT ParentProcessId FROM Win32_Process WHERE ProcessId=" + currentID);
-                                var wmiResult = wmiQuery.Get().GetEnumerator();
+                                ManagementObjectSearcher wmiQuery = new("SELECT ParentProcessId FROM Win32_Process WHERE ProcessId=" + currentID);
+                                ManagementObjectEnumerator wmiResult = wmiQuery.Get().GetEnumerator();
                                 wmiResult.MoveNext();
                                 var queryObj = wmiResult.Current;
                                 var parentId = (uint)queryObj["ParentProcessId"]; // Query PPID
@@ -322,7 +323,7 @@ namespace WindowsLibrary
                         {
                             try
                             {
-                                var wmiQuery = new ManagementObjectSearcher("SELECT CommandLine FROM Win32_Process WHERE ProcessId='" + 
+                                ManagementObjectSearcher wmiQuery = new("SELECT CommandLine FROM Win32_Process WHERE ProcessId='" + 
                                     runningProcess.Id.ToString() + "'");
 
                                 foreach (ManagementObject wmiProcess in wmiQuery.Get())
@@ -366,7 +367,7 @@ namespace WindowsLibrary
 
             try
             {
-                var wmiQuery = new ManagementObjectSearcher("SELECT ProcessID FROM Win32_Process WHERE Name='" + friendlyOrShortName + "'");
+                ManagementObjectSearcher wmiQuery = new("SELECT ProcessID FROM Win32_Process WHERE Name='" + friendlyOrShortName + "'");
 
                 foreach (ManagementObject wmiProcess in wmiQuery.Get())
                 {
@@ -408,7 +409,7 @@ namespace WindowsLibrary
                         {
                             try
                             {
-                                var wmiQuery = new ManagementObjectSearcher("SELECT CommandLine FROM Win32_Process WHERE ProcessId='" +
+                                ManagementObjectSearcher wmiQuery = new("SELECT CommandLine FROM Win32_Process WHERE ProcessId='" +
                                     runningProcess.Id.ToString() + "'");
 
                                 foreach (ManagementObject wmiProcess in wmiQuery.Get())
@@ -453,7 +454,7 @@ namespace WindowsLibrary
 
             try
             {
-                var wmiQuery = new ManagementObjectSearcher("SELECT ProcessID,CommandLine FROM Win32_Process WHERE Name='" + processShortName + "'");
+                ManagementObjectSearcher wmiQuery = new("SELECT ProcessID,CommandLine FROM Win32_Process WHERE Name='" + processShortName + "'");
 
                 foreach (ManagementObject wmiProcess in wmiQuery.Get())
                 {
@@ -492,7 +493,7 @@ namespace WindowsLibrary
 
             try
             {
-                var wmiQuery = new ManagementObjectSearcher("SELECT ProcessID,ExecutablePath FROM Win32_Process WHERE Name='" + processShortName + "'");
+                ManagementObjectSearcher wmiQuery = new("SELECT ProcessID,ExecutablePath FROM Win32_Process WHERE Name='" + processShortName + "'");
 
                 foreach (ManagementObject wmiProcess in wmiQuery.Get())
                 {
@@ -527,7 +528,7 @@ namespace WindowsLibrary
 
         public string ReadProcessList()
         {
-            List<string[]> runningProcesses = new List<string[]>();
+            List<string[]> runningProcesses = new();
             string[] outputHeader = { "Process", "PID", "User", "CPU Time", "Memory", "Handles", "Threads", "Command Line" };
             runningProcesses.Add(outputHeader);
 
@@ -535,7 +536,7 @@ namespace WindowsLibrary
             {
                 try
                 {
-                    var pi = new ProcessInfo(p);
+                    ProcessInfo pi = new(p);
                     runningProcesses.Add(pi.ToStringArray());
                     p.Dispose();
                 }
@@ -655,10 +656,10 @@ namespace WindowsLibrary
             // ******************************
 
             Process p = new Process();
-            List<string> combinedOutput = new List<string>();
+            List<string> combinedOutput = new();
             Task consumeStdOut = null;
             Task consumeStdErr = null;
-            var cts = new CancellationTokenSource(); // Needed for batch files, see usage below.
+            CancellationTokenSource cts = new(); // Needed for batch files, see usage below.
 
             try
             {
@@ -859,7 +860,7 @@ namespace WindowsLibrary
                 }
             }
 
-            Process p = new Process();
+            Process p = new();
             p.StartInfo.FileName = appFileName.Replace("\\\\", "\\");
             p.StartInfo.Arguments = arguments;
             p.StartInfo.WorkingDirectory = workingDirectory;

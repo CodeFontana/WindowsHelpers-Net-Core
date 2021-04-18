@@ -9,7 +9,7 @@ namespace WindowsLibrary
 {
     public class HostsFileHelper
     {
-        private static readonly HostsFileHelper _instance = new HostsFileHelper();
+        private static readonly HostsFileHelper _instance = new();
         private string _hostsFile;
 
         private HostsFileHelper()
@@ -341,7 +341,7 @@ namespace WindowsLibrary
 
         private Encoding GetEncoding(string file)
         {
-            using (var reader = new StreamReader(file))
+            using (StreamReader reader = new(file))
             {
                 reader.Peek();
                 return reader.CurrentEncoding;
