@@ -62,12 +62,14 @@ namespace WindowsLibrary
                     if (path.ToLower().Equals(folder.ToLower()))
                     {
                         existsOnPath = true;
+                        _logger.Log($"Already exists on PATH: {folder}");
                         break;
                     }
                 }
 
                 if (existsOnPath == false)
                 {
+                    _logger.Log($"Add to PATH: {folder}");
                     string newPathVariable = pathVariable + ";" + folder;
                     Environment.SetEnvironmentVariable("Path", newPathVariable, EnvironmentVariableTarget.Machine);
                 }
@@ -612,13 +614,9 @@ namespace WindowsLibrary
                     ParentProcessList.Add(new Tuple<uint, string>(parentPID, parentProcessName.ToLower()));
                     currentPID = (int)parentPID;
                 }
-                catch (ArgumentException)
-                {
-                    break; // Parent process has probably terminated.
-                }
                 catch (Exception)
                 {
-                    break; // Catch all.
+                    break; // Parent process has probably terminated.
                 }
             }
 
@@ -1656,6 +1654,38 @@ namespace WindowsLibrary
             }
 
             return false;
+        }
+
+        public bool RemoveFromSystemPath(string folder)
+        {
+            try
+            {
+                RegistryKey pathKey = Registry.LocalMachine.OpenSubKey(
+                @"SYSTEM\CurrentControlSet\Control\Session Manager\Environment\", true);
+                string cleanPath = "";
+
+                foreach (string strPath in pathKey.GetValue("PATH", null, RegistryValueOptions.DoNotExpandEnvironmentNames).ToString().Split(';'))
+                {
+                    if (strPath.ToLower().Equals(folder.ToLower()))
+                    {
+                        _logger.Log($"Remove from PATH: {folder}");
+                    }
+                    else
+                    {
+                        cleanPath += strPath + ";";
+                    }
+                }
+                
+                pathKey.SetValue("Path", cleanPath, RegistryValueKind.ExpandString);
+                pathKey.Dispose();
+            }
+            catch (Exception e)
+            {
+                _logger.Log(e, $"Failed to remove {folder} to system PATH variable.");
+                return false;
+            }
+
+            return true;
         }
 
         public bool RebootSystem(
