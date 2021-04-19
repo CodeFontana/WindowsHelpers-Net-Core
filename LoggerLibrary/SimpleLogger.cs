@@ -31,10 +31,6 @@ namespace LoggerLibrary
 
         public enum MsgType { NONE, INFO, DEBUG, WARN, ERROR };
 
-        // For reference:
-        //   1 MB = 1000000 Bytes (in decimal)
-        //   1 MB = 1048576 Bytes (in binary)
-
         /// <summary>
         /// Default constructor.
         /// </summary>
@@ -43,8 +39,13 @@ namespace LoggerLibrary
             
         }
 
+        // For reference:
+        //   1 MB = 1000000 Bytes (in decimal)
+        //   1 MB = 1048576 Bytes (in binary)
+
         /// <summary>
-        /// 
+        /// Creates a new log file for the specified component, and adds to the LogManager.
+        /// Note: This call does not Open() the log file.
         /// </summary>
         /// <param name="logName">Component name for log file.</param>
         /// <param name="logFolder">Path where logs file(s) will be saved.</param>
@@ -91,6 +92,18 @@ namespace LoggerLibrary
             newLogger.LogName = logName;
             newLogger.LogMaxBytes = logMaxBytes;
             newLogger.LogMaxCount = logMaxCount;
+
+            // Add to log manager for static reference by component name.
+            //   --> This is for static calls to Log() functions.
+            //   --> E.g. Calling Log(component) from a Class Library function.
+            //   --> Rather than passing around instances of this class, the log
+            //       message can route to the correct instance, by calling the
+            //       static Log() function, and passing the component name of an
+            //       existing instance.
+            //   --> Think of static Log(component) as 'GetInstance(component)',
+            //       but shortened to 'Log(component)'.
+            LogManager.Add(newLogger);
+
             return newLogger;
         }
 
@@ -114,17 +127,6 @@ namespace LoggerLibrary
             _logStream = new FileStream(LogFilename, FileMode.Append, FileAccess.Write, FileShare.Read);
             _logWriter = new StreamWriter(_logStream);
             _logWriter.AutoFlush = true;
-
-            // Add to log manager for static reference by component name.
-            //   --> This is for static calls to Log() functions.
-            //   --> E.g. Calling Log(component) from a Class Library function.
-            //   --> Rather than passing around instances of this class, the log
-            //       message can route to the correct instance, by calling the
-            //       static Log() function, and passing the component name of an
-            //       existing instance.
-            //   --> Think of static Log(component) as 'GetInstance(component)',
-            //       but shortened to 'Log(component)'.
-            LogManager.Add(this);
 
             // Write breakpoint.
             _logWriter.WriteLine("########################################");
