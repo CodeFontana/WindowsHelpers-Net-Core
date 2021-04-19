@@ -197,6 +197,18 @@ namespace WindowsLibrary
             File.WriteAllLines(_hostsFile, contents, encoding);
         }
 
+        public void UpsertEntry(string address, string hostsEntry)
+        {
+            if (ExistsEntry(address) || ExistsEntry(hostsEntry))
+            {
+                UpdateEntry(address, hostsEntry);
+            }
+            else
+            {
+                CreateEntry(address, hostsEntry);
+            }
+        }
+
         public void DeleteEntry(string addressOrHost)
         {
             var encoding = GetEncoding(_hostsFile);
