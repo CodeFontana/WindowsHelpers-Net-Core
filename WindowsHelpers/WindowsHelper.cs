@@ -20,7 +20,7 @@ namespace WindowsLibrary
     [SupportedOSPlatform("windows")]
     public class WindowsHelper
     {
-        private SimpleLogger _logger;
+        private readonly SimpleLogger _logger;
 
         public WindowsHelper(SimpleLogger logger)
         {

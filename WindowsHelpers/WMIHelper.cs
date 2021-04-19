@@ -12,7 +12,7 @@ namespace WindowsLibrary
     [SupportedOSPlatform("windows")]
     public class WmiHelper
     {
-        private SimpleLogger _logger;
+        private readonly SimpleLogger _logger;
 
         public WmiHelper(SimpleLogger logger)
         {

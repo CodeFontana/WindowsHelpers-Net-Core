@@ -13,7 +13,7 @@ namespace WindowsLibrary
     [SupportedOSPlatform("windows")]
     public class NetworkHelper
     {
-        private SimpleLogger _logger;
+        private readonly SimpleLogger _logger;
 
         public NetworkHelper(SimpleLogger logger)
         {

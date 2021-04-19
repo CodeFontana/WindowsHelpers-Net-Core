@@ -9,7 +9,7 @@ namespace WindowsLibrary
     [SupportedOSPlatform("windows")]
     public class NetworkAdapterHelper
     {
-        private SimpleLogger _logger;
+        private readonly SimpleLogger _logger;
         public List<NetworkAdapter> adapterList;
 
         public NetworkAdapterHelper(SimpleLogger logger)

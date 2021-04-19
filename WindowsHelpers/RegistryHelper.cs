@@ -9,7 +9,7 @@ namespace WindowsLibrary
     [SupportedOSPlatform("windows")]
     public class RegistryHelper
     {
-        private SimpleLogger _logger;
+        private readonly SimpleLogger _logger;
 
         public RegistryHelper(SimpleLogger logger)
         {
