@@ -1,7 +1,9 @@
 ﻿using LoggerLibrary;
 using System;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
+using System.Management;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using System.ServiceProcess;
@@ -11,7 +13,7 @@ namespace WindowsLibrary
     [SupportedOSPlatform("windows")]
     public class ServiceHelper
     {
-        private SimpleLogger _logger;
+        private readonly SimpleLogger _logger;
         private readonly ProcessHelper _psHelper;
 
         public ServiceHelper(
@@ -326,6 +328,21 @@ namespace WindowsLibrary
             return true;
         }
 
+        public string GetServiceFolder(string serviceName)
+        {
+            ManagementClass mc = new("Win32_Service");
+
+            foreach (ManagementObject mo in mc.GetInstances())
+            {
+                if (mo.GetPropertyValue("Name").ToString().ToLower() == serviceName.ToLower())
+                {
+                    return Path.GetDirectoryName(mo.GetPropertyValue("PathName").ToString().Trim('"'));
+                }
+            }
+
+            return null;
+        }
+
         public int GetServiceProcessId(ServiceController sc)
         {
             if (sc == null)
@@ -505,7 +522,7 @@ namespace WindowsLibrary
                         }
                         finally
                         {
-                            if (Process.GetProcessById(pid) != null)
+                            if (Process.GetProcesses().Any(p => p.Id == pid))
                             {
                                 _logger.Log("Killing service...");
                                 _psHelper.KillProcess(pid);
