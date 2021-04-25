@@ -108,6 +108,33 @@ namespace LoggerLibrary
         }
 
         /// <summary>
+        /// Checks if the specified file is in-use.
+        /// </summary>
+        /// <param name="fileName">The filename to check.</param>
+        /// <returns></returns>
+        public bool IsFileInUse(string fileName)
+        {
+            if (File.Exists(fileName))
+            {
+                try
+                {
+                    FileInfo fileInfo = new(fileName);
+                    FileStream fileStream = fileInfo.Open(FileMode.Open, FileAccess.ReadWrite, FileShare.None);
+                    fileStream.Dispose();
+                    return false;
+                }
+                catch (Exception)
+                {
+                    return true;
+                }
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        /// <summary>
         /// Opens a new log file or resumes an existing one.
         /// </summary>
         public void Open()
@@ -168,7 +195,7 @@ namespace LoggerLibrary
                     {
                         long length = new FileInfo(fileName).Length;
 
-                        if (length < LogMaxBytes)
+                        if (length < LogMaxBytes && IsFileInUse(fileName) == false)
                         {
                             // Append unfilled log.
                             LogFilename = fileName;
