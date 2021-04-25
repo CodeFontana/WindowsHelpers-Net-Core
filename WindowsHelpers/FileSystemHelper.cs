@@ -308,7 +308,7 @@ namespace WindowsLibrary
                 }
                 catch (Exception)
                 {
-                    if (IsFileOpen(destFileName) && overWrite)
+                    if (IsFileInUse(destFileName) && overWrite)
                     {
                         try
                         {
@@ -580,7 +580,7 @@ namespace WindowsLibrary
                     catch (Exception)
                     {
                         // Is the specified file in-use?
-                        if (IsFileOpen(fileName) &&
+                        if (IsFileInUse(fileName) &&
                             handleInUseOnReboot &&
                             !fileName.ToLower().Contains(".delete_on_reboot")) // Avoid double-scheduling
                         {
@@ -876,20 +876,27 @@ namespace WindowsLibrary
             return info.ToString();
         }
 
-        public bool IsFileOpen(string fileName)
+        public bool IsFileInUse(string fileName)
         {
-            FileInfo fileInfo = new(fileName);
-            FileStream fileStream = null;
+            if (File.Exists(fileName))
+            {
+                FileInfo fileInfo = new(fileName);
+                FileStream fileStream = null;
 
-            try
-            {
-                fileStream = fileInfo.Open(FileMode.Open, FileAccess.ReadWrite, FileShare.None);
-                fileStream.Dispose();
-                return false;
+                try
+                {
+                    fileStream = fileInfo.Open(FileMode.Open, FileAccess.ReadWrite, FileShare.None);
+                    fileStream.Dispose();
+                    return false;
+                }
+                catch (Exception)
+                {
+                    return true;
+                }
             }
-            catch (Exception)
+            else
             {
-                return true;
+                return false;
             }
         }
 
