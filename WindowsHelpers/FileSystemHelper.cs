@@ -880,12 +880,10 @@ namespace WindowsLibrary
         {
             if (File.Exists(fileName))
             {
-                FileInfo fileInfo = new(fileName);
-                FileStream fileStream = null;
-
                 try
                 {
-                    fileStream = fileInfo.Open(FileMode.Open, FileAccess.ReadWrite, FileShare.None);
+                    FileInfo fileInfo = new(fileName);
+                    FileStream fileStream = fileInfo.Open(FileMode.Open, FileAccess.ReadWrite, FileShare.None);
                     fileStream.Dispose();
                     return false;
                 }
