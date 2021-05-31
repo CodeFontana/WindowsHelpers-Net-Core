@@ -5,17 +5,10 @@ namespace WindowsLibrary
 {
 	public class NumericComparer : IComparer
 	{
-		private static readonly NumericComparer _instance = new();
-
-		private NumericComparer()
+		public NumericComparer()
 		{ 
 		
 		}
-
-		public static NumericComparer GetInstance()
-        {
-			return _instance;
-        }
 
 		public int Compare(object x, object y)
 		{

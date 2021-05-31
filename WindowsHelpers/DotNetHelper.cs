@@ -8,17 +8,11 @@ namespace WindowsLibrary
 {
     public class DotNetHelper
     {
-        private static readonly DotNetHelper _instance = new();
         private static bool bacon = false;
 
-        private DotNetHelper()
+        public DotNetHelper()
         {
 
-        }
-
-        public static DotNetHelper GetInstance()
-        {
-            return _instance;
         }
 
         public unsafe struct BufferOverflow

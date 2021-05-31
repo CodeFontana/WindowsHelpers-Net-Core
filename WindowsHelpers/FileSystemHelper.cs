@@ -949,7 +949,8 @@ namespace WindowsLibrary
 
             try
             {
-                paddedTable = DotNetHelper.GetInstance().PadListElements(foldersAndFiles, 5);
+                DotNetHelper dotNetHelper = new();
+                paddedTable = dotNetHelper.PadListElements(foldersAndFiles, 5);
             }
             catch (Exception e)
             {

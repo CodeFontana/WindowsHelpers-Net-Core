@@ -2,17 +2,18 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.Versioning;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace WindowsLibrary
 {
+    [SupportedOSPlatform("windows")]
     public class HostsFileHelper
     {
-        private static readonly HostsFileHelper _instance = new();
         private string _hostsFile;
 
-        private HostsFileHelper()
+        public HostsFileHelper()
         {
             string systemPath = Environment.GetEnvironmentVariable("SystemRoot");
             _hostsFile = Path.Combine(systemPath, @"system32\drivers\etc\hosts");
@@ -21,11 +22,6 @@ namespace WindowsLibrary
             {
                 throw new FileNotFoundException($"Hosts file not found [{_hostsFile}].");
             }
-        }
-
-        public static HostsFileHelper GetInstance()
-        {
-            return _instance;
         }
 
         public void CreateEntry(string address, string hostsEntry)

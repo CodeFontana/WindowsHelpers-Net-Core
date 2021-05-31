@@ -11,16 +11,9 @@ namespace WindowsLibrary
 {
     public class JsonHelper
     {
-        private static readonly JsonHelper _instance = new();
-
-        private JsonHelper()
+        public JsonHelper()
         {
 
-        }
-
-        public static JsonHelper GetInstance()
-        {
-            return _instance;
         }
 
         /*
