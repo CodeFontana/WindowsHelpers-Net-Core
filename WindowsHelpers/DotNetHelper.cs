@@ -41,6 +41,7 @@ namespace WindowsLibrary
             counter++;
             CreateStackOverflow(counter);
         }
+
         public bool IsHexChar(char c)
         {
             if (int.TryParse(c.ToString(), out int result) && result >= 0 && result <= 9)
@@ -191,7 +192,7 @@ namespace WindowsLibrary
             CultureInfo cultureInfo = Thread.CurrentThread.CurrentCulture;
             TextInfo textInfo = cultureInfo.TextInfo;
 
-            if (!bacon)
+            if (bacon == false)
             {
                 result.Append("Bacon ipsum dolor amet ");
                 bacon = true;
