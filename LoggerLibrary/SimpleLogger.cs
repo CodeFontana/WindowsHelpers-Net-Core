@@ -29,7 +29,7 @@ namespace LoggerLibrary
         public long LogMaxBytes { get; private set; } = 50 * 1048576;
         public uint LogMaxCount { get; private set; } = 10;
 
-        public enum MsgType { NONE, INFO, DEBUG, WARN, ERROR };
+        public enum MsgType { NONE, INFO, DEBUG, WARN, ERROR, CRITICAL };
 
         /// <summary>
         /// Default constructor, empty for facilitating dependency injection.
@@ -295,7 +295,10 @@ namespace LoggerLibrary
                     header += "WARN|";
                     break;
                 case MsgType.ERROR:
-                    header += "ERRR|";
+                    header += "FAIL|";
+                    break;
+                case MsgType.CRITICAL:
+                    header += "CRIT|";
                     break;
             }
 
