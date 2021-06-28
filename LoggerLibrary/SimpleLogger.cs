@@ -354,49 +354,6 @@ namespace LoggerLibrary
         }
 
         /// <summary>
-        /// Logs a message for a specified component.
-        /// </summary>
-        /// <param name="component">Component with which the message belongs.</param>
-        /// <param name="message">Message to be written.</param>
-        /// <param name="logLevel">Log level specification. If unspecified, the default is 'INFO'.</param>
-        public void Log(string component, string message, MsgType logLevel = MsgType.INFO)
-        {
-            if (string.IsNullOrWhiteSpace(message) == false)
-            {
-                if (LogFilename == null)
-                {
-                    lock (_lockObj)
-                    {
-                        _logBuffer.Add(MsgHeader($"{LogName}|{component}", logLevel) + message);
-                    }
-                }
-                else
-                {
-                    long logSizeBytes = new FileInfo(LogFilename).Length;
-
-                    if (logSizeBytes >= LogMaxBytes)
-                    {
-                        Open();
-                    }
-
-                    lock (_lockObj)
-                    {
-                        foreach (var msg in _logBuffer)
-                        {
-                            Console.WriteLine(msg);
-                            _logWriter.WriteLine(msg);
-                        }
-
-                        _logBuffer.Clear();
-
-                        Console.WriteLine(MsgHeader($"{LogName}|{component}", logLevel) + message);
-                        _logWriter.WriteLine(MsgHeader($"{LogName}|{component}", logLevel) + message);
-                    }
-                }
-            }
-        }
-
-        /// <summary>
         /// Logs a C# exception message to the default component.
         /// </summary>
         /// <param name="e">Exception to be logged.</param>
@@ -446,58 +403,7 @@ namespace LoggerLibrary
             }
         }
 
-        /// <summary>
-        /// Logs a C# exception message for a specified component.
-        /// </summary>
-        /// <param name="component">Component with which the message belongs.</param>
-        /// <param name="e">Exception to be logged.</param>
-        /// <param name="message">Additional message for debugging purposes.</param>
-        public void Log(string component, Exception e, string message)
-        {
-            if (LogFilename == null)
-            {
-                lock (_lockObj)
-                {
-                    _logBuffer.Add(MsgHeader($"{LogName}|{component}", MsgType.ERROR) + e.Message);
-
-                    if (string.IsNullOrWhiteSpace(message) == false)
-                    {
-                        _logBuffer.Add(MsgHeader($"{LogName}|{component}", MsgType.ERROR) + message);
-                    }
-                }
-            }
-            else
-            {
-                long logSizeBytes = new FileInfo(LogFilename).Length;
-
-                if (logSizeBytes >= LogMaxBytes)
-                {
-                    Open();
-                }
-
-                lock (_lockObj)
-                {
-                    foreach (var msg in _logBuffer)
-                    {
-                        Console.WriteLine(msg);
-                        _logWriter.WriteLine(msg);
-                    }
-
-                    _logBuffer.Clear();
-
-                    Console.WriteLine(MsgHeader($"{LogName}|{component}", MsgType.ERROR) + e.Message);
-                    _logWriter.WriteLine(MsgHeader($"{LogName}|{component}", MsgType.ERROR) + e.Message);
-
-                    if (string.IsNullOrWhiteSpace(message) == false)
-                    {
-                        Console.WriteLine(MsgHeader($"{LogName}|{component}", MsgType.ERROR) + message);
-                        _logWriter.WriteLine(MsgHeader($"{LogName}|{component}", MsgType.ERROR) + message);
-                    }
-                }
-            }
-        }
-
-        /* LogStatic() methods. These exist in order to prevent you from ever
+        /* Static Log() methods. These exist in order to prevent you from ever
          * having to pass any instance of Logger as a parameter to any method.
          * It may be expensive to pass a Logger object as a method parameter,
          * thus instead, your code can take advantage of these static methods.
@@ -505,7 +411,7 @@ namespace LoggerLibrary
          * Each new instance of Logger is indexed by log/component name in
          * the static LogManager at the top of this class.
          * 
-         * Thus you can call the LogStatic() methods, passing only the
+         * Thus you can call the static Log() methods, passing only the
          * component name you wish to log a message. If the component name
          * specified aligns with an instance contained in the LogManager,
          * the message will be forwarded to the Log() method of that instance
@@ -520,22 +426,22 @@ namespace LoggerLibrary
         /// <summary>
         /// Logs a message to the specified Logger instance.
         /// </summary>
-        /// <param name="component">The Logger instance (or component) to forward the log message.</param>
+        /// <param name="instance">The Logger instance (or component) to forward the log message.</param>
         /// <param name="message">The log message.</param>
         /// <param name="logLevel">The log level specification.</param>
-        public static void LogStatic(string component, string message, MsgType logLevel = MsgType.INFO)
+        public static void Log(string instance, string message, MsgType logLevel = MsgType.INFO)
         {
             var logger = LogManager
-                .Where(l => l.LogName.ToLower().Equals(component.ToLower()))
+                .Where(l => l.LogName.ToLower().Equals(instance.ToLower()))
                 .FirstOrDefault();
 
             if (logger != null)
             {
-                logger.Log(component, message, logLevel);
+                logger.Log(message, logLevel);
             }
             else
             {
-                Console.WriteLine(MsgHeader(component, logLevel) + message);
+                Console.WriteLine(MsgHeader(instance, logLevel) + message);
             }
         }
 
@@ -545,7 +451,7 @@ namespace LoggerLibrary
         /// <param name="component">The Logger instance (or component) to forward the exception information.</param>
         /// <param name="e">The Exception object.</param>
         /// <param name="message">Any additional message for debugging purposes.</param>
-        public static void LogStatic(string component, Exception e, string message)
+        public static void Log(string component, Exception e, string message)
         {
             var logger = LogManager
                 .Where(l => l.LogName.ToLower().Equals(component.ToLower()))
@@ -553,7 +459,7 @@ namespace LoggerLibrary
 
             if (logger != null)
             {
-                logger.Log(component, e, message);
+                logger.Log(e, message);
             }
             else
             {
