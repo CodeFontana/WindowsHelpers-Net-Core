@@ -1,4 +1,5 @@
-﻿using System;
+﻿using LoggerLibrary.Interfaces;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -7,13 +8,13 @@ using System.Threading.Tasks;
 
 namespace LoggerLibrary
 {
-    public class ComponentLogger
+    public class ComponentLogger : IComponentLogger, ILogger
     {
-        private readonly SimpleLogger _parentLogger;
+        private readonly BaseLogger _parentLogger;
 
         public string ComponentName { get; init; }
 
-        public ComponentLogger(SimpleLogger parentLogger, string componentName)
+        public ComponentLogger(BaseLogger parentLogger, string componentName)
         {
             _parentLogger = parentLogger;
             ComponentName = componentName;
@@ -24,7 +25,7 @@ namespace LoggerLibrary
         /// </summary>
         /// <param name="message">Message to be written.</param>
         /// <param name="logLevel">Log level specification. If unspecified, the default is 'INFO'.</param>
-        public void Log(string message, SimpleLogger.MsgType logLevel = SimpleLogger.MsgType.INFO)
+        public void Log(string message, BaseLogger.MsgType logLevel = BaseLogger.MsgType.INFO)
         {
             if (string.IsNullOrWhiteSpace(message))
             {
@@ -78,11 +79,11 @@ namespace LoggerLibrary
             {
                 lock (_parentLogger._lockObj)
                 {
-                    _parentLogger._logBuffer.Add(_parentLogger.MsgHeader(prefix, SimpleLogger.MsgType.ERROR) + e.Message);
+                    _parentLogger._logBuffer.Add(_parentLogger.MsgHeader(prefix, BaseLogger.MsgType.ERROR) + e.Message);
 
                     if (string.IsNullOrWhiteSpace(message) == false)
                     {
-                        _parentLogger._logBuffer.Add(_parentLogger.MsgHeader(prefix, SimpleLogger.MsgType.ERROR) + message);
+                        _parentLogger._logBuffer.Add(_parentLogger.MsgHeader(prefix, BaseLogger.MsgType.ERROR) + message);
                     }
                 }
             }
@@ -105,13 +106,13 @@ namespace LoggerLibrary
 
                     _parentLogger._logBuffer.Clear();
 
-                    Console.WriteLine(_parentLogger.MsgHeader(prefix, SimpleLogger.MsgType.ERROR) + e.Message);
-                    _parentLogger._logWriter.WriteLine(_parentLogger.MsgHeader(prefix, SimpleLogger.MsgType.ERROR) + e.Message);
+                    Console.WriteLine(_parentLogger.MsgHeader(prefix, BaseLogger.MsgType.ERROR) + e.Message);
+                    _parentLogger._logWriter.WriteLine(_parentLogger.MsgHeader(prefix, BaseLogger.MsgType.ERROR) + e.Message);
 
                     if (string.IsNullOrWhiteSpace(message) == false)
                     {
-                        Console.WriteLine(_parentLogger.MsgHeader(prefix, SimpleLogger.MsgType.ERROR) + message);
-                        _parentLogger._logWriter.WriteLine(_parentLogger.MsgHeader(prefix, SimpleLogger.MsgType.ERROR) + message);
+                        Console.WriteLine(_parentLogger.MsgHeader(prefix, BaseLogger.MsgType.ERROR) + message);
+                        _parentLogger._logWriter.WriteLine(_parentLogger.MsgHeader(prefix, BaseLogger.MsgType.ERROR) + message);
                     }
                 }
             }
