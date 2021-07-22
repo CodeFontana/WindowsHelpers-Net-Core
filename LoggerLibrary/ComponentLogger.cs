@@ -21,7 +21,7 @@ namespace LoggerLibrary
         }
 
         /// <summary>
-        /// Logs a message for the specific component.
+        /// Logs a message for a specific component.
         /// </summary>
         /// <param name="message">Message to be written.</param>
         /// <param name="logLevel">Log level specification. If unspecified, the default is 'INFO'.</param>
