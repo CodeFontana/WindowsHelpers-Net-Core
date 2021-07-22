@@ -85,8 +85,7 @@ namespace WindowsLibrary.Tests
         public void ReadHostsFileEntries()
         {
             // Arrange.
-            var logger = BaseLogger.CreateLog("HostsFileHelperTests");
-            logger.Open();
+            var logger = new BaseLogger("HostsFileHelperTests");
             var hostsFile = new HostsFileHelper();
 
             // Act.
