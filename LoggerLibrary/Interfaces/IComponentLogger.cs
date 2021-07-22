@@ -2,11 +2,8 @@
 
 namespace LoggerLibrary.Interfaces
 {
-    public interface IComponentLogger
+    public interface IComponentLogger : ILogger
     {
         string ComponentName { get; init; }
-
-        void Log(Exception e, string message);
-        void Log(string message, BaseLogger.MsgType logLevel = BaseLogger.MsgType.INFO);
     }
 }

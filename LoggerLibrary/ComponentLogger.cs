@@ -10,11 +10,11 @@ namespace LoggerLibrary
 {
     public class ComponentLogger : IComponentLogger, ILogger
     {
-        private readonly BaseLogger _parentLogger;
+        private readonly IBaseLogger _parentLogger;
 
         public string ComponentName { get; init; }
 
-        public ComponentLogger(BaseLogger parentLogger, string componentName)
+        public ComponentLogger(IBaseLogger parentLogger, string componentName)
         {
             _parentLogger = parentLogger;
             ComponentName = componentName;
@@ -27,43 +27,8 @@ namespace LoggerLibrary
         /// <param name="logLevel">Log level specification. If unspecified, the default is 'INFO'.</param>
         public void Log(string message, BaseLogger.MsgType logLevel = BaseLogger.MsgType.INFO)
         {
-            if (string.IsNullOrWhiteSpace(message))
-            {
-                return;
-            }
-
-            string prefix = _parentLogger.LogName + (string.IsNullOrWhiteSpace(ComponentName) ? "" : $"|{ComponentName}");
-
-            if (_parentLogger.LogFilename == null)
-            {
-                lock (_parentLogger._lockObj)
-                {
-                    _parentLogger._logBuffer.Add(_parentLogger.MsgHeader(prefix, logLevel) + message);
-                }
-            }
-            else
-            {
-                long logSizeBytes = new FileInfo(_parentLogger.LogFilename).Length;
-
-                if (logSizeBytes >= _parentLogger.LogMaxBytes)
-                {
-                    _parentLogger.Open();
-                }
-
-                lock (_parentLogger._lockObj)
-                {
-                    foreach (var msg in _parentLogger._logBuffer)
-                    {
-                        Console.WriteLine(msg);
-                        _parentLogger._logWriter.WriteLine(msg);
-                    }
-
-                    _parentLogger._logBuffer.Clear();
-
-                    Console.WriteLine(_parentLogger.MsgHeader(prefix, logLevel) + message);
-                    _parentLogger._logWriter.WriteLine(_parentLogger.MsgHeader(prefix, logLevel) + message);
-                }
-            }
+            string prefix = string.IsNullOrWhiteSpace(ComponentName) ? "" : $"{ComponentName}|";
+            _parentLogger.Log(prefix + message, logLevel);
         }
 
         /// <summary>
@@ -73,49 +38,8 @@ namespace LoggerLibrary
         /// <param name="message">Additional message for debugging purposes.</param>
         public void Log(Exception e, string message)
         {
-            string prefix = _parentLogger.LogName + (string.IsNullOrWhiteSpace(ComponentName) ? "|" : $"|{ComponentName}|");
-
-            if (_parentLogger.LogFilename == null)
-            {
-                lock (_parentLogger._lockObj)
-                {
-                    _parentLogger._logBuffer.Add(_parentLogger.MsgHeader(prefix, BaseLogger.MsgType.ERROR) + e.Message);
-
-                    if (string.IsNullOrWhiteSpace(message) == false)
-                    {
-                        _parentLogger._logBuffer.Add(_parentLogger.MsgHeader(prefix, BaseLogger.MsgType.ERROR) + message);
-                    }
-                }
-            }
-            else
-            {
-                long logSizeBytes = new FileInfo(_parentLogger.LogFilename).Length;
-
-                if (logSizeBytes >= _parentLogger.LogMaxBytes)
-                {
-                    _parentLogger.Open();
-                }
-
-                lock (_parentLogger._lockObj)
-                {
-                    foreach (var msg in _parentLogger._logBuffer)
-                    {
-                        Console.WriteLine(msg);
-                        _parentLogger._logWriter.WriteLine(msg);
-                    }
-
-                    _parentLogger._logBuffer.Clear();
-
-                    Console.WriteLine(_parentLogger.MsgHeader(prefix, BaseLogger.MsgType.ERROR) + e.Message);
-                    _parentLogger._logWriter.WriteLine(_parentLogger.MsgHeader(prefix, BaseLogger.MsgType.ERROR) + e.Message);
-
-                    if (string.IsNullOrWhiteSpace(message) == false)
-                    {
-                        Console.WriteLine(_parentLogger.MsgHeader(prefix, BaseLogger.MsgType.ERROR) + message);
-                        _parentLogger._logWriter.WriteLine(_parentLogger.MsgHeader(prefix, BaseLogger.MsgType.ERROR) + message);
-                    }
-                }
-            }
+            string prefix = string.IsNullOrWhiteSpace(ComponentName) ? "" : $"{ComponentName}|";
+            _parentLogger.Log(e, prefix + message);
         }
     }
 }
