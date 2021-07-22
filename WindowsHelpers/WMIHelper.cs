@@ -25,8 +25,7 @@ namespace WindowsLibrary
         /// </summary>
         public static void SampleUsage()
         {
-            var logFile = BaseLogger.CreateLog("WmiHelperSampleUsage");
-            logFile.Open();
+            var logFile = new BaseLogger("WmiHelperSampleUsage");
             WmiHelper wmi = new(logFile);
 
             // EXAMPLE: Get Manufacturer + Model info.
