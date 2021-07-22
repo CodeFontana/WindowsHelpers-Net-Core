@@ -42,7 +42,7 @@ namespace LoggerLibrary
                           long logMaxBytes = 50 * 1048576,
                           uint logMaxCount = 10)
         {
-            if (logFolder == null)
+            if (string.IsNullOrWhiteSpace(logFolder))
             {
                 string processName = Process.GetCurrentProcess().MainModule.FileName;
                 string processPath = processName.Substring(0, processName.LastIndexOf("\\"));
@@ -50,7 +50,6 @@ namespace LoggerLibrary
             }
             else if (Directory.Exists(logFolder) == false)
             {
-                Directory.CreateDirectory(logFolder);
                 LogFolder = logFolder;
             }
             else
@@ -58,6 +57,7 @@ namespace LoggerLibrary
                 LogFolder = logFolder;
             }
 
+            Directory.CreateDirectory(LogFolder);
             LogName = logName;
             LogMaxBytes = logMaxBytes;
             LogMaxCount = logMaxCount;
