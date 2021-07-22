@@ -1,21 +1,22 @@
-﻿using System;
+﻿using LoggerLibrary;
+using LoggerLibrary.Interfaces;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Management;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
-using LoggerLibrary;
 
 namespace WindowsLibrary
 {
     [SupportedOSPlatform("windows")]
     public class PageFileHelper
     {
-        private readonly ComponentLogger _logger;
+        private readonly ILogger _logger;
         public static List<PageFile> PageFiles = new();
 
-        public PageFileHelper(ComponentLogger logger)
+        public PageFileHelper(ILogger logger)
         {
             _logger = logger;
             ReadConfig();
@@ -161,7 +162,7 @@ namespace WindowsLibrary
 
                 if (NativeMethods.OpenProcessToken(hProcess, NativeMethods.TOKEN_ALL_ACCESS, out IntPtr hToken) == false)
                 {
-                    _logger.Log("ERROR: Unable to open specified process token [OpenProcessToken=" + Marshal.GetLastWin32Error().ToString() + "].", SimpleLogger.MsgType.ERROR);
+                    _logger.Log("ERROR: Unable to open specified process token [OpenProcessToken=" + Marshal.GetLastWin32Error().ToString() + "].", BaseLogger.MsgType.ERROR);
                 }
 
                 new WindowsHelper(_logger).EnablePrivilege(hToken, NativeMethods.SE_CREATE_PAGEFILE_NAME);
@@ -224,7 +225,7 @@ namespace WindowsLibrary
 
                 if (!success)
                 {
-                    _logger.Log("ERROR: Failed to TURN OFF automatic page file management, further actions cancelled.", SimpleLogger.MsgType.ERROR);
+                    _logger.Log("ERROR: Failed to TURN OFF automatic page file management, further actions cancelled.", BaseLogger.MsgType.ERROR);
                     return false;
                 }
 
@@ -245,7 +246,7 @@ namespace WindowsLibrary
 
                         if (maxSize > freeSpaceMB)
                         {
-                            _logger.Log($"ERROR: Page file maximum size [{maxSize}MB] exceeds available free disk space [{freeSpaceMB}MB].", SimpleLogger.MsgType.ERROR);
+                            _logger.Log($"ERROR: Page file maximum size [{maxSize}MB] exceeds available free disk space [{freeSpaceMB}MB].", BaseLogger.MsgType.ERROR);
                             return false;
                         }
                         else
@@ -321,7 +322,7 @@ namespace WindowsLibrary
 
                 if (success == false)
                 {
-                    _logger.Log("ERROR: Failed to TURN OFF automatic page file management, further actions cancelled.", SimpleLogger.MsgType.ERROR);
+                    _logger.Log("ERROR: Failed to TURN OFF automatic page file management, further actions cancelled.", BaseLogger.MsgType.ERROR);
                     return false;
                 }
 
@@ -351,7 +352,7 @@ namespace WindowsLibrary
 
                 if (queryCollection.Count == 0 || !matchFound)
                 {
-                    _logger.Log($"ERROR: Removal failed, no page file is currently configured for {driveLetter}:\\.", SimpleLogger.MsgType.ERROR);
+                    _logger.Log($"ERROR: Removal failed, no page file is currently configured for {driveLetter}:\\.", BaseLogger.MsgType.ERROR);
                     return false;
                 }
 

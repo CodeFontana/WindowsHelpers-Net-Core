@@ -1,5 +1,6 @@
-﻿using Microsoft.Win32;
-using LoggerLibrary;
+﻿using LoggerLibrary;
+using LoggerLibrary.Interfaces;
+using Microsoft.Win32;
 using System;
 using System.Linq;
 using System.Runtime.Versioning;
@@ -9,9 +10,9 @@ namespace WindowsLibrary
     [SupportedOSPlatform("windows")]
     public class RegistryHelper
     {
-        private readonly ComponentLogger _logger;
+        private readonly ILogger _logger;
 
-        public RegistryHelper(ComponentLogger logger)
+        public RegistryHelper(ILogger logger)
         {
             _logger = logger;
         }
@@ -54,7 +55,7 @@ namespace WindowsLibrary
             {
                 if (sourceKey.GetValue(sourceValueName) == null)
                 {
-                    _logger.Log("Source value [" + sourceValueName + "] does not exist in [" + sourceKey.Name + "].", SimpleLogger.MsgType.ERROR);
+                    _logger.Log("Source value [" + sourceValueName + "] does not exist in [" + sourceKey.Name + "].", BaseLogger.MsgType.ERROR);
                 }
 
                 destKey.SetValue(destValueName,
@@ -364,7 +365,7 @@ namespace WindowsLibrary
             {
                 if (sourceKey.GetValue(sourceValueName) == null)
                 {
-                    _logger.Log("Source value [" + sourceValueName + "] does not exist in [" + sourceKey.Name + "].", SimpleLogger.MsgType.ERROR);
+                    _logger.Log("Source value [" + sourceValueName + "] does not exist in [" + sourceKey.Name + "].", BaseLogger.MsgType.ERROR);
                 }
 
                 destKey.SetValue(destValueName, 

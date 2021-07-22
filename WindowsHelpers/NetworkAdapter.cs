@@ -1,4 +1,5 @@
 ﻿using LoggerLibrary;
+using LoggerLibrary.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -109,7 +110,7 @@ namespace WindowsLibrary
             return true;
         }
 
-        public bool EnableAdapter(SimpleLogger logger)
+        public bool EnableAdapter(BaseLogger logger)
         {
             try
             {
@@ -130,7 +131,7 @@ namespace WindowsLibrary
             }
         }
 
-        public bool ConfigStaticAddress(SimpleLogger logger, string newAddress, string newSubnet, string newGateway)
+        public bool ConfigStaticAddress(ILogger logger, string newAddress, string newSubnet, string newGateway)
         {
             try
             {

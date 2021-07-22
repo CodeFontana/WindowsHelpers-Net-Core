@@ -1,4 +1,5 @@
 ﻿using LoggerLibrary;
+using LoggerLibrary.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,10 +13,9 @@ namespace WindowsLibrary
     [SupportedOSPlatform("windows")]
     public class WmiHelper
     {
-        private readonly ComponentLogger _logger;
+        private readonly ILogger _logger;
 
-
-        public WmiHelper(ComponentLogger logger)
+        public WmiHelper(ILogger logger)
         {
             _logger = logger;
         }
@@ -25,10 +25,9 @@ namespace WindowsLibrary
         /// </summary>
         public static void SampleUsage()
         {
-            var logFile = SimpleLogger.CreateLog("WmiHelperSampleUsage");
+            var logFile = BaseLogger.CreateLog("WmiHelperSampleUsage");
             logFile.Open();
-            var compLogFile = new ComponentLogger(logFile, "SampleComponent");
-            WmiHelper wmi = new(compLogFile);
+            WmiHelper wmi = new(logFile);
 
             // EXAMPLE: Get Manufacturer + Model info.
             logFile.Log("Example: Win32_ComputerSystem [Manufacturer and Model]\n");
