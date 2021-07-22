@@ -17,9 +17,9 @@ namespace WindowsLibrary
     [SupportedOSPlatform("windows")]
     public class FileSystemHelper
     {
-        private readonly SimpleLogger _logger;
+        private readonly ComponentLogger _logger;
 
-        public FileSystemHelper(SimpleLogger logger)
+        public FileSystemHelper(ComponentLogger logger)
         {
             _logger = logger;
         }
@@ -230,7 +230,7 @@ namespace WindowsLibrary
                     {
                         _logger.Log("  SMART: " + smart.ToString());
 
-                        if (!smart.ToString().ToLower().Equals("ok"))
+                        if (smart.ToString().ToLower().Equals("ok") == false)
                         {
                             smartOK = false;
                         }
@@ -523,7 +523,7 @@ namespace WindowsLibrary
                             skipItem = true;
                         }
 
-                        if (!skipItem)
+                        if (skipItem == false)
                         {
                             string destinationPath = Path.Combine(targetFolder, sourceDir.Substring(sourceDir.LastIndexOf("\\") + 1));
 
@@ -1051,7 +1051,7 @@ namespace WindowsLibrary
 
         public void RemoveJunction(string junctionPoint)
         {
-            if (!Directory.Exists(junctionPoint) && !File.Exists(junctionPoint))
+            if (Directory.Exists(junctionPoint) == false && File.Exists(junctionPoint) == false)
             {
                 return;
             }
@@ -1082,7 +1082,7 @@ namespace WindowsLibrary
                     NativeMethods.FSCTL_DELETE_REPARSE_POINT, 
                     inBuffer, 8, IntPtr.Zero, 0, out int BytesReturned, IntPtr.Zero);
 
-                if (!result)
+                if (result == false)
                 {
                     throw new Win32Exception("ERROR: Unable to delete reparse point.");
                 }
@@ -1101,7 +1101,7 @@ namespace WindowsLibrary
         {
             try
             {
-                if (!File.Exists(replaceFile))
+                if (File.Exists(replaceFile) == false)
                 {
                     return;
                 }

@@ -17,9 +17,9 @@ namespace WindowsLibrary
     [SupportedOSPlatform("windows")]
     public class ProcessHelper
     {
-        private readonly SimpleLogger _logger;
+        private readonly ComponentLogger _logger;
 
-        public ProcessHelper(SimpleLogger logger)
+        public ProcessHelper(ComponentLogger logger)
         {
             _logger = logger;
         }
@@ -164,7 +164,7 @@ namespace WindowsLibrary
                     ref si,
                     out pi))
                 {
-                    _logger.Log("ERROR: Unable to create user process [CreateProcessAsUser=" + Marshal.GetLastWin32Error().ToString() + "].");
+                    _logger.Log("ERROR: Unable to create user process [CreateProcessAsUser=" + Marshal.GetLastWin32Error().ToString() + "].", SimpleLogger.MsgType.ERROR);
                     return false;
                 }
                 else
@@ -673,7 +673,7 @@ namespace WindowsLibrary
                 p.StartInfo.CreateNoWindow = hideWindow; // Passed into function
                 p.StartInfo.Verb = "runas"; // Elevate (note sure if this works with UseShellExecute=false)
 
-                if (!hideExecution)
+                if (hideExecution == false)
                 {
                     _logger.Log("Create process: " + appFileName + " " + arguments + " [Timeout=" + execTimeoutSeconds.ToString() + "s]");
                 }
@@ -697,7 +697,7 @@ namespace WindowsLibrary
                 {
                     string textLine;
 
-                    while (!cts.Token.IsCancellationRequested &&
+                    while (cts.Token.IsCancellationRequested == false &&
                         (textLine = await outputStream.ReadLineAsync()) != null)
                     {
                         lock (combinedOutput)
@@ -705,7 +705,7 @@ namespace WindowsLibrary
                             combinedOutput.Add(textLine);
                         }
 
-                        if (!hideStreamOutput && !hideExecution)
+                        if (hideStreamOutput == false && hideExecution == false)
                         {
                             _logger.Log(textLine, SimpleLogger.MsgType.INFO);
                         }
@@ -772,13 +772,13 @@ namespace WindowsLibrary
             finally
             {
                 try { if (consumeStdOut != null) { consumeStdOut.Dispose(); } }
-                catch (Exception e) { _logger.Log(e, "Resource disposal failure [consumeStdOut]."); }
+                catch (Exception) { /* _logger.Log(e, "Resource disposal failure [consumeStdOut]."); */ }
                 try { if (consumeStdErr != null) { consumeStdErr.Dispose(); } }
-                catch (Exception e) { _logger.Log(e, "Resource disposal failure [consumeStdErr]."); }
+                catch (Exception) { /* _logger.Log(e, "Resource disposal failure [consumeStdErr]."); */ }
                 try { cts.Dispose(); }
-                catch (Exception e) { _logger.Log(e, "Resource disposal failure [cts]."); }
+                catch (Exception) {/*  _logger.Log(e, "Resource disposal failure [cts]."); */ }
                 try { p.Dispose(); }
-                catch (Exception e) { _logger.Log(e, "Resource disposal failure [p]."); }
+                catch (Exception) { /* _logger.Log(e, "Resource disposal failure [p]."); */ }
             }
         }
 
@@ -837,7 +837,7 @@ namespace WindowsLibrary
                 }
 
                 // Last chance.
-                if (!File.Exists(appFileName) && !File.Exists(appFileName.TrimStart('\\')))
+                if (File.Exists(appFileName) == false && File.Exists(appFileName.TrimStart('\\')) == false)
                 {
                     _logger.Log("Application not found [" + origAppToExecute + "].", SimpleLogger.MsgType.ERROR);
                     return false;

@@ -12,9 +12,10 @@ namespace WindowsLibrary
     [SupportedOSPlatform("windows")]
     public class WmiHelper
     {
-        private readonly SimpleLogger _logger;
+        private readonly ComponentLogger _logger;
 
-        public WmiHelper(SimpleLogger logger)
+
+        public WmiHelper(ComponentLogger logger)
         {
             _logger = logger;
         }
@@ -26,7 +27,8 @@ namespace WindowsLibrary
         {
             var logFile = SimpleLogger.CreateLog("WmiHelperSampleUsage");
             logFile.Open();
-            WmiHelper wmi = new(logFile);
+            var compLogFile = new ComponentLogger(logFile, "SampleComponent");
+            WmiHelper wmi = new(compLogFile);
 
             // EXAMPLE: Get Manufacturer + Model info.
             logFile.Log("Example: Win32_ComputerSystem [Manufacturer and Model]\n");

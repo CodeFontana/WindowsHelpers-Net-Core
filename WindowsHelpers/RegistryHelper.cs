@@ -9,9 +9,9 @@ namespace WindowsLibrary
     [SupportedOSPlatform("windows")]
     public class RegistryHelper
     {
-        private readonly SimpleLogger _logger;
+        private readonly ComponentLogger _logger;
 
-        public RegistryHelper(SimpleLogger logger)
+        public RegistryHelper(ComponentLogger logger)
         {
             _logger = logger;
         }

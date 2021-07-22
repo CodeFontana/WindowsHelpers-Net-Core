@@ -13,9 +13,9 @@ namespace WindowsLibrary
     [SupportedOSPlatform("windows")]
     public class NetworkHelper
     {
-        private readonly SimpleLogger _logger;
+        private readonly ComponentLogger _logger;
 
-        public NetworkHelper(SimpleLogger logger)
+        public NetworkHelper(ComponentLogger logger)
         {
             _logger = logger;
         }
@@ -27,7 +27,7 @@ namespace WindowsLibrary
             {
                 if (Uri.CheckHostName(hostAddress).Equals(UriHostNameType.IPv4))
                 {
-                    if (!hideOutput)
+                    if (hideOutput == false)
                     {
                         _logger.Log(hostAddress + " resolved to: " + hostAddress);
                     }
@@ -48,7 +48,8 @@ namespace WindowsLibrary
                         if (addr.AddressFamily == AddressFamily.InterNetwork)
                         {
                             addresses.Add(addr.ToString());
-                            if (!hideOutput)
+                            
+                            if (hideOutput == false)
                             {
                                 _logger.Log(hostAddress + " resolved to: " + addr.ToString());
                             }
@@ -60,7 +61,7 @@ namespace WindowsLibrary
             }
             catch (SocketException)
             {
-                if (!hideOutput)
+                if (hideOutput == false)
                 {
                     _logger.Log("Unable to resolve: " + hostAddress);
                 }
@@ -69,7 +70,7 @@ namespace WindowsLibrary
             }
             catch (Exception e)
             {
-                if (!hideOutput)
+                if (hideOutput == false)
                 {
                     _logger.Log(e, "Address resolution failure.");
                 }
@@ -84,7 +85,7 @@ namespace WindowsLibrary
             {
                 if (Uri.CheckHostName(inputAddress).Equals(UriHostNameType.Dns))
                 {
-                    if (!hideOutput)
+                    if (hideOutput == false)
                     {
                         _logger.Log(inputAddress + " reversed to: " + inputAddress);
                     }
@@ -96,7 +97,7 @@ namespace WindowsLibrary
 
                 if (HostEntry != null)
                 {
-                    if (!hideOutput)
+                    if (hideOutput == false)
                     {
                         _logger.Log(inputAddress + " reversed to: " + HostEntry.HostName);
                     }
@@ -110,7 +111,7 @@ namespace WindowsLibrary
             }
             catch (SocketException)
             {
-                if (!hideOutput)
+                if (hideOutput == false)
                 {
                     _logger.Log("Unable to reverse [" + inputAddress + "] to hostname.");
                 }
@@ -119,7 +120,7 @@ namespace WindowsLibrary
             }
             catch (Exception e)
             {
-                if (!hideOutput)
+                if (hideOutput == false)
                 {
                     _logger.Log(e, "Reverse name lookup exception.");
                 }
