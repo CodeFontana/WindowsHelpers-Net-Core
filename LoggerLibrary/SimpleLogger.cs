@@ -7,20 +7,13 @@ using System.Threading.Tasks;
 
 namespace LoggerLibrary
 {
-    /// <summary>
-    /// An implementation of SimpleLogger, providing basic logging functionality
-    /// to disk. Features include log size and maximum increment setting, along
-    /// with automatic rollover from one file to the next.
-    /// </summary>
     public class SimpleLogger
     {
-        public static List<SimpleLogger> LogManager { get; } = new();
-
-        private FileStream _logStream = null;
-        private StreamWriter _logWriter = null;
-        private List<string> _logBuffer = new();
-        private readonly object _lockObj = new();
-        private bool _rollMode = false;
+        public FileStream _logStream = null;
+        public StreamWriter _logWriter = null;
+        public List<string> _logBuffer = new();
+        public readonly object _lockObj = new();
+        public bool _rollMode = false;
 
         public string LogName { get; private set; }
         public string LogFilename { get; private set; }
@@ -37,7 +30,7 @@ namespace LoggerLibrary
         /// instance, followed by Open() to start or resume logging to that
         /// instance.
         /// </summary>
-        private SimpleLogger()
+        protected SimpleLogger()
         {
             
         }
@@ -47,10 +40,10 @@ namespace LoggerLibrary
         //   1 MB = 1048576 Bytes (in binary)
 
         /// <summary>
-        /// Creates a new log file for the specified component, and adds to the LogManager.
+        /// Creates a new log file and adds to the LogManager.
         /// Note: This call does not Open() the log file.
         /// </summary>
-        /// <param name="logName">Component name for log file.</param>
+        /// <param name="logName">Name for log file.</param>
         /// <param name="logFolder">Path where logs file(s) will be saved.</param>
         /// <param name="logMaxBytes">Maximum size (in bytes) for the log file. If unspecified, the default is 50MB per log.</param>
         /// <param name="logMaxCount">Maximum count of log files for rotation. If unspecified, the default is 10 logs.</param>
@@ -61,16 +54,6 @@ namespace LoggerLibrary
             long logMaxBytes = 50 * 1048576,
             uint logMaxCount = 10)
         {
-            // Check for exisitng logger before creating a new one.
-            var existingLogger = LogManager
-                .Where(l => l.LogName.ToLower().Equals(logName.ToLower()))
-                .FirstOrDefault();
-
-            if (existingLogger != null)
-            {
-                return existingLogger;
-            }
-
             // Create a new logger.
             SimpleLogger newLogger = new();
 
@@ -91,22 +74,9 @@ namespace LoggerLibrary
                 newLogger.LogFolder = logFolder;
             }
 
-            // Set logger properties.
             newLogger.LogName = logName;
             newLogger.LogMaxBytes = logMaxBytes;
             newLogger.LogMaxCount = logMaxCount;
-
-            // Add to log manager for static reference by component name.
-            //   --> This is for static calls to Log() functions.
-            //   --> E.g. Calling Log(component) from a Class Library function.
-            //   --> Rather than passing around instances of this class, the log
-            //       message can route to the correct instance, by calling the
-            //       static Log() function, and passing the component name of an
-            //       existing instance.
-            //   --> Think of static Log(component) as 'GetInstance(component)',
-            //       but shortened to 'Log(component)'.
-            LogManager.Add(newLogger);
-
             return newLogger;
         }
 
@@ -115,7 +85,7 @@ namespace LoggerLibrary
         /// </summary>
         /// <param name="fileName">The filename to check.</param>
         /// <returns></returns>
-        public bool IsFileInUse(string fileName)
+        public static bool IsFileInUse(string fileName)
         {
             if (File.Exists(fileName))
             {
@@ -161,7 +131,7 @@ namespace LoggerLibrary
             // Write breakpoint.
             _logWriter.WriteLine("########################################");
 
-            // Push any buffered messages for this log/component.
+            // Push any buffered messages for this log.
             lock (_lockObj)
             {
                 foreach (var msg in _logBuffer)
@@ -178,7 +148,7 @@ namespace LoggerLibrary
         /// Privately sets 'LogFilename' with next available increment in the
         /// log file rotation.
         /// </summary>
-        private void IncrementLog()
+        protected void IncrementLog()
         {
             if (_rollMode == false)
             {
@@ -268,17 +238,16 @@ namespace LoggerLibrary
 
         /// <summary>
         /// Generates a standard preamble for each log message. The preamble includes
-        /// the current timestamp, the log component name and a formatted string with
-        /// the specified log level. This method ensures each log message is consistently
-        /// formatted.
+        /// the current timestamp, a prefix and a formatted string with the specified
+        /// log level. This method ensures log messages are consistently formatted.
         /// </summary>
-        /// <param name="component">The component name for the message preamble.</param>
+        /// <param name="prefix">Message prefix.</param>
         /// <param name="entryType">The log level being annotated in the message preamble.</param>
         /// <returns>A consistently formatted preamble for human consumption.</returns>
-        private static string MsgHeader(string component, MsgType entryType)
+        public string MsgHeader(string prefix, MsgType entryType)
         {
             string header = DateTime.Now.ToString("yyyy-MM-dd--HH.mm.ss|");
-            header += component + "|";
+            header += prefix + "|";
 
             switch (entryType)
             {
@@ -312,49 +281,51 @@ namespace LoggerLibrary
          */
 
         /// <summary>
-        /// Logs a message to the default component (e.g. LogName).
+        /// Logs a message.
         /// </summary>
         /// <param name="message">Message to be written.</param>
         /// <param name="logLevel">Log level specification. If unspecified, the default is 'INFO'.</param>
-        public void Log(string message, MsgType logLevel = MsgType.INFO)
+        public virtual void Log(string message, MsgType logLevel = MsgType.INFO)
         {
-            if (string.IsNullOrWhiteSpace(message) == false)
+            if (string.IsNullOrWhiteSpace(message))
             {
-                if (LogFilename == null)
+                return;   
+            }
+
+            if (LogFilename == null)
+            {
+                lock (_lockObj)
                 {
-                    lock (_lockObj)
-                    {
-                        _logBuffer.Add(MsgHeader(LogName, logLevel) + message);
-                    }
+                    _logBuffer.Add(MsgHeader(LogName, logLevel) + message);
                 }
-                else
+            }
+            else
+            {
+                long logSizeBytes = new FileInfo(LogFilename).Length;
+
+                if (logSizeBytes >= LogMaxBytes)
                 {
-                    long logSizeBytes = new FileInfo(LogFilename).Length;
+                    Open();
+                }
 
-                    if (logSizeBytes >= LogMaxBytes)
+                lock (_lockObj)
+                {
+                    foreach (var msg in _logBuffer)
                     {
-                        Open();
+                        Console.WriteLine(msg);
+                        _logWriter.WriteLine(msg);
                     }
 
-                    lock (_lockObj)
-                    {
-                        foreach(var msg in _logBuffer)
-                        {
-                            Console.WriteLine(msg);
-                            _logWriter.WriteLine(msg);
-                        }
+                    _logBuffer.Clear();
 
-                        _logBuffer.Clear();
-
-                        Console.WriteLine(MsgHeader(LogName, logLevel) + message);
-                        _logWriter.WriteLine(MsgHeader(LogName, logLevel) + message);
-                    }
+                    Console.WriteLine(MsgHeader(LogName, logLevel) + message);
+                    _logWriter.WriteLine(MsgHeader(LogName, logLevel) + message);
                 }
             }
         }
 
         /// <summary>
-        /// Logs a C# exception message to the default component.
+        /// Logs an exception message.
         /// </summary>
         /// <param name="e">Exception to be logged.</param>
         /// <param name="message">Additional message for debugging purposes.</param>
@@ -400,70 +371,6 @@ namespace LoggerLibrary
                         _logWriter.WriteLine(MsgHeader(LogName, MsgType.ERROR) + message);
                     }
                 }
-            }
-        }
-
-        /* Static Log() methods. These exist in order to prevent you from ever
-         * having to pass any instance of Logger as a parameter to any method.
-         * It may be expensive to pass a Logger object as a method parameter,
-         * thus instead, your code can take advantage of these static methods.
-         * 
-         * Each new instance of Logger is indexed by log/component name in
-         * the static LogManager at the top of this class.
-         * 
-         * Thus you can call the static Log() methods, passing only the
-         * component name you wish to log a message. If the component name
-         * specified aligns with an instance contained in the LogManager,
-         * the message will be forwarded to the Log() method of that instance
-         * and get written to the appropriate file.
-         * 
-         * A properly designed app will likely use the Dependency Inversion
-         * principle, and this never need to take advantage of these static
-         * methods. However, no code is perfect, and better to have these
-         * and not need them.
-         */
-
-        /// <summary>
-        /// Logs a message to the specified Logger instance.
-        /// </summary>
-        /// <param name="instance">The Logger instance (or component) to forward the log message.</param>
-        /// <param name="message">The log message.</param>
-        /// <param name="logLevel">The log level specification.</param>
-        public static void Log(string instance, string message, MsgType logLevel = MsgType.INFO)
-        {
-            var logger = LogManager
-                .Where(l => l.LogName.ToLower().Equals(instance.ToLower()))
-                .FirstOrDefault();
-
-            if (logger != null)
-            {
-                logger.Log(message, logLevel);
-            }
-            else
-            {
-                Console.WriteLine(MsgHeader(instance, logLevel) + message);
-            }
-        }
-
-        /// <summary>
-        /// Logs an exception to the specified Logger instance.
-        /// </summary>
-        /// <param name="component">The Logger instance (or component) to forward the exception information.</param>
-        /// <param name="e">The Exception object.</param>
-        /// <param name="message">Any additional message for debugging purposes.</param>
-        public static void Log(string component, Exception e, string message)
-        {
-            var logger = LogManager
-                .Where(l => l.LogName.ToLower().Equals(component.ToLower()))
-                .FirstOrDefault();
-
-            if (logger != null)
-            {
-                logger.Log(e, message);
-            }
-            else
-            {
-                Console.WriteLine(MsgHeader(component, MsgType.ERROR) + message);
             }
         }
     }
