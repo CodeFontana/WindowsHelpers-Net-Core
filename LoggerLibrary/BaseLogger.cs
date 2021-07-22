@@ -109,8 +109,10 @@ namespace LoggerLibrary
 
             // Append the log file.
             _logStream = new FileStream(LogFilename, FileMode.Append, FileAccess.Write, FileShare.Read);
-            _logWriter = new StreamWriter(_logStream);
-            _logWriter.AutoFlush = true;
+            _logWriter = new StreamWriter(_logStream)
+            {
+                AutoFlush = true
+            };
 
             // Write breakpoint.
             _logWriter.WriteLine("########################################");
@@ -228,7 +230,7 @@ namespace LoggerLibrary
         /// <param name="prefix">Message prefix.</param>
         /// <param name="entryType">The log level being annotated in the message preamble.</param>
         /// <returns>A consistently formatted preamble for human consumption.</returns>
-        public string MsgHeader(string prefix, MsgType entryType)
+        public static string MsgHeader(string prefix, MsgType entryType)
         {
             string header = DateTime.Now.ToString("yyyy-MM-dd--HH.mm.ss|");
             header += prefix + "|";
