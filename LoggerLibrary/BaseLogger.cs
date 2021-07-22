@@ -26,59 +26,42 @@ namespace LoggerLibrary
         public enum MsgType { NONE, INFO, DEBUG, WARN, ERROR, CRITICAL };
 
         /// <summary>
-        /// Default constructor, empty for facilitating dependency injection.
-        /// The caller must call the static method, CreateLog() to obtain an
-        /// instance, followed by Open() to start or resume logging to that
-        /// instance.
-        /// </summary>
-        protected BaseLogger()
-        {
-
-        }
-
-        // For reference:
-        //   1 MB = 1000000 Bytes (in decimal)
-        //   1 MB = 1048576 Bytes (in binary)
-
-        /// <summary>
-        /// Creates a new log file and adds to the LogManager.
-        /// Note: This call does not Open() the log file.
+        /// Default constructor, instantiates a new log file instance.
+        /// 
+        /// For reference:
+        ///   1 MB = 1000000 Bytes (in decimal)
+        ///   1 MB = 1048576 Bytes (in binary)
         /// </summary>
         /// <param name="logName">Name for log file.</param>
         /// <param name="logFolder">Path where logs file(s) will be saved.</param>
         /// <param name="logMaxBytes">Maximum size (in bytes) for the log file. If unspecified, the default is 50MB per log.</param>
         /// <param name="logMaxCount">Maximum count of log files for rotation. If unspecified, the default is 10 logs.</param>
         /// <returns></returns>
-        public static BaseLogger CreateLog(
-            string logName,
-            string logFolder = null,
-            long logMaxBytes = 50 * 1048576,
-            uint logMaxCount = 10)
+        public BaseLogger(string logName,
+                          string logFolder = null,
+                          long logMaxBytes = 50 * 1048576,
+                          uint logMaxCount = 10)
         {
-            // Create a new logger.
-            BaseLogger newLogger = new();
-
-            // Set log path.
             if (logFolder == null)
             {
                 string processName = Process.GetCurrentProcess().MainModule.FileName;
                 string processPath = processName.Substring(0, processName.LastIndexOf("\\"));
-                newLogger.LogFolder = processPath;
+                LogFolder = processPath + @"\log";
             }
             else if (Directory.Exists(logFolder) == false)
             {
                 Directory.CreateDirectory(logFolder);
-                newLogger.LogFolder = logFolder;
+                LogFolder = logFolder;
             }
             else
             {
-                newLogger.LogFolder = logFolder;
+                LogFolder = logFolder;
             }
 
-            newLogger.LogName = logName;
-            newLogger.LogMaxBytes = logMaxBytes;
-            newLogger.LogMaxCount = logMaxCount;
-            return newLogger;
+            LogName = logName;
+            LogMaxBytes = logMaxBytes;
+            LogMaxCount = logMaxCount;
+            Open();
         }
 
         /// <summary>
@@ -286,7 +269,7 @@ namespace LoggerLibrary
         /// </summary>
         /// <param name="message">Message to be written.</param>
         /// <param name="logLevel">Log level specification. If unspecified, the default is 'INFO'.</param>
-        public virtual void Log(string message, MsgType logLevel = MsgType.INFO)
+        public void Log(string message, MsgType logLevel = MsgType.INFO)
         {
             if (string.IsNullOrWhiteSpace(message))
             {
