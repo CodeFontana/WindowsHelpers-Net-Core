@@ -14,7 +14,7 @@ namespace WindowsLibrary.Tests
         public void CreateNewHostFileEntries()
         {
             // Arrange.
-            var hostsFile = HostsFileHelper.GetInstance();
+            var hostsFile = new HostsFileHelper();
             hostsFile.DeleteEntry("38.38.38.38");
             hostsFile.DeleteEntry("38.38.38.40");
 
@@ -59,7 +59,7 @@ namespace WindowsLibrary.Tests
         public void CreateNewHostFileEntryFailures()
         {
             // Arrange.
-            var hostsFile = HostsFileHelper.GetInstance();
+            var hostsFile = new HostsFileHelper();
 
             // Act.
             hostsFile.DeleteEntry("38.38.38.38");
@@ -87,7 +87,7 @@ namespace WindowsLibrary.Tests
             // Arrange.
             var logger = SimpleLogger.CreateLog("HostsFileHelperTests");
             logger.Open();
-            var hostsFile = HostsFileHelper.GetInstance();
+            var hostsFile = new HostsFileHelper();
 
             // Act.
             foreach (HostsFileEntry entry in hostsFile.ReadHostsFile())
@@ -104,7 +104,7 @@ namespace WindowsLibrary.Tests
         public void UpdateHostsFileEntries_UpdateHost()
         {
             // Arrange -- Delete and recreate test entries.
-            var hostsFile = HostsFileHelper.GetInstance();
+            var hostsFile = new HostsFileHelper();
             hostsFile.DeleteEntry("38.38.38.38");
             hostsFile.DeleteEntry("38.38.38.40");
             hostsFile.DeleteEntry("38.38.38.50");
@@ -159,7 +159,7 @@ namespace WindowsLibrary.Tests
         public void UpdateHostsFileEntries_UpdateAddress()
         {
             // Arrange.
-            var hostsFile = HostsFileHelper.GetInstance();
+            var hostsFile = new HostsFileHelper();
             hostsFile.DeleteEntry("38.38.38.38");
             hostsFile.DeleteEntry("38.38.38.40");
             hostsFile.DeleteEntry("38.38.38.50");
@@ -214,7 +214,7 @@ namespace WindowsLibrary.Tests
         public void UpdateHostsFileEntriesFailures()
         {
             // Arrange.
-            var hostsFile = HostsFileHelper.GetInstance();
+            var hostsFile = new HostsFileHelper();
 
             // Act.
             hostsFile.DeleteEntry("38.38.38.38");
@@ -238,7 +238,7 @@ namespace WindowsLibrary.Tests
         public void UpsertHostsFileEntries()
         {
             // Arrange -- Delete and recreate test entries.
-            var hostsFile = HostsFileHelper.GetInstance();
+            var hostsFile = new HostsFileHelper();
             hostsFile.DeleteEntry("38.38.38.38");
             hostsFile.DeleteEntry("38.38.38.40");
             hostsFile.DeleteEntry("38.38.38.50");
@@ -317,7 +317,7 @@ namespace WindowsLibrary.Tests
         public void DeleteHostFileEntries()
         {
             // Arrange.
-            var hostsFile = HostsFileHelper.GetInstance();
+            var hostsFile = new HostsFileHelper();
             hostsFile.DeleteEntry("38.38.38.38");
             hostsFile.DeleteEntry("38.38.38.40");
 
@@ -350,7 +350,7 @@ namespace WindowsLibrary.Tests
         public void ExistsInHostFileEntries()
         {
             // Arrange.
-            var hostsFile = HostsFileHelper.GetInstance();
+            var hostsFile = new HostsFileHelper();
             hostsFile.DeleteEntry("38.38.38.38");
             hostsFile.DeleteEntry("38.38.38.40");
 
