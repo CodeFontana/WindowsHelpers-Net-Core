@@ -6,14 +6,9 @@ using System.Threading;
 
 namespace WindowsLibrary
 {
-    public class DotNetHelper
+    public static class DotNetHelper
     {
         private static bool bacon = false;
-
-        public DotNetHelper()
-        {
-
-        }
 
         public unsafe struct BufferOverflow
         {
@@ -22,7 +17,7 @@ namespace WindowsLibrary
             public int after;
         }
 
-        public void CreateBufferOverflow()
+        public static void CreateBufferOverflow()
         {
             BufferOverflow x = new();
             x.after = 1;
@@ -36,13 +31,13 @@ namespace WindowsLibrary
             }
         }
 
-        public void CreateStackOverflow(int counter)
+        public static void CreateStackOverflow(int counter)
         {
             counter++;
             CreateStackOverflow(counter);
         }
 
-        public bool IsHexChar(char c)
+        public static bool IsHexChar(char c)
         {
             if (int.TryParse(c.ToString(), out int result) && result >= 0 && result <= 9)
                 return true;
@@ -61,7 +56,7 @@ namespace WindowsLibrary
             return false;
         }
 
-        public bool IsHexString(string s)
+        public static bool IsHexString(string s)
         {
             foreach (char c in s) 
             {
@@ -74,7 +69,7 @@ namespace WindowsLibrary
             return true;
         }
 
-        public bool IsListStringEqual(
+        public static bool IsListStringEqual(
             List<string> list1,
             List<string> list2,
             List<string> matchExceptions = null)
@@ -118,7 +113,7 @@ namespace WindowsLibrary
             return true;
         }
 
-        public bool IsListStringTupleEqual(
+        public static bool IsListStringTupleEqual(
             List<Tuple<string, string>> list1,
             List<Tuple<string, string>> list2,
             List<string> matchExceptions = null)
@@ -165,7 +160,7 @@ namespace WindowsLibrary
             return true;
         }
 
-        public string LoremIpsum(int minWords = 6, int maxWords = 20, int minSentences = 1, int maxSentences = 6)
+        public static string LoremIpsum(int minWords = 6, int maxWords = 20, int minSentences = 1, int maxSentences = 6)
         {
             var words = new[] {"bacon", "ipsum", "dolor", "amet", "bresola", "tempor", "strip",
                 "leberkas", "excepteur", "irure", "hamburger", "alcatra", "veniam", "turkey",
@@ -213,7 +208,7 @@ namespace WindowsLibrary
                     
                     if (w < numWords - 1)
                     {
-                        result.Append(" ");
+                        result.Append(' ');
                     }
                 }
 
@@ -223,7 +218,7 @@ namespace WindowsLibrary
             return result.ToString();
         }
 
-        public string PadListElements(List<string[]> inputList, int columnPadding = 1)
+        public static string PadListElements(List<string[]> inputList, int columnPadding = 1)
         {
             // Using the first element as the template, store a value indicating
             // the number of columns each string array has. As we are displaying
@@ -290,7 +285,7 @@ namespace WindowsLibrary
             return outputString.ToString();
         }
 
-        public string StringListToCommaString(string[] inputArray, string delimeter = ",")
+        public static string StringListToCommaString(string[] inputArray, string delimeter = ",")
         {
             string returnString = "";
 

@@ -21,11 +21,11 @@ namespace WindowsLibrary
     [SupportedOSPlatform("windows")]
     public class WindowsHelper
     {
-        private readonly ILogger _logger;
+        private readonly ISimpleLogger _logFile;
 
-        public WindowsHelper(ILogger logger)
+        public WindowsHelper(ISimpleLogger logFile)
         {
-            _logger = logger;
+            _logFile = logFile;
         }
 
         public bool AddHostFileEntry(string entry)
@@ -39,7 +39,7 @@ namespace WindowsLibrary
             }
             catch (Exception e)
             {
-                _logger.Log(e, "Failed to add hosts file entry.");
+                _logFile.Log(e, "Failed to add hosts file entry.");
                 return false;
             }
 
@@ -63,21 +63,21 @@ namespace WindowsLibrary
                     if (path.ToLower().Equals(folder.ToLower()))
                     {
                         existsOnPath = true;
-                        _logger.Log($"Already exists on PATH: {folder}");
+                        _logFile.Log($"Already exists on PATH: {folder}");
                         break;
                     }
                 }
 
                 if (existsOnPath == false)
                 {
-                    _logger.Log($"Add to PATH: {folder}");
+                    _logFile.Log($"Add to PATH: {folder}");
                     string newPathVariable = pathVariable + ";" + folder;
                     Environment.SetEnvironmentVariable("Path", newPathVariable, EnvironmentVariableTarget.Machine);
                 }
             }
             catch (Exception e)
             {
-                _logger.Log(e, $"Failed to add {folder} to system PATH variable.");
+                _logFile.Log(e, $"Failed to add {folder} to system PATH variable.");
                 return false;
             }
 
@@ -190,9 +190,9 @@ namespace WindowsLibrary
         {
             try
             {
-                _logger.Log("Configure automatic logon user: " + logonUser);
+                _logFile.Log("Configure automatic logon user: " + logonUser);
 
-                RegistryHelper reg = new(_logger);
+                RegistryHelper reg = new(_logFile);
                 RegistryKey winLogonKey = reg.OpenKey("SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon", true, RegistryHive.LocalMachine);
                 winLogonKey.SetValue("AutoAdminLogon", "1", RegistryValueKind.String);
                 winLogonKey.SetValue("DefaultUserName", logonUser, RegistryValueKind.String);
@@ -210,7 +210,7 @@ namespace WindowsLibrary
             }
             catch (Exception e)
             {
-                _logger.Log(e, "Failed to configure automatic logon.");
+                _logFile.Log(e, "Failed to configure automatic logon.");
                 return false;
             }
         }
@@ -261,7 +261,7 @@ namespace WindowsLibrary
 
                 if (hUserToken == IntPtr.Zero)
                 {
-                    _logger.Log("No token was provided.", BaseLogger.MsgType.ERROR);
+                    _logFile.Log("No token was provided.", SimpleLogger.MsgType.ERROR);
                     return IntPtr.Zero;
                 }
 
@@ -275,7 +275,7 @@ namespace WindowsLibrary
 
                         if (pLinkedToken == IntPtr.Zero)
                         {
-                            _logger.Log("Failed to allocate memory for linked token check.", BaseLogger.MsgType.ERROR);
+                            _logFile.Log("Failed to allocate memory for linked token check.", SimpleLogger.MsgType.ERROR);
                             return IntPtr.Zero;
                         }
 
@@ -286,32 +286,32 @@ namespace WindowsLibrary
                             cbSize,
                             out cbSize))
                         {
-                            _logger.Log("Failed to query LINKED token [GetTokenInformation=" + 
-                                Marshal.GetLastWin32Error().ToString() + "].", BaseLogger.MsgType.ERROR);
+                            _logFile.Log("Failed to query LINKED token [GetTokenInformation=" + 
+                                Marshal.GetLastWin32Error().ToString() + "].", SimpleLogger.MsgType.ERROR);
                             Marshal.FreeHGlobal(pLinkedToken);
                             return IntPtr.Zero;
                         }
 
                         if (pLinkedToken != IntPtr.Zero)
                         {
-                            _logger.Log("Token has a LINKED token.");
+                            _logFile.Log("Token has a LINKED token.");
 
                             // Is the linked token an elevated token?
                             if (IsTokenElevated(Marshal.ReadIntPtr(pLinkedToken)))
                             {
-                                _logger.Log("LINKED token is ELEVATED, assign for duplication...");
+                                _logFile.Log("LINKED token is ELEVATED, assign for duplication...");
                                 hTokenToDup = Marshal.ReadIntPtr(pLinkedToken);
                             }
                             else
                             {
-                                _logger.Log("LINKED token is not elevated.");
+                                _logFile.Log("LINKED token is not elevated.");
                             }
 
                             Marshal.FreeHGlobal(pLinkedToken);
                         }
                         else
                         {
-                            _logger.Log("Token does NOT have a LINKED token.");
+                            _logFile.Log("Token does NOT have a LINKED token.");
                         }
                     }
                 }
@@ -323,8 +323,8 @@ namespace WindowsLibrary
                                                  NativeMethods.TOKEN_TYPE.TokenPrimary,
                                                  ref hDuplicateToken))
                 {
-                    _logger.Log("Failed to duplicate token [DuplicateTokenEx=" + 
-                        Marshal.GetLastWin32Error().ToString() + "].", BaseLogger.MsgType.ERROR);
+                    _logFile.Log("Failed to duplicate token [DuplicateTokenEx=" + 
+                        Marshal.GetLastWin32Error().ToString() + "].", SimpleLogger.MsgType.ERROR);
                     Marshal.FreeHGlobal(hTokenToDup);
                     return IntPtr.Zero;
                 }
@@ -336,25 +336,25 @@ namespace WindowsLibrary
 
                 if (!NativeMethods.GetTokenInformation(hDuplicateToken, NativeMethods.TOKEN_INFORMATION_CLASS.TokenSessionId, pSessionId, cbSize, out cbSize))
                 {
-                    _logger.Log("Failed to token's session id [GetTokenInformation=" + 
-                        Marshal.GetLastWin32Error().ToString() + "].", BaseLogger.MsgType.ERROR);
+                    _logFile.Log("Failed to token's session id [GetTokenInformation=" + 
+                        Marshal.GetLastWin32Error().ToString() + "].", SimpleLogger.MsgType.ERROR);
                     Marshal.FreeHGlobal(pSessionId);
                     return IntPtr.Zero;
                 }
                 else
                 {
-                    _logger.Log("Duplicated token is configured for session id [" + 
+                    _logFile.Log("Duplicated token is configured for session id [" + 
                         Marshal.ReadInt32(pSessionId).ToString() + "].");
                 }
 
                 if (sessionId >= 0 && sessionId <= 65535 && sessionId != Marshal.ReadInt32(pSessionId))
                 {
-                    _logger.Log("Adjust token session: " + sessionId.ToString());
+                    _logFile.Log("Adjust token session: " + sessionId.ToString());
 
                     if (!NativeMethods.SetTokenInformation(hDuplicateToken, NativeMethods.TOKEN_INFORMATION_CLASS.TokenSessionId, ref sessionId, (uint)Marshal.SizeOf(sessionId)))
                     {
-                        _logger.Log("Failed to assign token session [SetTokenInformation=" + 
-                            Marshal.GetLastWin32Error().ToString() + "].", BaseLogger.MsgType.ERROR);
+                        _logFile.Log("Failed to assign token session [SetTokenInformation=" + 
+                            Marshal.GetLastWin32Error().ToString() + "].", SimpleLogger.MsgType.ERROR);
                         return hDuplicateToken;
                     }
                 }
@@ -363,7 +363,7 @@ namespace WindowsLibrary
             }
             catch (Exception e)
             {
-                _logger.Log(e, "Failed duplicating or elevating user token.");
+                _logFile.Log(e, "Failed duplicating or elevating user token.");
             }
 
             return hDuplicateToken;
@@ -380,8 +380,8 @@ namespace WindowsLibrary
 
                 if (!NativeMethods.WTSEnumerateSessions(hServer, 0, 1, ref hSessionInfo, out UInt32 sessionCount))
                 {
-                    _logger.Log("Failed to enumerate user sessions [WTSEnumerateSessions=" + 
-                        Marshal.GetLastWin32Error().ToString() + "].", BaseLogger.MsgType.ERROR);
+                    _logFile.Log("Failed to enumerate user sessions [WTSEnumerateSessions=" + 
+                        Marshal.GetLastWin32Error().ToString() + "].", SimpleLogger.MsgType.ERROR);
                 }
                 else
                 {
@@ -394,13 +394,13 @@ namespace WindowsLibrary
 
                         if (!NativeMethods.WTSQueryUserToken(si.SessionID, out IntPtr hUserToken))
                         {
-                            _logger.Log("Failed to query terminal user token [WTSQueryUserToken=" + 
-                                Marshal.GetLastWin32Error().ToString() + "] in session [" + si.SessionID.ToString() + "].", BaseLogger.MsgType.ERROR);
+                            _logFile.Log("Failed to query terminal user token [WTSQueryUserToken=" + 
+                                Marshal.GetLastWin32Error().ToString() + "] in session [" + si.SessionID.ToString() + "].", SimpleLogger.MsgType.ERROR);
                         }
                         else
                         {
                             WindowsIdentity userId = new(hUserToken);
-                            _logger.Log("Found session: " + si.SessionID.ToString() + "/" + userId.Name);
+                            _logFile.Log("Found session: " + si.SessionID.ToString() + "/" + userId.Name);
                             userSessions.Add(new Tuple<uint, string>(si.SessionID, userId.Name));
                             userId.Dispose();
                         }
@@ -415,7 +415,7 @@ namespace WindowsLibrary
             }
             catch (Exception e)
             {
-                _logger.Log(e, "Failed to query terminal user sessions.");
+                _logFile.Log(e, "Failed to query terminal user sessions.");
             }
 
             return userSessions;
@@ -423,7 +423,7 @@ namespace WindowsLibrary
 
         public bool EnablePrivilege(IntPtr hToken, string privilege)
         {
-            _logger.Log("Enable: " + privilege);
+            _logFile.Log("Enable: " + privilege);
 
             NativeMethods.LUID luid = new();
             NativeMethods.TOKEN_PRIVILEGES newState;
@@ -432,8 +432,8 @@ namespace WindowsLibrary
 
             if (!NativeMethods.LookupPrivilegeValue(null, privilege, ref luid))
             {
-                _logger.Log("Unable to lookup privilege (LookupPrivilegeValue=" + 
-                    Marshal.GetLastWin32Error().ToString() + ").", BaseLogger.MsgType.ERROR);
+                _logFile.Log("Unable to lookup privilege (LookupPrivilegeValue=" + 
+                    Marshal.GetLastWin32Error().ToString() + ").", SimpleLogger.MsgType.ERROR);
                 return false;
             }
 
@@ -442,8 +442,8 @@ namespace WindowsLibrary
 
             if (!NativeMethods.AdjustTokenPrivileges(hToken, false, ref newState, (UInt32)Marshal.SizeOf(newState), out NativeMethods.TOKEN_PRIVILEGES oldState, out UInt32 outBytes))
             {
-                _logger.Log("Unable to adjust token privileges (AdjustTokenPrivileges=" + 
-                    Marshal.GetLastWin32Error().ToString() + ").", BaseLogger.MsgType.ERROR);
+                _logFile.Log("Unable to adjust token privileges (AdjustTokenPrivileges=" + 
+                    Marshal.GetLastWin32Error().ToString() + ").", SimpleLogger.MsgType.ERROR);
                 return false;
             }
 
@@ -458,25 +458,25 @@ namespace WindowsLibrary
 
                 if (consoleSessionId != 0xFFFFFFFF)
                 {
-                    _logger.Log("Found console session: " + consoleSessionId.ToString());
+                    _logFile.Log("Found console session: " + consoleSessionId.ToString());
 
                     if (!NativeMethods.WTSQueryUserToken(consoleSessionId, out IntPtr hUserToken))
                     {
-                        _logger.Log("Failed to query console user token [WTSQueryUserToken=" + Marshal.GetLastWin32Error().ToString() + "].", BaseLogger.MsgType.ERROR);
+                        _logFile.Log("Failed to query console user token [WTSQueryUserToken=" + Marshal.GetLastWin32Error().ToString() + "].", SimpleLogger.MsgType.ERROR);
                     }
                     else
                     {
                         WindowsIdentity userId = new(hUserToken);
-                        _logger.Log("Console user: " + userId.Name);
+                        _logFile.Log("Console user: " + userId.Name);
                         userId.Dispose();
 
                         if (!IsUserInAdminGroup(hUserToken))
                         {
-                            _logger.Log("Console user is not an administrator.", BaseLogger.MsgType.WARN);
+                            _logFile.Log("Console user is not an administrator.", SimpleLogger.MsgType.WARN);
                         }
                         else
                         {
-                            _logger.Log("Console user is an administrator.");
+                            _logFile.Log("Console user is an administrator.");
                             return hUserToken;
                         }
                     }
@@ -484,7 +484,7 @@ namespace WindowsLibrary
             }
             catch (Exception e)
             {
-                _logger.Log(e, "Failed to query console user session.");
+                _logFile.Log(e, "Failed to query console user session.");
             }
 
             try
@@ -494,8 +494,8 @@ namespace WindowsLibrary
 
                 if (!NativeMethods.WTSEnumerateSessions(hServer, 0, 1, ref hSessionInfo, out UInt32 sessionCount))
                 {
-                    _logger.Log("Failed to enumerate user sessions [WTSEnumerateSessions=" + 
-                        Marshal.GetLastWin32Error().ToString() + "].", BaseLogger.MsgType.ERROR);
+                    _logFile.Log("Failed to enumerate user sessions [WTSEnumerateSessions=" + 
+                        Marshal.GetLastWin32Error().ToString() + "].", SimpleLogger.MsgType.ERROR);
                 }
                 else
                 {
@@ -505,26 +505,26 @@ namespace WindowsLibrary
                     for (int i = 0; i < sessionCount; i++)
                     {
                         NativeMethods.WTS_SESSION_INFO si = (NativeMethods.WTS_SESSION_INFO)Marshal.PtrToStructure(hCurSession, typeof(NativeMethods.WTS_SESSION_INFO));
-                        _logger.Log("Found session: " + si.SessionID.ToString());
+                        _logFile.Log("Found session: " + si.SessionID.ToString());
 
                         if (!NativeMethods.WTSQueryUserToken(si.SessionID, out IntPtr hUserToken))
                         {
-                            _logger.Log("Failed to query terminal user token [WTSQueryUserToken=" + 
-                                Marshal.GetLastWin32Error().ToString() + "].", BaseLogger.MsgType.ERROR);
+                            _logFile.Log("Failed to query terminal user token [WTSQueryUserToken=" + 
+                                Marshal.GetLastWin32Error().ToString() + "].", SimpleLogger.MsgType.ERROR);
                         }
                         else
                         {
                             WindowsIdentity userId = new(hUserToken);
-                            _logger.Log("Terminal user: " + userId.Name);
+                            _logFile.Log("Terminal user: " + userId.Name);
                             userId.Dispose();
 
                             if (!IsUserInAdminGroup(hUserToken))
                             {
-                                _logger.Log("Terminal user is not an administrator.", BaseLogger.MsgType.WARN);
+                                _logFile.Log("Terminal user is not an administrator.", SimpleLogger.MsgType.WARN);
                             }
                             else
                             {
-                                _logger.Log("Terminal user is an administrator");
+                                _logFile.Log("Terminal user is an administrator");
                                 return hUserToken;
                             }
                         }
@@ -539,7 +539,7 @@ namespace WindowsLibrary
             }
             catch (Exception e)
             {
-                _logger.Log(e, "Failed to query terminal user sessions.");
+                _logFile.Log(e, "Failed to query terminal user sessions.");
             }
 
             return IntPtr.Zero;
@@ -553,17 +553,17 @@ namespace WindowsLibrary
 
                 if (consoleSessionId != 0xFFFFFFFF)
                 {
-                    _logger.Log("Found console session: " + consoleSessionId.ToString());
+                    _logFile.Log("Found console session: " + consoleSessionId.ToString());
 
                     if (!NativeMethods.WTSQueryUserToken(consoleSessionId, out IntPtr hUserToken))
                     {
-                        _logger.Log("Failed to query console user token [WTSQueryUserToken=" + 
-                            Marshal.GetLastWin32Error().ToString() + "].", BaseLogger.MsgType.ERROR);
+                        _logFile.Log("Failed to query console user token [WTSQueryUserToken=" + 
+                            Marshal.GetLastWin32Error().ToString() + "].", SimpleLogger.MsgType.ERROR);
                     }
                     else
                     {
                         WindowsIdentity userId = new(hUserToken);
-                        _logger.Log("Console user: " + userId.Name);
+                        _logFile.Log("Console user: " + userId.Name);
                         userId.Dispose();
                         return hUserToken;
                     }
@@ -571,7 +571,7 @@ namespace WindowsLibrary
             }
             catch (Exception e)
             {
-                _logger.Log(e, "Failed to query console user session.");
+                _logFile.Log(e, "Failed to query console user session.");
             }
 
             return IntPtr.Zero;
@@ -611,7 +611,7 @@ namespace WindowsLibrary
                 try
                 {
                     string parentProcessName = Process.GetProcessById((int)parentPID).ProcessName;
-                    _logger.Log($"Parent: {parentPID}/{parentProcessName}");
+                    _logFile.Log($"Parent: {parentPID}/{parentProcessName}");
                     ParentProcessList.Add(new Tuple<uint, string>(parentPID, parentProcessName.ToLower()));
                     currentPID = (int)parentPID;
                 }
@@ -657,7 +657,7 @@ namespace WindowsLibrary
                     }
                     catch (Exception e)
                     {
-                        _logger.Log(e, "Failed to open product key [" + subKeyName + "].");
+                        _logFile.Log(e, "Failed to open product key [" + subKeyName + "].");
                         continue;
                     }
                 }
@@ -690,7 +690,7 @@ namespace WindowsLibrary
                 }
                 catch (Exception e)
                 {
-                    _logger.Log(e, "Failed to open product key [" + subKeyName + "].");
+                    _logFile.Log(e, "Failed to open product key [" + subKeyName + "].");
                     continue;
                 }
             }
@@ -737,7 +737,7 @@ namespace WindowsLibrary
                     }
                     catch (Exception e)
                     {
-                        _logger.Log(e, "Failed to open product key [" + subKeyName + "].");
+                        _logFile.Log(e, "Failed to open product key [" + subKeyName + "].");
                         continue;
                     }
                 }
@@ -781,7 +781,7 @@ namespace WindowsLibrary
                 }
                 catch (Exception e)
                 {
-                    _logger.Log(e, "Failed to open product key [" + subKeyName + "].");
+                    _logFile.Log(e, "Failed to open product key [" + subKeyName + "].");
                     continue;
                 }
             }
@@ -828,7 +828,7 @@ namespace WindowsLibrary
             {
                 if (!File.Exists(certFilename))
                 {
-                    _logger.Log("Specified certifcate file does not exist [" + certFilename + "].", BaseLogger.MsgType.ERROR);
+                    _logFile.Log("Specified certifcate file does not exist [" + certFilename + "].", SimpleLogger.MsgType.ERROR);
                     return false;
                 }
 
@@ -848,13 +848,13 @@ namespace WindowsLibrary
 
                 if (!store.Certificates.Contains(importCert))
                 {
-                    _logger.Log("Import certificate...");
+                    _logFile.Log("Import certificate...");
                     store.Add(importCert);
-                    _logger.Log("Certifcate imported successfully.");
+                    _logFile.Log("Certifcate imported successfully.");
                 }
                 else
                 {
-                    _logger.Log("Certificate already imported.");
+                    _logFile.Log("Certificate already imported.");
                 }
 
                 store.Dispose();
@@ -862,7 +862,7 @@ namespace WindowsLibrary
             }
             catch (Exception e)
             {
-                _logger.Log(e, "Failed to import certificate.");
+                _logFile.Log(e, "Failed to import certificate.");
                 return false;
             }
         }
@@ -873,8 +873,8 @@ namespace WindowsLibrary
 
             if (!NativeMethods.OpenProcessToken(hProcess, NativeMethods.TOKEN_ALL_ACCESS, out IntPtr hToken))
             {
-                _logger.Log("Unable to open specified process token [OpenProcessToken=" + 
-                    Marshal.GetLastWin32Error().ToString() + "].", BaseLogger.MsgType.ERROR);
+                _logFile.Log("Unable to open specified process token [OpenProcessToken=" + 
+                    Marshal.GetLastWin32Error().ToString() + "].", SimpleLogger.MsgType.ERROR);
                 return false;
             }
 
@@ -885,63 +885,63 @@ namespace WindowsLibrary
         {
             if (EnablePrivilege(hToken, NativeMethods.SE_INCREASE_QUOTA_NAME) == false)
             {
-                _logger.Log("Failed to enable privilege [SeIncreaseQuotaPrivilege].", BaseLogger.MsgType.ERROR);
+                _logFile.Log("Failed to enable privilege [SeIncreaseQuotaPrivilege].", SimpleLogger.MsgType.ERROR);
                 Marshal.FreeHGlobal(hToken);
                 return false;
             }
 
             if (EnablePrivilege(hToken, NativeMethods.SE_ASSIGNPRIMARYTOKEN_NAME) == false)
             {
-                _logger.Log("Failed to enable privilege [SeAssignPrimaryTokenPrivilege].", BaseLogger.MsgType.ERROR);
+                _logFile.Log("Failed to enable privilege [SeAssignPrimaryTokenPrivilege].", SimpleLogger.MsgType.ERROR);
                 Marshal.FreeHGlobal(hToken);
                 return false;
             }
 
             if (EnablePrivilege(hToken, NativeMethods.SE_TCB_NAME) == false)
             {
-                _logger.Log("Failed to enable privilege [SeTcbPrivilege].", BaseLogger.MsgType.ERROR);
+                _logFile.Log("Failed to enable privilege [SeTcbPrivilege].", SimpleLogger.MsgType.ERROR);
                 Marshal.FreeHGlobal(hToken);
                 return false;
             }
 
             if (EnablePrivilege(hToken, NativeMethods.SE_DEBUG_NAME) == false)
             {
-                _logger.Log("Failed to enable privilege [SeDebugPrivilege].", BaseLogger.MsgType.ERROR);
+                _logFile.Log("Failed to enable privilege [SeDebugPrivilege].", SimpleLogger.MsgType.ERROR);
                 Marshal.FreeHGlobal(hToken);
                 return false;
             }
 
             if (EnablePrivilege(hToken, NativeMethods.SE_IMPERSONATE_NAME) == false)
             {
-                _logger.Log("Failed to enable privilege [SeImpersonatePrivilege].", BaseLogger.MsgType.ERROR);
+                _logFile.Log("Failed to enable privilege [SeImpersonatePrivilege].", SimpleLogger.MsgType.ERROR);
                 Marshal.FreeHGlobal(hToken);
                 return false;
             }
 
             if (EnablePrivilege(hToken, NativeMethods.SE_TIME_ZONE_NAME) == false)
             {
-                _logger.Log("Failed to enable privilege [SeTimeZonePrivilege].", BaseLogger.MsgType.ERROR);
+                _logFile.Log("Failed to enable privilege [SeTimeZonePrivilege].", SimpleLogger.MsgType.ERROR);
                 Marshal.FreeHGlobal(hToken);
                 return false;
             }
 
             if (EnablePrivilege(hToken, NativeMethods.SE_SYSTEMTIME_NAME) == false)
             {
-                _logger.Log("Failed to enable privilege [SeSystemtimePrivilege].", BaseLogger.MsgType.ERROR);
+                _logFile.Log("Failed to enable privilege [SeSystemtimePrivilege].", SimpleLogger.MsgType.ERROR);
                 Marshal.FreeHGlobal(hToken);
                 return false;
             }
 
             if (EnablePrivilege(hToken, NativeMethods.SE_SHUTDOWN_NAME) == false)
             {
-                _logger.Log("Failed to enable privilege [SeShutdownPrivilege].", BaseLogger.MsgType.ERROR);
+                _logFile.Log("Failed to enable privilege [SeShutdownPrivilege].", SimpleLogger.MsgType.ERROR);
                 Marshal.FreeHGlobal(hToken);
                 return false;
             }
 
             if (EnablePrivilege(hToken, NativeMethods.SE_TAKE_OWNERSHIP_NAME) == false)
             {
-                _logger.Log("Failed to enable privilege [SeTakeOwnershipPrivilege].", BaseLogger.MsgType.ERROR);
+                _logFile.Log("Failed to enable privilege [SeTakeOwnershipPrivilege].", SimpleLogger.MsgType.ERROR);
                 Marshal.FreeHGlobal(hToken);
                 return false;
             }
@@ -979,7 +979,7 @@ namespace WindowsLibrary
                     }
                     catch (Exception e)
                     {
-                        _logger.Log(e, "Failed to open product key [" + subKeyName + "].");
+                        _logFile.Log(e, "Failed to open product key [" + subKeyName + "].");
                         continue;
                     }
                 }
@@ -1016,7 +1016,7 @@ namespace WindowsLibrary
                 }
                 catch (Exception e)
                 {
-                    _logger.Log(e, "Failed to open product key [" + subKeyName + "].");
+                    _logFile.Log(e, "Failed to open product key [" + subKeyName + "].");
                     continue;
                 }
             }
@@ -1042,8 +1042,8 @@ namespace WindowsLibrary
 
             try
             {
-                _logger.Log("Read logon configuration...");
-                RegistryKey winLogonKey = new RegistryHelper(_logger)
+                _logFile.Log("Read logon configuration...");
+                RegistryKey winLogonKey = new RegistryHelper(_logFile)
                     .OpenKey("SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon", true, RegistryHive.LocalMachine);
                 var curAutoAdminLogon = winLogonKey.GetValue("AutoAdminLogon");
                 var curAutoLogonCount = winLogonKey.GetValue("AutoLogonCount");
@@ -1058,11 +1058,11 @@ namespace WindowsLibrary
                         autoAdminLogon = -1;
                     }
 
-                    _logger.Log("  AutoAdminLogon: " + autoAdminLogon.ToString());
+                    _logFile.Log("  AutoAdminLogon: " + autoAdminLogon.ToString());
                 }
                 else
                 {
-                    _logger.Log("  AutoAdminLogon: <Not Available>");
+                    _logFile.Log("  AutoAdminLogon: <Not Available>");
                 }
 
                 if (curAutoLogonCount != null)
@@ -1072,31 +1072,31 @@ namespace WindowsLibrary
                         autoLogonCount = -1;
                     }
 
-                    _logger.Log("  AutoLogonCount: " + autoLogonCount.ToString());
+                    _logFile.Log("  AutoLogonCount: " + autoLogonCount.ToString());
                 }
                 else
                 {
-                    _logger.Log("  AutoLogonCount: <Not Available>");
+                    _logFile.Log("  AutoLogonCount: <Not Available>");
                 }
 
                 if (curDefaultUserName != null)
                 {
                     logonUser = curDefaultUserName.ToString();
-                    _logger.Log("  DefaultUserName: " + logonUser);
+                    _logFile.Log("  DefaultUserName: " + logonUser);
                 }
                 else
                 {
-                    _logger.Log("  DefaultUserName: <Not Available>");
+                    _logFile.Log("  DefaultUserName: <Not Available>");
                 }
 
                 if (curDefaultPassword != null)
                 {
                     logonPwd = curDefaultPassword.ToString();
-                    _logger.Log("  DefaultPassword: <Not Displayed>");
+                    _logFile.Log("  DefaultPassword: <Not Displayed>");
                 }
                 else
                 {
-                    _logger.Log("  DefaultPassword: <Not Available>");
+                    _logFile.Log("  DefaultPassword: <Not Available>");
                 }
 
                 if (curDisableCAD != null)
@@ -1106,27 +1106,27 @@ namespace WindowsLibrary
                         disableCAD = -1;
                     }
 
-                    _logger.Log("  DisableCAD: " + disableCAD.ToString());
+                    _logFile.Log("  DisableCAD: " + disableCAD.ToString());
                 }
                 else
                 {
-                    _logger.Log("  DisableCAD: <Not Available>");
+                    _logFile.Log("  DisableCAD: <Not Available>");
                 }
 
                 if (autoAdminLogon == 1 && !logonUser.Equals(""))
                 {
-                    _logger.Log("Automatic logon: CONFIGURED");
+                    _logFile.Log("Automatic logon: CONFIGURED");
                     return true;
                 }
                 else
                 {
-                    _logger.Log("Automatic logon: NOT CONFIGURED");
+                    _logFile.Log("Automatic logon: NOT CONFIGURED");
                     return false;
                 }
             }
             catch (Exception e)
             {
-                _logger.Log(e, "Failed to inspect automatic logon configuration.");
+                _logFile.Log(e, "Failed to inspect automatic logon configuration.");
                 return false;
             }
         }
@@ -1150,7 +1150,7 @@ namespace WindowsLibrary
             }
             catch (Exception e)
             {
-                _logger.Log(e, "Failed to validate domain user credentials.");
+                _logFile.Log(e, "Failed to validate domain user credentials.");
             }
 
             return userExists;
@@ -1175,7 +1175,7 @@ namespace WindowsLibrary
             }
             catch (Exception e)
             {
-                _logger.Log(e, "Failed to validate local user credentials.");
+                _logFile.Log(e, "Failed to validate local user credentials.");
             }
 
             return userExists;
@@ -1190,7 +1190,7 @@ namespace WindowsLibrary
 
                 if (pElevationType == IntPtr.Zero)
                 {
-                    _logger.Log("Failed to allocate memory for token elevation check.", BaseLogger.MsgType.ERROR);
+                    _logFile.Log("Failed to allocate memory for token elevation check.", SimpleLogger.MsgType.ERROR);
                     Marshal.FreeHGlobal(hToken);
                     return false;
                 }
@@ -1201,8 +1201,8 @@ namespace WindowsLibrary
                     cbSize,
                     out cbSize))
                 {
-                    _logger.Log("Failed to query user-token elevation type [GetTokenInformation=" + 
-                        Marshal.GetLastWin32Error().ToString() + "].", BaseLogger.MsgType.ERROR);
+                    _logFile.Log("Failed to query user-token elevation type [GetTokenInformation=" + 
+                        Marshal.GetLastWin32Error().ToString() + "].", SimpleLogger.MsgType.ERROR);
 
                     Marshal.FreeHGlobal(hToken);
                     Marshal.FreeHGlobal(pElevationType);
@@ -1219,7 +1219,7 @@ namespace WindowsLibrary
                      * administrative privilege, and the user does not choose to start
                      * the program using Run as administrator.*/
 
-                    _logger.Log("Token elevation type: Limited.");
+                    _logFile.Log("Token elevation type: Limited.");
                     Marshal.FreeHGlobal(hToken);
                     Marshal.FreeHGlobal(pElevationType);
                     return false;
@@ -1231,7 +1231,7 @@ namespace WindowsLibrary
                      * the user is the built -in Administrator account (for which UAC 
                      * disabled by default), service account or local system account.*/
 
-                    _logger.Log("Token elevation type: Default.");
+                    _logFile.Log("Token elevation type: Default.");
                     Marshal.FreeHGlobal(hToken);
                     Marshal.FreeHGlobal(pElevationType);
                     return true;
@@ -1246,14 +1246,14 @@ namespace WindowsLibrary
                      * always require maximum privilege, and the user is a member of the
                      * Administrators group.*/
 
-                    _logger.Log("Token elevation type: Full.");
+                    _logFile.Log("Token elevation type: Full.");
                     Marshal.FreeHGlobal(hToken);
                     Marshal.FreeHGlobal(pElevationType);
                     return true;
                 }
                 else
                 {
-                    _logger.Log("Token elevation type: Unknown.");
+                    _logFile.Log("Token elevation type: Unknown.");
                     Marshal.FreeHGlobal(hToken);
                     Marshal.FreeHGlobal(pElevationType);
                     return false;
@@ -1283,12 +1283,12 @@ namespace WindowsLibrary
 
                         if (enableLua == 1)
                         {
-                            _logger.Log("User account control (UAC): Enabled");
+                            _logFile.Log("User account control (UAC): Enabled");
                             isUserAccountControlEnabled = true;
                         }
                         else
                         {
-                            _logger.Log("User account control (UAC): Disabled");
+                            _logFile.Log("User account control (UAC): Disabled");
                             isUserAccountControlEnabled = false;
                         }
                     }
@@ -1306,12 +1306,12 @@ namespace WindowsLibrary
 
                         if (enableLua == 1)
                         {
-                            _logger.Log("User account control (UAC): Enabled");
+                            _logFile.Log("User account control (UAC): Enabled");
                             isUserAccountControlEnabled = true;
                         }
                         else
                         {
-                            _logger.Log("User account control (UAC): Disabled");
+                            _logFile.Log("User account control (UAC): Disabled");
                             isUserAccountControlEnabled = false;
                         }
                     }
@@ -1321,7 +1321,7 @@ namespace WindowsLibrary
             }
             catch (Exception e)
             {
-                _logger.Log(e, "Failed to determine if UAC is enabled.");
+                _logFile.Log(e, "Failed to determine if UAC is enabled.");
                 return isUserAccountControlEnabled;
             }
 
@@ -1358,13 +1358,13 @@ namespace WindowsLibrary
 
                         if (pElevationType == IntPtr.Zero)
                         {
-                            _logger.Log("Failed to allocate memory for token elevation check.", BaseLogger.MsgType.ERROR);
+                            _logFile.Log("Failed to allocate memory for token elevation check.", SimpleLogger.MsgType.ERROR);
                             return false;
                         }
 
                         if (!NativeMethods.GetTokenInformation(hToken, NativeMethods.TOKEN_INFORMATION_CLASS.TokenElevationType, pElevationType, cbSize, out cbSize))
                         {
-                            _logger.Log("Failed to query token elevation type [GetTokenInformation=" + Marshal.GetLastWin32Error().ToString() + "].", BaseLogger.MsgType.ERROR);
+                            _logFile.Log("Failed to query token elevation type [GetTokenInformation=" + Marshal.GetLastWin32Error().ToString() + "].", SimpleLogger.MsgType.ERROR);
                             return false;
                         }
 
@@ -1372,39 +1372,39 @@ namespace WindowsLibrary
 
                         if (elevType == NativeMethods.TOKEN_ELEVATION_TYPE.TokenElevationTypeLimited)
                         {
-                            _logger.Log("Token elevation type: Limited.");
+                            _logFile.Log("Token elevation type: Limited.");
                             cbSize = IntPtr.Size;
                             pLinkedToken = Marshal.AllocHGlobal(cbSize);
 
                             if (pLinkedToken == IntPtr.Zero)
                             {
-                                _logger.Log("Failed to allocate memory for linked token check.", BaseLogger.MsgType.ERROR);
+                                _logFile.Log("Failed to allocate memory for linked token check.", SimpleLogger.MsgType.ERROR);
                                 return false;
                             }
 
                             if (!NativeMethods.GetTokenInformation(hToken, NativeMethods.TOKEN_INFORMATION_CLASS.TokenLinkedToken, pLinkedToken, cbSize, out cbSize))
                             {
-                                _logger.Log("Failed to query LINKED token [GetTokenInformation=" + Marshal.GetLastWin32Error().ToString() + "].", BaseLogger.MsgType.ERROR);
+                                _logFile.Log("Failed to query LINKED token [GetTokenInformation=" + Marshal.GetLastWin32Error().ToString() + "].", SimpleLogger.MsgType.ERROR);
                                 return false;
                             }
                             else
                             {
-                                _logger.Log("Token has a Linked token.", BaseLogger.MsgType.DEBUG);
+                                _logFile.Log("Token has a Linked token.", SimpleLogger.MsgType.DEBUG);
                             }
 
                             hTokenToCheck = Marshal.ReadIntPtr(pLinkedToken);
                         }
                         else if (elevType == NativeMethods.TOKEN_ELEVATION_TYPE.TokenElevationTypeDefault)
                         {
-                            _logger.Log("Token elevation type: Default.", BaseLogger.MsgType.DEBUG);
+                            _logFile.Log("Token elevation type: Default.", SimpleLogger.MsgType.DEBUG);
                         }
                         else if (elevType == NativeMethods.TOKEN_ELEVATION_TYPE.TokenElevationTypeFull)
                         {
-                            _logger.Log("Token elevation type: Full.", BaseLogger.MsgType.DEBUG);
+                            _logFile.Log("Token elevation type: Full.", SimpleLogger.MsgType.DEBUG);
                         }
                         else
                         {
-                            _logger.Log("Token elevation type: Unknown.", BaseLogger.MsgType.DEBUG);
+                            _logFile.Log("Token elevation type: Unknown.", SimpleLogger.MsgType.DEBUG);
                         }
                     }
 
@@ -1412,8 +1412,8 @@ namespace WindowsLibrary
                     {
                         if (!NativeMethods.DuplicateToken(hToken, NativeMethods.SECURITY_IMPERSONATION_LEVEL.SecurityIdentification, out hTokenToCheck))
                         {
-                            _logger.Log("Failed to duplicate ORIGNAL access token [DuplicateToken=" + 
-                                Marshal.GetLastWin32Error().ToString() + "].", BaseLogger.MsgType.ERROR);
+                            _logFile.Log("Failed to duplicate ORIGNAL access token [DuplicateToken=" + 
+                                Marshal.GetLastWin32Error().ToString() + "].", SimpleLogger.MsgType.ERROR);
                             return false;
                         }
                     }
@@ -1425,7 +1425,7 @@ namespace WindowsLibrary
                 }
                 catch (Exception e)
                 {
-                    _logger.Log(e, "Failed to verify if user token is in admin group.");
+                    _logFile.Log(e, "Failed to verify if user token is in admin group.");
                     return false;
                 }
 
@@ -1514,7 +1514,7 @@ namespace WindowsLibrary
 
                         string currentGroupName = Marshal.PtrToStringAuto(groupInfo.lpszGroupName);
 
-                        _logger.Log("Group: " + currentGroupName, BaseLogger.MsgType.DEBUG);
+                        _logFile.Log("Group: " + currentGroupName, SimpleLogger.MsgType.DEBUG);
 
                         if (currentGroupName.ToLower().Equals("administrators"))
                         {
@@ -1540,7 +1540,7 @@ namespace WindowsLibrary
 
                                 string currentUserName = Marshal.PtrToStringAuto(memberInfo.lgrmi1_name);
 
-                                _logger.Log("  Member: " + currentUserName, BaseLogger.MsgType.DEBUG);
+                                _logFile.Log("  Member: " + currentUserName, SimpleLogger.MsgType.DEBUG);
 
                                 if (currentUserName.ToLower().Equals(userToCheck.Name.ToLower()) ||
                                     (userToCheck.Name.Contains("\\") && currentUserName.ToLower().Equals(
@@ -1562,7 +1562,7 @@ namespace WindowsLibrary
             }
             catch (Exception e)
             {
-                _logger.Log(e, "Failed to determine admin group membership [NativeMethods.method].");
+                _logFile.Log(e, "Failed to determine admin group membership [NativeMethods.method].");
             }
 
             return false;
@@ -1603,7 +1603,7 @@ namespace WindowsLibrary
 
                         string currentGroupName = Marshal.PtrToStringAuto(groupInfo.lpszGroupName);
 
-                        _logger.Log("Group: " + currentGroupName, BaseLogger.MsgType.DEBUG);
+                        _logFile.Log("Group: " + currentGroupName, SimpleLogger.MsgType.DEBUG);
 
                         if (currentGroupName.ToLower().Equals("administrators"))
                         {
@@ -1629,7 +1629,7 @@ namespace WindowsLibrary
 
                                 string currentUserName = Marshal.PtrToStringAuto(memberInfo.lgrmi1_name);
 
-                                _logger.Log("  Member: " + currentUserName, BaseLogger.MsgType.DEBUG);
+                                _logFile.Log("  Member: " + currentUserName, SimpleLogger.MsgType.DEBUG);
 
                                 if (currentUserName.ToLower().Equals(userName.ToLower()) ||
                                     (userName.Contains("\\") && currentUserName.ToLower().Equals(
@@ -1651,7 +1651,7 @@ namespace WindowsLibrary
             }
             catch (Exception e)
             {
-                _logger.Log(e, "Failed to determine admin group membership [NativeMethods.method].");
+                _logFile.Log(e, "Failed to determine admin group membership [NativeMethods.method].");
             }
 
             return false;
@@ -1669,7 +1669,7 @@ namespace WindowsLibrary
                 {
                     if (strPath.ToLower().Equals(folder.ToLower()))
                     {
-                        _logger.Log($"Remove from PATH: {folder}");
+                        _logFile.Log($"Remove from PATH: {folder}");
                     }
                     else
                     {
@@ -1682,7 +1682,7 @@ namespace WindowsLibrary
             }
             catch (Exception e)
             {
-                _logger.Log(e, $"Failed to remove {folder} to system PATH variable.");
+                _logFile.Log(e, $"Failed to remove {folder} to system PATH variable.");
                 return false;
             }
 
@@ -1700,14 +1700,14 @@ namespace WindowsLibrary
 
             if (!NativeMethods.OpenProcessToken(hProcess, NativeMethods.TOKEN_ALL_ACCESS, out IntPtr hToken))
             {
-                _logger.Log("Unable to open specified process token [OpenProcessToken=" + Marshal.GetLastWin32Error().ToString() + "].", BaseLogger.MsgType.ERROR);
+                _logFile.Log("Unable to open specified process token [OpenProcessToken=" + Marshal.GetLastWin32Error().ToString() + "].", SimpleLogger.MsgType.ERROR);
                 Marshal.FreeHGlobal(hProcess);
                 return false;
             }
 
             if (!EnablePrivilege(hToken, NativeMethods.SE_SHUTDOWN_NAME))
             {
-                _logger.Log("Failed to enable privilege [SeShutdownPrivilege].", BaseLogger.MsgType.WARN);
+                _logFile.Log("Failed to enable privilege [SeShutdownPrivilege].", SimpleLogger.MsgType.WARN);
                 Marshal.FreeHGlobal(hProcess);
                 Marshal.FreeHGlobal(hToken);
                 return false;
@@ -1724,7 +1724,7 @@ namespace WindowsLibrary
                 comment = friendlyName + " initiated a reboot of the system.";
             }
 
-            _logger.Log($"Windows reboot [{comment}]");
+            _logFile.Log($"Windows reboot [{comment}]");
 
             if (!NativeMethods.InitiateSystemShutdownEx(null, comment, delaySeconds, true, true, shutdownReason))
             {
@@ -1736,22 +1736,22 @@ namespace WindowsLibrary
                 */
                 if (lastError != 1115 && lastError != 1190)
                 {
-                    _logger.Log("Failed to initiate reboot [InitiateSystemShutdownEx=" + 
-                        Marshal.GetLastWin32Error().ToString() + "].", BaseLogger.MsgType.ERROR);
+                    _logFile.Log("Failed to initiate reboot [InitiateSystemShutdownEx=" + 
+                        Marshal.GetLastWin32Error().ToString() + "].", SimpleLogger.MsgType.ERROR);
                     return false;
                 }
                 else if (lastError == 1115)
                 {
-                    _logger.Log("REBOOT: A system shutdown is in progress.");
+                    _logFile.Log("REBOOT: A system shutdown is in progress.");
                 }
                 else if (lastError == 1190)
                 {
-                    _logger.Log("REBOOT: A system shutdown has already been scheduled.");
+                    _logFile.Log("REBOOT: A system shutdown has already been scheduled.");
                 }
             }
             else
             {
-                _logger.Log($"REBOOT: System will restart in ({delaySeconds}) seconds.");
+                _logFile.Log($"REBOOT: System will restart in ({delaySeconds}) seconds.");
             }
 
             return true;
@@ -1824,12 +1824,12 @@ namespace WindowsLibrary
                         synthArgs[i] = synthArgs[i].Substring(1, synthArgs[i].Length - 2);
                     }
 
-                    _logger?.Log("Argument [" + i.ToString() + "]: " + synthArgs[i]);
+                    _logFile?.Log("Argument [" + i.ToString() + "]: " + synthArgs[i]);
                 }
             }
             else
             {
-                _logger?.Log("Arguments: <None>");
+                _logFile?.Log("Arguments: <None>");
             }
 
             return synthArgs;

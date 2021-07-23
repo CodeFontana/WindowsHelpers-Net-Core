@@ -13,11 +13,11 @@ namespace WindowsLibrary
     [SupportedOSPlatform("windows")]
     public class WmiHelper
     {
-        private readonly ILogger _logger;
+        private readonly ISimpleLogger _logFile;
 
-        public WmiHelper(ILogger logger)
+        public WmiHelper(ISimpleLogger logFile)
         {
-            _logger = logger;
+            _logFile = logFile;
         }
 
         /// <summary>
@@ -25,7 +25,7 @@ namespace WindowsLibrary
         /// </summary>
         public static void SampleUsage()
         {
-            var logFile = new BaseLogger("WmiHelperSampleUsage");
+            var logFile = new SimpleLogger("WmiHelperSampleUsage");
             WmiHelper wmi = new(logFile);
 
             // EXAMPLE: Get Manufacturer + Model info.
@@ -74,7 +74,7 @@ namespace WindowsLibrary
             }
             catch (Exception e)
             {
-                _logger.Log(e, "Failed to query list of WMI namespaces.");
+                _logFile.Log(e, "Failed to query list of WMI namespaces.");
             }
 
             return namespaces?.OrderBy(s => s).ToList() ?? namespaces;
@@ -105,7 +105,7 @@ namespace WindowsLibrary
             }
             catch (Exception e)
             {
-                _logger.Log(e, $"Failed to query class name list for namespace '{wmiNamespaceName}'.");
+                _logFile.Log(e, $"Failed to query class name list for namespace '{wmiNamespaceName}'.");
             }
 
             return classes?.OrderBy(s => s).ToList() ?? classes;
@@ -144,7 +144,7 @@ namespace WindowsLibrary
             }
             catch (Exception e)
             {
-                _logger.Log(e, $"Failed to query properties of specified class '{namespaceName}\\{wmiClassName}'.");
+                _logFile.Log(e, $"Failed to query properties of specified class '{namespaceName}\\{wmiClassName}'.");
             }
 
             return output;
@@ -218,7 +218,7 @@ namespace WindowsLibrary
             }
             catch (Exception e)
             {
-                _logger.Log(e, $"Failed to query data from '{namespaceName}\\{wmiClassName}'.");
+                _logFile.Log(e, $"Failed to query data from '{namespaceName}\\{wmiClassName}'.");
             }
 
             return output;
@@ -294,11 +294,10 @@ namespace WindowsLibrary
             }
             catch (Exception e)
             {
-                _logger.Log(e, $"Failed to query data from '{namespaceName}\\{wmiClassName}'.");
+                _logFile.Log(e, $"Failed to query data from '{namespaceName}\\{wmiClassName}'.");
             }
 
-            DotNetHelper dotNetHelper = new();
-            return dotNetHelper.PadListElements(output, columnPadding);
+            return DotNetHelper.PadListElements(output, columnPadding);
         }
     }
 }

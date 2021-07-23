@@ -8,15 +8,21 @@ using System.Threading.Tasks;
 
 namespace LoggerLibrary
 {
-    public class ComponentLogger : IComponentLogger, ILogger
+    public class ComponentLogger : ISimpleLogger
     {
-        private readonly IBaseLogger _parentLogger;
+        private readonly ISimpleLogger _parentLogger;
 
         public string ComponentName { get; init; }
 
-        public ComponentLogger(IBaseLogger parentLogger, string componentName)
+        public ComponentLogger(ISimpleLogger parentLogger, string componentName)
         {
-            _parentLogger = parentLogger;
+            _parentLogger = parentLogger ?? throw new ArgumentException("Parent logger must not be NULL.");
+
+            if (string.IsNullOrWhiteSpace(componentName))
+            {
+                throw new ArgumentException("Component name must not be NULL or empty.");
+            }
+            
             ComponentName = componentName;
         }
 
@@ -25,10 +31,9 @@ namespace LoggerLibrary
         /// </summary>
         /// <param name="message">Message to be written.</param>
         /// <param name="logLevel">Log level specification. If unspecified, the default is 'INFO'.</param>
-        public void Log(string message, BaseLogger.MsgType logLevel = BaseLogger.MsgType.INFO)
+        public void Log(string message, SimpleLogger.MsgType logLevel = SimpleLogger.MsgType.INFO)
         {
-            string prefix = string.IsNullOrWhiteSpace(ComponentName) ? "" : $"{ComponentName}|";
-            _parentLogger.Log(prefix + message, logLevel);
+            _parentLogger.Log($"{ComponentName}|{message}", logLevel);
         }
 
         /// <summary>
@@ -38,8 +43,7 @@ namespace LoggerLibrary
         /// <param name="message">Additional message for debugging purposes.</param>
         public void Log(Exception e, string message)
         {
-            string prefix = string.IsNullOrWhiteSpace(ComponentName) ? "" : $"{ComponentName}|";
-            _parentLogger.Log(e, prefix + message);
+            _parentLogger.Log(e, $"{ComponentName}|{message}");
         }
     }
 }

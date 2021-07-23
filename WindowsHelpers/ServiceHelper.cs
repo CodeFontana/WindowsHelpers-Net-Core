@@ -14,13 +14,13 @@ namespace WindowsLibrary
     [SupportedOSPlatform("windows")]
     public class ServiceHelper
     {
-        private readonly ILogger _logger;
+        private readonly ISimpleLogger _logFile;
         private readonly ProcessHelper _psHelper;
 
-        public ServiceHelper(ILogger logger)
+        public ServiceHelper(ISimpleLogger logFile)
         {
-            _logger = logger;
-            _psHelper = new ProcessHelper(logger);
+            _logFile = logFile;
+            _psHelper = new ProcessHelper(_logFile);
         }
 
         public enum ServiceStart // For reference.
@@ -48,7 +48,7 @@ namespace WindowsLibrary
 
                 if (scManagerHandle == IntPtr.Zero)
                 {
-                    _logger.Log("Unable to open service control manager.", BaseLogger.MsgType.ERROR);
+                    _logFile.Log("Unable to open service control manager.", SimpleLogger.MsgType.ERROR);
                     return false;
                 }
 
@@ -59,7 +59,7 @@ namespace WindowsLibrary
 
                 if (serviceHandle == IntPtr.Zero)
                 {
-                    _logger.Log("Unable to open specified service [" + serviceName + "].", BaseLogger.MsgType.ERROR);
+                    _logFile.Log("Unable to open specified service [" + serviceName + "].", SimpleLogger.MsgType.ERROR);
                     return false;
                 }
 
@@ -78,14 +78,14 @@ namespace WindowsLibrary
 
                 if (!configSuccess)
                 {
-                    _logger.Log("Unable to configure service logon user [ChangeServiceConfig=" +
-                        Marshal.GetLastWin32Error().ToString() + "].", BaseLogger.MsgType.ERROR);
+                    _logFile.Log("Unable to configure service logon user [ChangeServiceConfig=" +
+                        Marshal.GetLastWin32Error().ToString() + "].", SimpleLogger.MsgType.ERROR);
                     return false;
                 }
             }
             catch (Exception e)
             {
-                _logger.Log(e, "Failed to change service logon user.");
+                _logFile.Log(e, "Failed to change service logon user.");
             }
             finally
             {
@@ -109,7 +109,7 @@ namespace WindowsLibrary
 
                 if (scManagerHandle == IntPtr.Zero)
                 {
-                    _logger.Log("Unable to open service control manager.", BaseLogger.MsgType.ERROR);
+                    _logFile.Log("Unable to open service control manager.", SimpleLogger.MsgType.ERROR);
                     return false;
                 }
 
@@ -120,7 +120,7 @@ namespace WindowsLibrary
 
                 if (serviceHandle == IntPtr.Zero)
                 {
-                    _logger.Log("Unable to open specified service [" + serviceName + "].", BaseLogger.MsgType.ERROR);
+                    _logFile.Log("Unable to open specified service [" + serviceName + "].", SimpleLogger.MsgType.ERROR);
                     return false;
                 }
 
@@ -139,14 +139,14 @@ namespace WindowsLibrary
 
                 if (!configSuccess)
                 {
-                    _logger.Log("Unable to configure service startup mode [ChangeServiceConfig=" +
-                        Marshal.GetLastWin32Error().ToString() + "].", BaseLogger.MsgType.ERROR);
+                    _logFile.Log("Unable to configure service startup mode [ChangeServiceConfig=" +
+                        Marshal.GetLastWin32Error().ToString() + "].", SimpleLogger.MsgType.ERROR);
                     return false;
                 }
             }
             catch (Exception e)
             {
-                _logger.Log(e, "Failed to change service startup mode.");
+                _logFile.Log(e, "Failed to change service startup mode.");
             }
             finally
             {
@@ -169,7 +169,7 @@ namespace WindowsLibrary
             {
                 if (ServiceExists(serviceName) == false)
                 {
-                    _logger.Log($"ERROR: Service does not exist [{serviceName}].", BaseLogger.MsgType.ERROR);
+                    _logFile.Log($"ERROR: Service does not exist [{serviceName}].", SimpleLogger.MsgType.ERROR);
                     return false;
                 }
 
@@ -179,7 +179,7 @@ namespace WindowsLibrary
 
                 if (scManagerHandle == IntPtr.Zero)
                 {
-                    _logger.Log("ERROR: Unable to open service control manager.", BaseLogger.MsgType.ERROR);
+                    _logFile.Log("ERROR: Unable to open service control manager.", SimpleLogger.MsgType.ERROR);
                     return false;
                 }
 
@@ -187,7 +187,7 @@ namespace WindowsLibrary
 
                 if (scManagerLockHandle == IntPtr.Zero)
                 {
-                    _logger.Log("ERROR: Unable to lock service control manager database.", BaseLogger.MsgType.ERROR);
+                    _logFile.Log("ERROR: Unable to lock service control manager database.", SimpleLogger.MsgType.ERROR);
                     return false;
                 }
 
@@ -198,7 +198,7 @@ namespace WindowsLibrary
 
                 if (serviceHandle == IntPtr.Zero)
                 {
-                    _logger.Log("ERROR: Unable to open specified service [" + serviceName + "].", BaseLogger.MsgType.ERROR);
+                    _logFile.Log("ERROR: Unable to open specified service [" + serviceName + "].", SimpleLogger.MsgType.ERROR);
                     return false;
                 }
 
@@ -212,14 +212,14 @@ namespace WindowsLibrary
 
                 if (configSuccess == false)
                 {
-                    _logger.Log("ERROR: Unable to configure service failure actions [ChangeServiceConfig2A=" +
-                        Marshal.GetLastWin32Error().ToString() + "].", BaseLogger.MsgType.ERROR);
+                    _logFile.Log("ERROR: Unable to configure service failure actions [ChangeServiceConfig2A=" +
+                        Marshal.GetLastWin32Error().ToString() + "].", SimpleLogger.MsgType.ERROR);
                     return false;
                 }
             }
             catch (Exception e)
             {
-                _logger.Log(e, "Failed to configure service failure actions.");
+                _logFile.Log(e, "Failed to configure service failure actions.");
             }
             finally
             {
@@ -248,7 +248,7 @@ namespace WindowsLibrary
             {
                 if (ServiceExists(serviceName) == false)
                 {
-                    _logger.Log($"ERROR: Service does not exist [{serviceName}].", BaseLogger.MsgType.ERROR);
+                    _logFile.Log($"ERROR: Service does not exist [{serviceName}].", SimpleLogger.MsgType.ERROR);
                     return false;
                 }
 
@@ -258,7 +258,7 @@ namespace WindowsLibrary
 
                 if (scManagerHandle == IntPtr.Zero)
                 {
-                    _logger.Log("ERROR: Unable to open service control manager.", BaseLogger.MsgType.ERROR);
+                    _logFile.Log("ERROR: Unable to open service control manager.", SimpleLogger.MsgType.ERROR);
                     return false;
                 }
 
@@ -266,7 +266,7 @@ namespace WindowsLibrary
 
                 if (scManagerLockHandle == IntPtr.Zero)
                 {
-                    _logger.Log("ERROR: Unable to lock service control manager database.", BaseLogger.MsgType.ERROR);
+                    _logFile.Log("ERROR: Unable to lock service control manager database.", SimpleLogger.MsgType.ERROR);
                     return false;
                 }
 
@@ -277,7 +277,7 @@ namespace WindowsLibrary
 
                 if (serviceHandle == IntPtr.Zero)
                 {
-                    _logger.Log("ERROR: Unable to open specified service [" + serviceName + "].", BaseLogger.MsgType.ERROR);
+                    _logFile.Log("ERROR: Unable to open specified service [" + serviceName + "].", SimpleLogger.MsgType.ERROR);
                     return false;
                 }
 
@@ -307,14 +307,14 @@ namespace WindowsLibrary
 
                 if (configSuccess == false)
                 {
-                    _logger.Log("ERROR: Unable to configure service failure actions [ChangeServiceConfig2A=" +
-                        Marshal.GetLastWin32Error().ToString() + "].", BaseLogger.MsgType.ERROR);
+                    _logFile.Log("ERROR: Unable to configure service failure actions [ChangeServiceConfig2A=" +
+                        Marshal.GetLastWin32Error().ToString() + "].", SimpleLogger.MsgType.ERROR);
                     return false;
                 }
             }
             catch (Exception e)
             {
-                _logger.Log(e, "Failed to configure service failure actions.");
+                _logFile.Log(e, "Failed to configure service failure actions.");
             }
             finally
             {
@@ -411,7 +411,7 @@ namespace WindowsLibrary
 
                 if (hServiceManager == IntPtr.Zero)
                 {
-                    _logger.Log("Unable to open service control manager.", BaseLogger.MsgType.ERROR);
+                    _logFile.Log("Unable to open service control manager.", SimpleLogger.MsgType.ERROR);
                     return false;
                 }
 
@@ -419,7 +419,7 @@ namespace WindowsLibrary
 
                 if (scManagerLockHandle == IntPtr.Zero)
                 {
-                    _logger.Log("ERROR: Unable to lock service control manager database.", BaseLogger.MsgType.ERROR);
+                    _logFile.Log("ERROR: Unable to lock service control manager database.", SimpleLogger.MsgType.ERROR);
                     return false;
                 }
 
@@ -440,7 +440,7 @@ namespace WindowsLibrary
 
                 if (hNewService == IntPtr.Zero)
                 {
-                    _logger.Log("Failed to create new Windows service.", BaseLogger.MsgType.ERROR);
+                    _logFile.Log("Failed to create new Windows service.", SimpleLogger.MsgType.ERROR);
                     return false;
                 }
                 else
@@ -450,7 +450,7 @@ namespace WindowsLibrary
             }
             catch (Exception e)
             {
-                _logger.Log(e, "Failed to create new Windows service.");
+                _logFile.Log(e, "Failed to create new Windows service.");
                 return false;
             }
             finally
@@ -467,17 +467,17 @@ namespace WindowsLibrary
             {
                 if (ServiceExists(serviceName))
                 {
-                    _logger.Log($"Start service [{serviceName}]...");
+                    _logFile.Log($"Start service [{serviceName}]...");
                     ServiceController sc = new(serviceName);
 
                     if (sc.Status != ServiceControllerStatus.Stopped)
                     {
-                        _logger.Log("Service is already running.");
+                        _logFile.Log("Service is already running.");
                     }
                     else
                     {
                         sc.Start();
-                        _logger.Log("Service started.");
+                        _logFile.Log("Service started.");
                     }
 
                     sc.Dispose();
@@ -485,13 +485,13 @@ namespace WindowsLibrary
                 }
                 else
                 {
-                    _logger.Log($"Service does not exist [{serviceName}].", BaseLogger.MsgType.ERROR);
+                    _logFile.Log($"Service does not exist [{serviceName}].", SimpleLogger.MsgType.ERROR);
                     return false;
                 }
             }
             catch (Exception e)
             {
-                _logger.Log(e, $"Failed to start requested service [{serviceName}].");
+                _logFile.Log(e, $"Failed to start requested service [{serviceName}].");
                 return false;
             }
         }
@@ -510,29 +510,29 @@ namespace WindowsLibrary
 
                         try
                         {
-                            _logger.Log($"Service running [{serviceName}], send stop request...");
+                            _logFile.Log($"Service running [{serviceName}], send stop request...");
                             svcCtrl.Stop();
                             svcCtrl.WaitForStatus(ServiceControllerStatus.Stopped, 
                                 new TimeSpan(0, 2, 0));
                         }
                         catch (Exception e)
                         {
-                            _logger.Log(e, "Failed to gracefully stop service.");
+                            _logFile.Log(e, "Failed to gracefully stop service.");
                         }
                         finally
                         {
                             if (Process.GetProcesses().Any(p => p.Id == pid))
                             {
-                                _logger.Log("Killing service...");
+                                _logFile.Log("Killing service...");
                                 _psHelper.KillProcess(pid);
                             }
 
-                            _logger.Log("Service stopped.");
+                            _logFile.Log("Service stopped.");
                         }
                     }
                     else
                     {
-                        _logger.Log($"Service not running [{serviceName}].");
+                        _logFile.Log($"Service not running [{serviceName}].");
                     }
 
                     svcCtrl.Dispose();
@@ -540,13 +540,13 @@ namespace WindowsLibrary
                 }
                 else
                 {
-                    _logger.Log($"Service does not exist [{serviceName}].", BaseLogger.MsgType.ERROR);
+                    _logFile.Log($"Service does not exist [{serviceName}].", SimpleLogger.MsgType.ERROR);
                     return false;
                 }
             }
             catch (Exception e)
             {
-                _logger.Log(e, $"Failed to stop requested service [{serviceName}].");
+                _logFile.Log(e, $"Failed to stop requested service [{serviceName}].");
                 return false;
             }
         }
@@ -568,7 +568,7 @@ namespace WindowsLibrary
 
                 if (hServiceManager == IntPtr.Zero)
                 {
-                    _logger.Log("Unable to open service control manager.", BaseLogger.MsgType.ERROR);
+                    _logFile.Log("Unable to open service control manager.", SimpleLogger.MsgType.ERROR);
                     return false;
                 }
 
@@ -576,7 +576,7 @@ namespace WindowsLibrary
 
                 if (scManagerLockHandle == IntPtr.Zero)
                 {
-                    _logger.Log("ERROR: Unable to lock service control manager database.", BaseLogger.MsgType.ERROR);
+                    _logFile.Log("ERROR: Unable to lock service control manager database.", SimpleLogger.MsgType.ERROR);
                     return false;
                 }
 
@@ -587,7 +587,7 @@ namespace WindowsLibrary
 
                 if (hServiceHandle == IntPtr.Zero)
                 {
-                    _logger.Log($"Failed to open requested service [{serviceName}].", BaseLogger.MsgType.ERROR);
+                    _logFile.Log($"Failed to open requested service [{serviceName}].", SimpleLogger.MsgType.ERROR);
                     return false;
                 }
 
@@ -602,7 +602,7 @@ namespace WindowsLibrary
             }
             catch (Exception e)
             {
-                _logger.Log(e, $"Failed to delete Windows service [{serviceName}].");
+                _logFile.Log(e, $"Failed to delete Windows service [{serviceName}].");
                 return false;
             }
             finally

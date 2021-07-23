@@ -18,11 +18,11 @@ namespace WindowsLibrary
     [SupportedOSPlatform("windows")]
     public class FileSystemHelper
     {
-        private readonly ILogger _logger;
+        private readonly ISimpleLogger _logFile;
 
-        public FileSystemHelper(ILogger logger)
+        public FileSystemHelper(ISimpleLogger logFile)
         {
-            _logger = logger;
+            _logFile = logFile;
         }
 
         public bool AddDirectorySecurity(
@@ -54,7 +54,7 @@ namespace WindowsLibrary
                 }
                 else
                 {
-                    _logger.Log($"Specified file or folder [{fileOrFolder}] does not exist.", BaseLogger.MsgType.ERROR);
+                    _logFile.Log($"Specified file or folder [{fileOrFolder}] does not exist.", SimpleLogger.MsgType.ERROR);
                     return false;
                 }
 
@@ -70,14 +70,14 @@ namespace WindowsLibrary
                         NativeMethods.TOKEN_ALL_ACCESS,
                         out IntPtr hToken))
                     {
-                        _logger.Log("Unable to open specified process token [OpenProcessToken=" +
+                        _logFile.Log("Unable to open specified process token [OpenProcessToken=" +
                             Marshal.GetLastWin32Error().ToString() + "].");
                         return false;
                     }
 
-                    if (new WindowsHelper(_logger).EnablePrivilege(hToken, NativeMethods.SE_TAKE_OWNERSHIP_NAME) == false)
+                    if (new WindowsHelper(_logFile).EnablePrivilege(hToken, NativeMethods.SE_TAKE_OWNERSHIP_NAME) == false)
                     {
-                        _logger.Log("Failed to enable privilege [SeTakeOwnershipPrivilege].", BaseLogger.MsgType.ERROR);
+                        _logFile.Log("Failed to enable privilege [SeTakeOwnershipPrivilege].", SimpleLogger.MsgType.ERROR);
                         Marshal.FreeHGlobal(hToken);
                         return false;
                     }
@@ -131,7 +131,7 @@ namespace WindowsLibrary
                 }
                 else
                 {
-                    _logger.Log(e, "Failed to add filesystem permissions to [" + fileOrFolder + "].");
+                    _logFile.Log(e, "Failed to add filesystem permissions to [" + fileOrFolder + "].");
                     return false;
                 }
             }
@@ -165,9 +165,9 @@ namespace WindowsLibrary
             {
                 if (d.DriveType.ToString().ToLower().Equals("fixed"))
                 {
-                    _logger.Log("Check drive [read-only]: " + d.Name);
+                    _logFile.Log("Check drive [read-only]: " + d.Name);
 
-                    Tuple<long, string> result = new ProcessHelper(_logger).RunProcess(
+                    Tuple<long, string> result = new ProcessHelper(_logFile).RunProcess(
                         "chkdsk.exe",
                         d.Name.Substring(0, 2),
                         Environment.GetEnvironmentVariable("windir") + "\\System32",
@@ -175,11 +175,11 @@ namespace WindowsLibrary
 
                     if (result.Item2.ToLower().Contains("windows has scanned the file system and found no problems"))
                     {
-                        _logger.Log("CHKDSK result: OK");
+                        _logFile.Log("CHKDSK result: OK");
                     }
                     else
                     {
-                        _logger.Log("CHKDSK result: FAIL");
+                        _logFile.Log("CHKDSK result: FAIL");
                         return false;
                     }
                 }
@@ -205,31 +205,31 @@ namespace WindowsLibrary
                     var smart = drive["Status"];
                     var sizeInBytes = drive["Size"];
 
-                    _logger.Log("Found drive: " + model.ToString());
+                    _logFile.Log("Found drive: " + model.ToString());
 
                     if (serial != null)
                     {
-                        _logger.Log("  Serial: " + serial.ToString());
+                        _logFile.Log("  Serial: " + serial.ToString());
                     }
 
                     if (interfacetype != null)
                     {
-                        _logger.Log("  Interface: " + interfacetype.ToString());
+                        _logFile.Log("  Interface: " + interfacetype.ToString());
                     }
 
                     if (partitions != null)
                     {
-                        _logger.Log("  Partitions: " + partitions.ToString());
+                        _logFile.Log("  Partitions: " + partitions.ToString());
                     }
 
                     if (sizeInBytes != null)
                     {
-                        _logger.Log("  Size: " + BytesToReadableValue(long.Parse(sizeInBytes.ToString().Trim())));
+                        _logFile.Log("  Size: " + BytesToReadableValue(long.Parse(sizeInBytes.ToString().Trim())));
                     }
 
                     if (smart != null)
                     {
-                        _logger.Log("  SMART: " + smart.ToString());
+                        _logFile.Log("  SMART: " + smart.ToString());
 
                         if (smart.ToString().ToLower().Equals("ok") == false)
                         {
@@ -242,7 +242,7 @@ namespace WindowsLibrary
 
                 if (!smartOK)
                 {
-                    _logger.Log("SMART status failure detected.", BaseLogger.MsgType.ERROR);
+                    _logFile.Log("SMART status failure detected.", SimpleLogger.MsgType.ERROR);
                     return false;
                 }
                 else
@@ -252,7 +252,7 @@ namespace WindowsLibrary
             }
             catch (Exception e)
             {
-                _logger.Log(e, "Failed to verify drive SMART status.");
+                _logFile.Log(e, "Failed to verify drive SMART status.");
                 return false;
             }
         }
@@ -263,8 +263,8 @@ namespace WindowsLibrary
             bool overWrite = true,
             bool handleInUseOnReboot = false)
         {
-            _logger.Log("Copy file: " + sourceFileName);
-            _logger.Log("       To: " + destFileName);
+            _logFile.Log("Copy file: " + sourceFileName);
+            _logFile.Log("       To: " + destFileName);
 
             try
             {
@@ -272,13 +272,13 @@ namespace WindowsLibrary
                 {
                     if (!File.Exists(sourceFileName))
                     {
-                        _logger.Log("Source file does not exist [" + sourceFileName + "].", BaseLogger.MsgType.ERROR);
+                        _logFile.Log("Source file does not exist [" + sourceFileName + "].", SimpleLogger.MsgType.ERROR);
                         return false;
                     }
 
                     if (sourceFileName.ToLower().Equals(destFileName.ToLower()))
                     {
-                        _logger.Log("Source and destination files must be different [" + sourceFileName + "].", BaseLogger.MsgType.ERROR);
+                        _logFile.Log("Source and destination files must be different [" + sourceFileName + "].", SimpleLogger.MsgType.ERROR);
                         return false;
                     }
 
@@ -290,7 +290,7 @@ namespace WindowsLibrary
                         }
                         catch (Exception e)
                         {
-                            _logger.Log(e, "Failed to create target directory.");
+                            _logFile.Log(e, "Failed to create target directory.");
                             return false;
                         }
                     }
@@ -339,7 +339,7 @@ namespace WindowsLibrary
                                 null,
                                 NativeMethods.MoveFileFlags.DelayUntilReboot);
 
-                            _logger.Log("Delete after reboot: " + incrementFilename);
+                            _logFile.Log("Delete after reboot: " + incrementFilename);
                         }
                         catch (Exception)
                         {
@@ -383,12 +383,12 @@ namespace WindowsLibrary
                                         destFileName,
                                         NativeMethods.MoveFileFlags.DelayUntilReboot);
 
-                                    _logger.Log("Reboot required: " + destFileName);
+                                    _logFile.Log("Reboot required: " + destFileName);
                                     return true;
                                 }
                                 else if (!moveSuccess && !handleInUseOnReboot)
                                 {
-                                    _logger.Log("Destination file is in-use [" + destFileName + "].", BaseLogger.MsgType.ERROR);
+                                    _logFile.Log("Destination file is in-use [" + destFileName + "].", SimpleLogger.MsgType.ERROR);
                                     return false;
                                 }
                                 else
@@ -398,7 +398,7 @@ namespace WindowsLibrary
                             }
                             catch (Exception e)
                             {
-                                _logger.Log(e, "Unable to schedule file replacement for in-use file [" + destFileName + "].");
+                                _logFile.Log(e, "Unable to schedule file replacement for in-use file [" + destFileName + "].");
                                 return false;
                             }
                         }
@@ -410,7 +410,7 @@ namespace WindowsLibrary
             }
             catch (Exception e)
             {
-                _logger.Log(e, "Failed to copy file [" + Path.GetFileName(sourceFileName) + "] to destination.");
+                _logFile.Log(e, "Failed to copy file [" + Path.GetFileName(sourceFileName) + "] to destination.");
             }
 
             return false;
@@ -426,13 +426,13 @@ namespace WindowsLibrary
         {
             if (!Directory.Exists(sourceFolder))
             {
-                _logger.Log("Source folder does not exist [" + sourceFolder + "].", BaseLogger.MsgType.ERROR);
+                _logFile.Log("Source folder does not exist [" + sourceFolder + "].", SimpleLogger.MsgType.ERROR);
                 return false;
             }
 
             if (sourceFolder.ToLower().Equals(targetFolder.ToLower()))
             {
-                _logger.Log("Source and destination folders must be different [" + sourceFolder + "].", BaseLogger.MsgType.ERROR);
+                _logFile.Log("Source and destination folders must be different [" + sourceFolder + "].", SimpleLogger.MsgType.ERROR);
                 return false;
             }
 
@@ -444,7 +444,7 @@ namespace WindowsLibrary
                 }
                 catch (Exception e)
                 {
-                    _logger.Log(e, "Failed to create target directory.");
+                    _logFile.Log(e, "Failed to create target directory.");
                     return false;
                 }
             }
@@ -463,7 +463,7 @@ namespace WindowsLibrary
                         {
                             if (sourceFile.ToLower().EndsWith(str.ToLower()))
                             {
-                                _logger.Log("Reserved file: " + sourceFile, BaseLogger.MsgType.DEBUG);
+                                _logFile.Log("Reserved file: " + sourceFile, SimpleLogger.MsgType.DEBUG);
                                 skipItem = true;
                             }
                         }
@@ -494,7 +494,7 @@ namespace WindowsLibrary
                                 {
                                     if (verboseOutput)
                                     {
-                                        _logger.Log("Reserved folder: " + sourceDir, BaseLogger.MsgType.DEBUG);
+                                        _logFile.Log("Reserved folder: " + sourceDir, SimpleLogger.MsgType.DEBUG);
                                     }
 
                                     skipItem = true;
@@ -507,7 +507,7 @@ namespace WindowsLibrary
                         {
                             if (verboseOutput)
                             {
-                                _logger.Log("Reserved folder: " + sourceDir, BaseLogger.MsgType.DEBUG);
+                                _logFile.Log("Reserved folder: " + sourceDir, SimpleLogger.MsgType.DEBUG);
                             }
 
                             skipItem = true;
@@ -518,7 +518,7 @@ namespace WindowsLibrary
                         {
                             if (verboseOutput)
                             {
-                                _logger.Log("Reserved folder: " + sourceDir, BaseLogger.MsgType.DEBUG);
+                                _logFile.Log("Reserved folder: " + sourceDir, SimpleLogger.MsgType.DEBUG);
                             }
 
                             skipItem = true;
@@ -530,8 +530,8 @@ namespace WindowsLibrary
 
                             if (verboseOutput)
                             {
-                                _logger.Log("Copy folder: " + sourceDir);
-                                _logger.Log("         To: " + destinationPath);
+                                _logFile.Log("Copy folder: " + sourceDir);
+                                _logFile.Log("         To: " + destinationPath);
                             }
 
                             try
@@ -543,7 +543,7 @@ namespace WindowsLibrary
                             }
                             catch (Exception e)
                             {
-                                _logger.Log(e, "Failed to copy folder [" + sourceDir + "] to desintation.");
+                                _logFile.Log(e, "Failed to copy folder [" + sourceDir + "] to desintation.");
                             }
                         }
 
@@ -553,7 +553,7 @@ namespace WindowsLibrary
             }
             catch (Exception e)
             {
-                _logger.Log(e, "Failed to copy directory to destination.");
+                _logFile.Log(e, "Failed to copy directory to destination.");
                 return false;
             }
 
@@ -575,7 +575,7 @@ namespace WindowsLibrary
                     {
                         File.SetAttributes(fileName, FileAttributes.Normal);
                         File.Delete(fileName);
-                        _logger.Log("Deleted file: " + fileName);
+                        _logFile.Log("Deleted file: " + fileName);
                         fileDeleted = true;
                     }
                     catch (Exception)
@@ -613,7 +613,7 @@ namespace WindowsLibrary
                                     null,
                                     NativeMethods.MoveFileFlags.DelayUntilReboot);
 
-                                _logger.Log("Delete after reboot: " + deleteFilename);
+                                _logFile.Log("Delete after reboot: " + deleteFilename);
                             }
                             catch (Exception)
                             {
@@ -623,18 +623,18 @@ namespace WindowsLibrary
                                     null,
                                     NativeMethods.MoveFileFlags.DelayUntilReboot);
 
-                                _logger.Log("Delete after reboot: " + fileName);
+                                _logFile.Log("Delete after reboot: " + fileName);
                             }
                         }
                         else if (fileName.ToLower().Contains(".delete_on_reboot"))
                         {
                             fileDeleted = false;
-                            _logger.Log("Deleted after reboot: " + fileName, BaseLogger.MsgType.DEBUG);
+                            _logFile.Log("Deleted after reboot: " + fileName, SimpleLogger.MsgType.DEBUG);
                         }
                         else
                         {
                             File.Delete(fileName);
-                            _logger.Log("Deleted file: " + fileName);
+                            _logFile.Log("Deleted file: " + fileName);
                             fileDeleted = true;
                         }
                     }
@@ -642,7 +642,7 @@ namespace WindowsLibrary
                 catch (Exception e)
                 {
                     fileDeleted = false;
-                    _logger.Log(e, "Exception caught deleting file.");
+                    _logFile.Log(e, "Exception caught deleting file.");
 
                     if (raiseException)
                     {
@@ -687,7 +687,7 @@ namespace WindowsLibrary
             }
             catch (Exception ex)
             {
-                _logger.Log(ex, "Exception caught deleting file.");
+                _logFile.Log(ex, "Exception caught deleting file.");
 
                 if (raiseException)
                 {
@@ -707,14 +707,14 @@ namespace WindowsLibrary
             {
                 try
                 {
-                    _logger.Log("Delete folder: " + folderName);
+                    _logFile.Log("Delete folder: " + folderName);
                     DeleteFolderContents(folderName, null, true);
                     Directory.Delete(folderName, true);
                     folderDeleted = true;
                 }
                 catch (Exception e)
                 {
-                    _logger.Log(e, "Exception caught deleting folder.");
+                    _logFile.Log(e, "Exception caught deleting folder.");
 
                     if (raiseException)
                     {
@@ -760,7 +760,7 @@ namespace WindowsLibrary
             }
             catch (Exception ex)
             {
-                _logger.Log(ex, "Failed to set target folder access control list.");
+                _logFile.Log(ex, "Failed to set target folder access control list.");
             }
 
             bool skipItem = false;
@@ -777,7 +777,7 @@ namespace WindowsLibrary
                             {
                                 if (folderList[n].ToString().ToLower().EndsWith(str.ToLower()))
                                 {
-                                    _logger.Log("Reserved folder: " + folderList[n].ToString(), BaseLogger.MsgType.DEBUG);
+                                    _logFile.Log("Reserved folder: " + folderList[n].ToString(), SimpleLogger.MsgType.DEBUG);
                                     skipItem = true;
                                 }
                             }
@@ -791,12 +791,12 @@ namespace WindowsLibrary
                             {
                                 try
                                 {
-                                    _logger.Log("Remove junction: " + folderList[n].ToString());
+                                    _logFile.Log("Remove junction: " + folderList[n].ToString());
                                     RemoveJunction(folderList[n].ToString());
                                 }
                                 catch (Exception ex)
                                 {
-                                    _logger.Log(ex, "Exception caught removing NTFS junction: " + folderList[n].ToString());
+                                    _logFile.Log(ex, "Exception caught removing NTFS junction: " + folderList[n].ToString());
                                 }
                             }
                             else
@@ -813,7 +813,7 @@ namespace WindowsLibrary
 
                             if (verboseOutput)
                             {
-                                _logger.Log("Delete folder: " + folderList[n].ToString());
+                                _logFile.Log("Delete folder: " + folderList[n].ToString());
                             }
 
                             Directory.Delete(folderList[n]);
@@ -823,7 +823,7 @@ namespace WindowsLibrary
                     }
                     catch (Exception ex2)
                     {
-                        _logger.Log(ex2, "Exception caught deleting folder: " + folderList[n].ToString());
+                        _logFile.Log(ex2, "Exception caught deleting folder: " + folderList[n].ToString());
                     }
                 }
             }
@@ -840,7 +840,7 @@ namespace WindowsLibrary
                             {
                                 if (fileList[n].ToString().ToLower().EndsWith(str.ToLower()))
                                 {
-                                    _logger.Log("Reserved file: " + fileList[n].ToString(), BaseLogger.MsgType.DEBUG);
+                                    _logFile.Log("Reserved file: " + fileList[n].ToString(), SimpleLogger.MsgType.DEBUG);
                                     skipItem = true;
                                 }
                             }
@@ -850,7 +850,7 @@ namespace WindowsLibrary
                         {
                             if (verboseOutput)
                             {
-                                _logger.Log("Delete file: " + fileList[n].ToString());
+                                _logFile.Log("Delete file: " + fileList[n].ToString());
                             }
 
                             File.SetAttributes(fileList[n], FileAttributes.Normal);
@@ -861,7 +861,7 @@ namespace WindowsLibrary
                     }
                     catch (Exception ex2)
                     {
-                        _logger.Log(ex2, "Exception caught deleting file: " + fileList[n].ToString());
+                        _logFile.Log(ex2, "Exception caught deleting file: " + fileList[n].ToString());
                     }
                 }
             }
@@ -943,19 +943,18 @@ namespace WindowsLibrary
             }
             catch (Exception e)
             {
-                _logger.Log(e, "Failed to iterate file(s) or folder(s) for [" + folderPath + "].");
+                _logFile.Log(e, "Failed to iterate file(s) or folder(s) for [" + folderPath + "].");
             }
 
             string paddedTable = "";
 
             try
             {
-                DotNetHelper dotNetHelper = new();
-                paddedTable = dotNetHelper.PadListElements(foldersAndFiles, 5);
+                paddedTable = DotNetHelper.PadListElements(foldersAndFiles, 5);
             }
             catch (Exception e)
             {
-                _logger.Log(e, "Failed to construct padded elements list.");
+                _logFile.Log(e, "Failed to construct padded elements list.");
                 string returnString = "";
 
                 foreach (string[] s in foldersAndFiles)
@@ -975,8 +974,8 @@ namespace WindowsLibrary
             string destFileName,
             bool overWrite = true)
         {
-            _logger.Log("Move file: " + sourceFileName);
-            _logger.Log("       To: " + destFileName);
+            _logFile.Log("Move file: " + sourceFileName);
+            _logFile.Log("       To: " + destFileName);
 
             try
             {
@@ -990,7 +989,7 @@ namespace WindowsLibrary
             }
             catch (Exception e)
             {
-                _logger.Log(e, "Failed to move file [" + Path.GetFileName(sourceFileName) + "] to destination.");
+                _logFile.Log(e, "Failed to move file [" + Path.GetFileName(sourceFileName) + "] to destination.");
             }
 
             return false;
@@ -1045,7 +1044,7 @@ namespace WindowsLibrary
             }
             catch (Exception e)
             {
-                _logger.Log(e, "Failed to revoke folder permissions from [" + folderName + "].");
+                _logFile.Log(e, "Failed to revoke folder permissions from [" + folderName + "].");
                 return false;
             }
         }
@@ -1116,7 +1115,7 @@ namespace WindowsLibrary
                 {
                     if (Path.GetFileName(someFile).ToLower().Equals(Path.GetFileName(replaceFile).ToLower()))
                     {
-                        _logger.Log("Replace file: " + someFile);
+                        _logFile.Log("Replace file: " + someFile);
                         CopyFile(replaceFile, someFile, true);
 
                         if (additionalFiles != null)
@@ -1126,7 +1125,7 @@ namespace WindowsLibrary
                                 if (File.Exists(addFile))
                                 {
                                     string addFileDest = Path.GetDirectoryName(someFile) + "\\" + Path.GetFileName(addFile);
-                                    _logger.Log("Replace file: " + addFileDest);
+                                    _logFile.Log("Replace file: " + addFileDest);
                                     CopyFile(addFile, addFileDest, true);
                                 }
                             }
@@ -1138,7 +1137,7 @@ namespace WindowsLibrary
             }
             catch (Exception e)
             {
-                _logger.Log(e, "Recursive file replacement failure.");
+                _logFile.Log(e, "Recursive file replacement failure.");
             }
         }
 

@@ -7,7 +7,7 @@ using System.Security.Principal;
 namespace WindowsLibrary
 {
     [SupportedOSPlatform("windows")]
-    public class NativeMethods
+    public static class NativeMethods
     {
         // ******************************
         // External Windows Functions.

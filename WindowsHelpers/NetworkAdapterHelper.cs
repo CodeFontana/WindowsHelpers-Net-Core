@@ -1,4 +1,5 @@
 ﻿using LoggerLibrary;
+using LoggerLibrary.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Management;
@@ -9,12 +10,12 @@ namespace WindowsLibrary
     [SupportedOSPlatform("windows")]
     public class NetworkAdapterHelper
     {
-        private readonly ComponentLogger _logger;
+        private readonly ISimpleLogger _logFile;
         public List<NetworkAdapter> adapterList;
 
-        public NetworkAdapterHelper(ComponentLogger logger)
+        public NetworkAdapterHelper(ISimpleLogger logFile)
         {
-            _logger = logger;
+            _logFile = logFile;
             QueryNetworkAdapters();
         }
 
@@ -101,7 +102,7 @@ namespace WindowsLibrary
                         }
                         catch (Exception e)
                         {
-                            _logger.Log(e, $"Failed to query adapter current configuration for [{ newAdapter.AdapterName }].");
+                            _logFile.Log(e, $"Failed to query adapter current configuration for [{ newAdapter.AdapterName }].");
                         }
                     }
 

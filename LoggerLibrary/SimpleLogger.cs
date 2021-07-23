@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace LoggerLibrary
 {
-    public class BaseLogger : IBaseLogger, ILogger
+    public class SimpleLogger : ISimpleLogger, IDisposable
     {
         public FileStream _logStream = null;
         public StreamWriter _logWriter = null;
@@ -37,10 +37,10 @@ namespace LoggerLibrary
         /// <param name="logMaxBytes">Maximum size (in bytes) for the log file. If unspecified, the default is 50MB per log.</param>
         /// <param name="logMaxCount">Maximum count of log files for rotation. If unspecified, the default is 10 logs.</param>
         /// <returns></returns>
-        public BaseLogger(string logName,
-                          string logFolder = null,
-                          long logMaxBytes = 50 * 1048576,
-                          uint logMaxCount = 10)
+        public SimpleLogger(string logName,
+                            string logFolder = null,
+                            long logMaxBytes = 50 * 1048576,
+                            uint logMaxCount = 10)
         {
             if (string.IsNullOrWhiteSpace(logFolder))
             {
@@ -134,7 +134,7 @@ namespace LoggerLibrary
         /// Privately sets 'LogFilename' with next available increment in the
         /// log file rotation.
         /// </summary>
-        protected void IncrementLog()
+        private void IncrementLog()
         {
             if (_rollMode == false)
             {
@@ -358,6 +358,11 @@ namespace LoggerLibrary
                     }
                 }
             }
+        }
+
+        public void Dispose()
+        {
+            Close();
         }
     }
 }

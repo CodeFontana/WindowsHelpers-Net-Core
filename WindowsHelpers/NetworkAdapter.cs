@@ -110,7 +110,7 @@ namespace WindowsLibrary
             return true;
         }
 
-        public bool EnableAdapter(BaseLogger logger)
+        public bool EnableAdapter(SimpleLogger logger)
         {
             try
             {
@@ -131,7 +131,7 @@ namespace WindowsLibrary
             }
         }
 
-        public bool ConfigStaticAddress(ILogger logger, string newAddress, string newSubnet, string newGateway)
+        public bool ConfigStaticAddress(ISimpleLogger logger, string newAddress, string newSubnet, string newGateway)
         {
             try
             {
