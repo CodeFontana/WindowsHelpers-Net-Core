@@ -175,19 +175,19 @@ namespace WindowsLibrary
                 "proident", "bresaola", "non", "leberkas", "turducken", "enim", "meatball", "laborum",
                 "nostrud", "strip steak", "officia", "short ribs", "nulla", "ham", "incididunt, " +
                 "velit", "do", "ex", "dolore", "sunt", "nostrud", "mollit", "bacon", "est",
-                "reprehenderit", "landjaeger", "grankfurter", "shoulder", "ground", "round", 
+                "reprehenderit", "landjaeger", "frankfurter", "shoulder", "ground", "round", 
                 "swine", "pariatur", "susage tri-tip", "aute", "chicken tenderloin", "consequat", 
                 "venison", "pork belly", "pig tongue", "brisket", "picanha", "ball", "tip",
                 "corned beef" };
 
             Random rand = new();
-            int numSentences = rand.Next(maxSentences - minSentences) + minSentences + 1;
-            int numWords = rand.Next(maxWords - minWords) + minWords + 1;
+            int numSentences = rand.Next(maxSentences - minSentences) + minSentences;
+            int numWords = rand.Next(maxWords - minWords) + minWords;
             StringBuilder result = new();
             CultureInfo cultureInfo = Thread.CurrentThread.CurrentCulture;
             TextInfo textInfo = cultureInfo.TextInfo;
 
-            if (bacon == false)
+            if (bacon == false && numSentences > 1 && numWords >= 5)
             {
                 result.Append("Bacon ipsum dolor amet ");
                 bacon = true;
@@ -212,7 +212,10 @@ namespace WindowsLibrary
                     }
                 }
 
-                result.Append(". ");
+                if (numSentences > 1)
+                {
+                    result.Append(". ");
+                }
             }
 
             return result.ToString();
