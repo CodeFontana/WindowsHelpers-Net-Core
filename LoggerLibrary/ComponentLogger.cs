@@ -16,11 +16,11 @@ namespace LoggerLibrary
 
         public ComponentLogger(ISimpleLogger parentLogger, string componentName)
         {
-            _parentLogger = parentLogger ?? throw new ArgumentException("Parent logger must not be NULL.");
+            _parentLogger = parentLogger ?? throw new ArgumentException("Parent logger must not be NULL");
 
             if (string.IsNullOrWhiteSpace(componentName))
             {
-                throw new ArgumentException("Component name must not be NULL or empty.");
+                throw new ArgumentException("Component name must not be NULL or empty");
             }
             
             ComponentName = componentName;

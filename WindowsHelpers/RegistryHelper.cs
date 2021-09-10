@@ -28,7 +28,7 @@ namespace WindowsLibrary
             }
             catch (Exception e)
             {
-                _logFile.Log(e, "Failed to copy registry values from [" + sourceKey.Name + "] to [" + destKey.Name + "].");
+                _logFile.Log(e, "Failed to copy registry values from [" + sourceKey.Name + "] to [" + destKey.Name + "]");
             }
 
             foreach (string strSubKey in sourceKey.GetSubKeyNames())
@@ -44,7 +44,7 @@ namespace WindowsLibrary
                 }
                 catch (Exception e)
                 {
-                    _logFile.Log(e, "Failed to copy registry subkey [" + strSubKey + "] to destination.");
+                    _logFile.Log(e, "Failed to copy registry subkey [" + strSubKey + "] to destination");
                 }
             }
         }
@@ -55,7 +55,7 @@ namespace WindowsLibrary
             {
                 if (sourceKey.GetValue(sourceValueName) == null)
                 {
-                    _logFile.Log("Source value [" + sourceValueName + "] does not exist in [" + sourceKey.Name + "].", SimpleLogger.MsgType.ERROR);
+                    _logFile.Log("Source value [" + sourceValueName + "] does not exist in [" + sourceKey.Name + "]", SimpleLogger.MsgType.ERROR);
                 }
 
                 destKey.SetValue(destValueName,
@@ -64,7 +64,7 @@ namespace WindowsLibrary
             }
             catch (Exception e)
             {
-                _logFile.Log(e, "Failed to move registry value [" + sourceValueName + "] from [" + sourceKey.Name + "] to [" + destKey.Name + "].");
+                _logFile.Log(e, "Failed to move registry value [" + sourceValueName + "] from [" + sourceKey.Name + "] to [" + destKey.Name + "]");
             }
         }
 
@@ -232,7 +232,7 @@ namespace WindowsLibrary
             }
             catch (Exception e)
             {
-                _logFile.Log(e, "Failed to delete registry value.");
+                _logFile.Log(e, "Failed to delete registry value");
                 return valueDeleted;
             }
         }
@@ -332,7 +332,7 @@ namespace WindowsLibrary
             }
             catch (Exception e)
             {
-                _logFile.Log(e, "Failed to move registry values from [" + sourceKey.Name + "] to [" + destKey.Name + "].");
+                _logFile.Log(e, "Failed to move registry values from [" + sourceKey.Name + "] to [" + destKey.Name + "]");
             }
 
             foreach (string strSubKey in sourceKey.GetSubKeyNames())
@@ -354,7 +354,7 @@ namespace WindowsLibrary
                 }
                 catch (Exception e)
                 {
-                    _logFile.Log(e, "Failed to copy registry subkey [" + strSubKey + "] to destination.");
+                    _logFile.Log(e, "Failed to copy registry subkey [" + strSubKey + "] to destination");
                 }
             }
         }
@@ -365,7 +365,7 @@ namespace WindowsLibrary
             {
                 if (sourceKey.GetValue(sourceValueName) == null)
                 {
-                    _logFile.Log("Source value [" + sourceValueName + "] does not exist in [" + sourceKey.Name + "].", SimpleLogger.MsgType.ERROR);
+                    _logFile.Log("Source value [" + sourceValueName + "] does not exist in [" + sourceKey.Name + "]", SimpleLogger.MsgType.ERROR);
                 }
 
                 destKey.SetValue(destValueName, 
@@ -376,7 +376,7 @@ namespace WindowsLibrary
             }
             catch (Exception e)
             {
-                _logFile.Log(e, "Failed to move registry value [" + sourceValueName + "] from [" + sourceKey.Name + "] to [" + destKey.Name + "].");
+                _logFile.Log(e, "Failed to move registry value [" + sourceValueName + "] from [" + sourceKey.Name + "] to [" + destKey.Name + "]");
             }
         }
 

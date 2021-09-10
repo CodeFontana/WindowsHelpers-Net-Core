@@ -20,7 +20,7 @@ namespace WindowsLibrary
 
             if (File.Exists(_hostsFile) == false)
             {
-                throw new FileNotFoundException($"Hosts file not found [{_hostsFile}].");
+                throw new FileNotFoundException($"Hosts file not found [{_hostsFile}]");
             }
         }
 
@@ -28,24 +28,24 @@ namespace WindowsLibrary
         {
             if (address == null || ValidateIPv4(address) == false)
             {
-                throw new ArgumentException($"Invalid IPv4 address [{address ?? "<Null>"}].");
+                throw new ArgumentException($"Invalid IPv4 address [{address ?? "<Null>"}]");
             }
 
             if (string.IsNullOrWhiteSpace(hostsEntry))
             {
-                throw new ArgumentException($"Invalid host entry [{hostsEntry}].");
+                throw new ArgumentException($"Invalid host entry [{hostsEntry}]");
             }
 
             if (IsAddressMapped(address))
             {
                 throw new ArgumentException(
-                    $"Hosts entry already exists for [{address}], use UpdateEntry() method to update the record.");
+                    $"Hosts entry already exists for [{address}], use UpdateEntry() method to update the record");
             }
 
             if (IsHostMapped(hostsEntry))
             {
                 throw new ArgumentException(
-                    $"Hosts entry already exists for [{hostsEntry}], use UpdateEntry() method to update the record.");
+                    $"Hosts entry already exists for [{hostsEntry}], use UpdateEntry() method to update the record");
             }
 
             var encoding = GetEncoding(_hostsFile);
@@ -84,13 +84,13 @@ namespace WindowsLibrary
             if (IsAddressMapped(newEntry.Address))
             {
                 throw new ArgumentException(
-                    $"Hosts entry already exists for [{newEntry.Address}], use UpdateEntry() method to update the record.");
+                    $"Hosts entry already exists for [{newEntry.Address}], use UpdateEntry() method to update the record");
             }
 
             if (IsHostMapped(string.Join(",", newEntry.Hosts)))
             {
                 throw new ArgumentException(
-                    $"Hosts entry already exists for [{string.Join(",", newEntry.Hosts)}], use UpdateEntry() method to update the record.");
+                    $"Hosts entry already exists for [{string.Join(",", newEntry.Hosts)}], use UpdateEntry() method to update the record");
             }
 
             var encoding = GetEncoding(_hostsFile);
@@ -124,18 +124,18 @@ namespace WindowsLibrary
         {
             if (address == null || ValidateIPv4(address) == false)
             {
-                throw new ArgumentException($"Invalid IPv4 address [{address ?? "<Null>"}].");
+                throw new ArgumentException($"Invalid IPv4 address [{address ?? "<Null>"}]");
             }
 
             if (string.IsNullOrWhiteSpace(hostsEntry))
             {
-                throw new ArgumentException($"Invalid host entry [{hostsEntry}].");
+                throw new ArgumentException($"Invalid host entry [{hostsEntry}]");
             }
 
             if (IsAddressMapped(address) == false && IsHostMapped(hostsEntry) == false)
             {
                 throw new ArgumentException(
-                    $"Provided address {address} nor entry {hostsEntry} exists in hosts file, use CreateEntry() to create a new record.");
+                    $"Provided address {address} nor entry {hostsEntry} exists in hosts file, use CreateEntry() to create a new record");
             }
 
             var encoding = GetEncoding(_hostsFile);
@@ -292,7 +292,7 @@ namespace WindowsLibrary
         {
             if (address == null || ValidateIPv4(address) == false)
             {
-                throw new ArgumentException($"Invalid IPv4 address [{address}].");
+                throw new ArgumentException($"Invalid IPv4 address [{address}]");
             }
 
             if (ReadHostsFile().Any(e => e.Address.Equals(address)))

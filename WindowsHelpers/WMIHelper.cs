@@ -74,7 +74,7 @@ namespace WindowsLibrary
             }
             catch (Exception e)
             {
-                _logFile.Log(e, "Failed to query list of WMI namespaces.");
+                _logFile.Log(e, "Failed to query list of WMI namespaces");
             }
 
             return namespaces?.OrderBy(s => s).ToList() ?? namespaces;
@@ -105,7 +105,7 @@ namespace WindowsLibrary
             }
             catch (Exception e)
             {
-                _logFile.Log(e, $"Failed to query class name list for namespace '{wmiNamespaceName}'.");
+                _logFile.Log(e, $"Failed to query class name list for namespace '{wmiNamespaceName}'");
             }
 
             return classes?.OrderBy(s => s).ToList() ?? classes;
@@ -144,7 +144,7 @@ namespace WindowsLibrary
             }
             catch (Exception e)
             {
-                _logFile.Log(e, $"Failed to query properties of specified class '{namespaceName}\\{wmiClassName}'.");
+                _logFile.Log(e, $"Failed to query properties of specified class '{namespaceName}\\{wmiClassName}'");
             }
 
             return output;
@@ -218,7 +218,7 @@ namespace WindowsLibrary
             }
             catch (Exception e)
             {
-                _logFile.Log(e, $"Failed to query data from '{namespaceName}\\{wmiClassName}'.");
+                _logFile.Log(e, $"Failed to query data from '{namespaceName}\\{wmiClassName}'");
             }
 
             return output;
@@ -294,7 +294,7 @@ namespace WindowsLibrary
             }
             catch (Exception e)
             {
-                _logFile.Log(e, $"Failed to query data from '{namespaceName}\\{wmiClassName}'.");
+                _logFile.Log(e, $"Failed to query data from '{namespaceName}\\{wmiClassName}'");
             }
 
             return DotNetHelper.PadListElements(output, columnPadding);

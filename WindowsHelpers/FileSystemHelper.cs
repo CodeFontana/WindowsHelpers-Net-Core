@@ -54,7 +54,7 @@ namespace WindowsLibrary
                 }
                 else
                 {
-                    _logFile.Log($"Specified file or folder [{fileOrFolder}] does not exist.", SimpleLogger.MsgType.ERROR);
+                    _logFile.Log($"Specified file or folder [{fileOrFolder}] does not exist", SimpleLogger.MsgType.ERROR);
                     return false;
                 }
 
@@ -71,13 +71,13 @@ namespace WindowsLibrary
                         out IntPtr hToken))
                     {
                         _logFile.Log("Unable to open specified process token [OpenProcessToken=" +
-                            Marshal.GetLastWin32Error().ToString() + "].");
+                            Marshal.GetLastWin32Error().ToString() + "]");
                         return false;
                     }
 
                     if (new WindowsHelper(_logFile).EnablePrivilege(hToken, NativeMethods.SE_TAKE_OWNERSHIP_NAME) == false)
                     {
-                        _logFile.Log("Failed to enable privilege [SeTakeOwnershipPrivilege].", SimpleLogger.MsgType.ERROR);
+                        _logFile.Log("Failed to enable privilege [SeTakeOwnershipPrivilege]", SimpleLogger.MsgType.ERROR);
                         Marshal.FreeHGlobal(hToken);
                         return false;
                     }
@@ -131,7 +131,7 @@ namespace WindowsLibrary
                 }
                 else
                 {
-                    _logFile.Log(e, "Failed to add filesystem permissions to [" + fileOrFolder + "].");
+                    _logFile.Log(e, "Failed to add filesystem permissions to [" + fileOrFolder + "]");
                     return false;
                 }
             }
@@ -242,7 +242,7 @@ namespace WindowsLibrary
 
                 if (!smartOK)
                 {
-                    _logFile.Log("SMART status failure detected.", SimpleLogger.MsgType.ERROR);
+                    _logFile.Log("SMART status failure detected", SimpleLogger.MsgType.ERROR);
                     return false;
                 }
                 else
@@ -252,7 +252,7 @@ namespace WindowsLibrary
             }
             catch (Exception e)
             {
-                _logFile.Log(e, "Failed to verify drive SMART status.");
+                _logFile.Log(e, "Failed to verify drive SMART status");
                 return false;
             }
         }
@@ -272,13 +272,13 @@ namespace WindowsLibrary
                 {
                     if (!File.Exists(sourceFileName))
                     {
-                        _logFile.Log("Source file does not exist [" + sourceFileName + "].", SimpleLogger.MsgType.ERROR);
+                        _logFile.Log("Source file does not exist [" + sourceFileName + "]", SimpleLogger.MsgType.ERROR);
                         return false;
                     }
 
                     if (sourceFileName.ToLower().Equals(destFileName.ToLower()))
                     {
-                        _logFile.Log("Source and destination files must be different [" + sourceFileName + "].", SimpleLogger.MsgType.ERROR);
+                        _logFile.Log("Source and destination files must be different [" + sourceFileName + "]", SimpleLogger.MsgType.ERROR);
                         return false;
                     }
 
@@ -290,7 +290,7 @@ namespace WindowsLibrary
                         }
                         catch (Exception e)
                         {
-                            _logFile.Log(e, "Failed to create target directory.");
+                            _logFile.Log(e, "Failed to create target directory");
                             return false;
                         }
                     }
@@ -388,7 +388,7 @@ namespace WindowsLibrary
                                 }
                                 else if (!moveSuccess && !handleInUseOnReboot)
                                 {
-                                    _logFile.Log("Destination file is in-use [" + destFileName + "].", SimpleLogger.MsgType.ERROR);
+                                    _logFile.Log("Destination file is in-use [" + destFileName + "]", SimpleLogger.MsgType.ERROR);
                                     return false;
                                 }
                                 else
@@ -398,7 +398,7 @@ namespace WindowsLibrary
                             }
                             catch (Exception e)
                             {
-                                _logFile.Log(e, "Unable to schedule file replacement for in-use file [" + destFileName + "].");
+                                _logFile.Log(e, "Unable to schedule file replacement for in-use file [" + destFileName + "]");
                                 return false;
                             }
                         }
@@ -410,7 +410,7 @@ namespace WindowsLibrary
             }
             catch (Exception e)
             {
-                _logFile.Log(e, "Failed to copy file [" + Path.GetFileName(sourceFileName) + "] to destination.");
+                _logFile.Log(e, "Failed to copy file [" + Path.GetFileName(sourceFileName) + "] to destination");
             }
 
             return false;
@@ -426,13 +426,13 @@ namespace WindowsLibrary
         {
             if (!Directory.Exists(sourceFolder))
             {
-                _logFile.Log("Source folder does not exist [" + sourceFolder + "].", SimpleLogger.MsgType.ERROR);
+                _logFile.Log("Source folder does not exist [" + sourceFolder + "]", SimpleLogger.MsgType.ERROR);
                 return false;
             }
 
             if (sourceFolder.ToLower().Equals(targetFolder.ToLower()))
             {
-                _logFile.Log("Source and destination folders must be different [" + sourceFolder + "].", SimpleLogger.MsgType.ERROR);
+                _logFile.Log("Source and destination folders must be different [" + sourceFolder + "]", SimpleLogger.MsgType.ERROR);
                 return false;
             }
 
@@ -444,7 +444,7 @@ namespace WindowsLibrary
                 }
                 catch (Exception e)
                 {
-                    _logFile.Log(e, "Failed to create target directory.");
+                    _logFile.Log(e, "Failed to create target directory");
                     return false;
                 }
             }
@@ -543,7 +543,7 @@ namespace WindowsLibrary
                             }
                             catch (Exception e)
                             {
-                                _logFile.Log(e, "Failed to copy folder [" + sourceDir + "] to desintation.");
+                                _logFile.Log(e, "Failed to copy folder [" + sourceDir + "] to desintation");
                             }
                         }
 
@@ -553,7 +553,7 @@ namespace WindowsLibrary
             }
             catch (Exception e)
             {
-                _logFile.Log(e, "Failed to copy directory to destination.");
+                _logFile.Log(e, "Failed to copy directory to destination");
                 return false;
             }
 
@@ -642,7 +642,7 @@ namespace WindowsLibrary
                 catch (Exception e)
                 {
                     fileDeleted = false;
-                    _logFile.Log(e, "Exception caught deleting file.");
+                    _logFile.Log(e, "Exception caught deleting file");
 
                     if (raiseException)
                     {
@@ -687,7 +687,7 @@ namespace WindowsLibrary
             }
             catch (Exception ex)
             {
-                _logFile.Log(ex, "Exception caught deleting file.");
+                _logFile.Log(ex, "Exception caught deleting file");
 
                 if (raiseException)
                 {
@@ -714,7 +714,7 @@ namespace WindowsLibrary
                 }
                 catch (Exception e)
                 {
-                    _logFile.Log(e, "Exception caught deleting folder.");
+                    _logFile.Log(e, "Exception caught deleting folder");
 
                     if (raiseException)
                     {
@@ -760,7 +760,7 @@ namespace WindowsLibrary
             }
             catch (Exception ex)
             {
-                _logFile.Log(ex, "Failed to set target folder access control list.");
+                _logFile.Log(ex, "Failed to set target folder access control list");
             }
 
             bool skipItem = false;
@@ -907,7 +907,7 @@ namespace WindowsLibrary
             {
                 if (!Directory.Exists(folderPath))
                 {
-                    return "Specified folder was not found [" + folderPath + "].";
+                    return "Specified folder was not found [" + folderPath + "]";
                 }
 
                 foldersAndFiles.Add(new string[] { "Folder(s)", "" });
@@ -943,7 +943,7 @@ namespace WindowsLibrary
             }
             catch (Exception e)
             {
-                _logFile.Log(e, "Failed to iterate file(s) or folder(s) for [" + folderPath + "].");
+                _logFile.Log(e, "Failed to iterate file(s) or folder(s) for [" + folderPath + "]");
             }
 
             string paddedTable = "";
@@ -954,7 +954,7 @@ namespace WindowsLibrary
             }
             catch (Exception e)
             {
-                _logFile.Log(e, "Failed to construct padded elements list.");
+                _logFile.Log(e, "Failed to construct padded elements list");
                 string returnString = "";
 
                 foreach (string[] s in foldersAndFiles)
@@ -989,7 +989,7 @@ namespace WindowsLibrary
             }
             catch (Exception e)
             {
-                _logFile.Log(e, "Failed to move file [" + Path.GetFileName(sourceFileName) + "] to destination.");
+                _logFile.Log(e, "Failed to move file [" + Path.GetFileName(sourceFileName) + "] to destination");
             }
 
             return false;
@@ -1011,7 +1011,7 @@ namespace WindowsLibrary
             // Reparse point opened OK?
             if (Marshal.GetLastWin32Error() != 0)
             {
-                throw new Win32Exception("Unable to open reparse point.");
+                throw new Win32Exception("Unable to open reparse point");
             }
 
             return reparsePointHandle;
@@ -1044,7 +1044,7 @@ namespace WindowsLibrary
             }
             catch (Exception e)
             {
-                _logFile.Log(e, "Failed to revoke folder permissions from [" + folderName + "].");
+                _logFile.Log(e, "Failed to revoke folder permissions from [" + folderName + "]");
                 return false;
             }
         }
@@ -1084,7 +1084,7 @@ namespace WindowsLibrary
 
                 if (result == false)
                 {
-                    throw new Win32Exception("ERROR: Unable to delete reparse point.");
+                    throw new Win32Exception("ERROR: Unable to delete reparse point");
                 }
             }
             finally
@@ -1137,7 +1137,7 @@ namespace WindowsLibrary
             }
             catch (Exception e)
             {
-                _logFile.Log(e, "Recursive file replacement failure.");
+                _logFile.Log(e, "Recursive file replacement failure");
             }
         }
 

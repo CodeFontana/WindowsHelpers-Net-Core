@@ -126,7 +126,7 @@ namespace WindowsLibrary
             }
             catch (Exception e)
             {
-                logger.Log(e, $"Failed to ENABLE adapter [{ AdapterName }].");
+                logger.Log(e, $"Failed to ENABLE adapter [{ AdapterName }]");
                 return false;
             }
         }
@@ -155,7 +155,7 @@ namespace WindowsLibrary
             }
             catch (Exception e)
             {
-                logger.Log(e, $"Failed to configure adapter [{ AdapterName }] for static IP address.");
+                logger.Log(e, $"Failed to configure adapter [{ AdapterName }] for static IP address");
                 return false;
             }
         }

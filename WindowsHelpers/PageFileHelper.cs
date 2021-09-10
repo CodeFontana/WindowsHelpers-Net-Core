@@ -135,7 +135,7 @@ namespace WindowsLibrary
             }
             catch (Exception e)
             {
-                _logFile.Log(e, "Failed to read page file configuration.");
+                _logFile.Log(e, "Failed to read page file configuration");
                 return false;
             }
         }
@@ -162,7 +162,7 @@ namespace WindowsLibrary
 
                 if (NativeMethods.OpenProcessToken(hProcess, NativeMethods.TOKEN_ALL_ACCESS, out IntPtr hToken) == false)
                 {
-                    _logFile.Log("ERROR: Unable to open specified process token [OpenProcessToken=" + Marshal.GetLastWin32Error().ToString() + "].", SimpleLogger.MsgType.ERROR);
+                    _logFile.Log("ERROR: Unable to open specified process token [OpenProcessToken=" + Marshal.GetLastWin32Error().ToString() + "]", SimpleLogger.MsgType.ERROR);
                 }
 
                 new WindowsHelper(_logFile).EnablePrivilege(hToken, NativeMethods.SE_CREATE_PAGEFILE_NAME);
@@ -181,17 +181,17 @@ namespace WindowsLibrary
                         _logFile.Log("New setting: ON");
                         m["AutomaticManagedPagefile"] = true;
                         m.Put();
-                        _logFile.Log("Configuration successful.");
+                        _logFile.Log("Configuration successful");
                     }
                     else if (enable && m["AutomaticManagedPagefile"].ToString().ToUpper().Equals("TRUE"))
                     {
                         _logFile.Log("Current setting: ON");
-                        _logFile.Log("No configuration changes required.");
+                        _logFile.Log("No configuration changes required");
                     }
                     else if (!enable && m["AutomaticManagedPagefile"].ToString().ToUpper().Equals("FALSE"))
                     {
                         _logFile.Log("Current setting: OFF");
-                        _logFile.Log("No configuration changes required.");
+                        _logFile.Log("No configuration changes required");
                     }
                     else if (!enable && m["AutomaticManagedPagefile"].ToString().ToUpper().Equals("TRUE"))
                     {
@@ -199,7 +199,7 @@ namespace WindowsLibrary
                         _logFile.Log("New setting: OFF");
                         m["AutomaticManagedPagefile"] = false;
                         m.Put();
-                        _logFile.Log("Configuration successful.");
+                        _logFile.Log("Configuration successful");
                     }
                 }
 
@@ -207,7 +207,7 @@ namespace WindowsLibrary
             }
             catch (Exception e)
             {
-                _logFile.Log(e, "Failed to update automatic page file configuration.");
+                _logFile.Log(e, "Failed to update automatic page file configuration");
                 return false;
             }
         }
@@ -225,7 +225,7 @@ namespace WindowsLibrary
 
                 if (!success)
                 {
-                    _logFile.Log("ERROR: Failed to TURN OFF automatic page file management, further actions cancelled.", SimpleLogger.MsgType.ERROR);
+                    _logFile.Log("ERROR: Failed to TURN OFF automatic page file management, further actions cancelled", SimpleLogger.MsgType.ERROR);
                     return false;
                 }
 
@@ -246,7 +246,7 @@ namespace WindowsLibrary
 
                         if (maxSize > freeSpaceMB)
                         {
-                            _logFile.Log($"ERROR: Page file maximum size [{maxSize}MB] exceeds available free disk space [{freeSpaceMB}MB].", SimpleLogger.MsgType.ERROR);
+                            _logFile.Log($"ERROR: Page file maximum size [{maxSize}MB] exceeds available free disk space [{freeSpaceMB}MB]", SimpleLogger.MsgType.ERROR);
                             return false;
                         }
                         else
@@ -299,12 +299,12 @@ namespace WindowsLibrary
                 }
 
                 searcher.Dispose();
-                _logFile.Log("Configuration successful.");
+                _logFile.Log("Configuration successful");
                 return true;
             }
             catch (Exception e)
             {
-                _logFile.Log(e, "Failed to update page file configuration.");
+                _logFile.Log(e, "Failed to update page file configuration");
                 return false;
             }
         }
@@ -322,7 +322,7 @@ namespace WindowsLibrary
 
                 if (success == false)
                 {
-                    _logFile.Log("ERROR: Failed to TURN OFF automatic page file management, further actions cancelled.", SimpleLogger.MsgType.ERROR);
+                    _logFile.Log("ERROR: Failed to TURN OFF automatic page file management, further actions cancelled", SimpleLogger.MsgType.ERROR);
                     return false;
                 }
 
@@ -352,17 +352,17 @@ namespace WindowsLibrary
 
                 if (queryCollection.Count == 0 || !matchFound)
                 {
-                    _logFile.Log($"ERROR: Removal failed, no page file is currently configured for {driveLetter}:\\.", SimpleLogger.MsgType.ERROR);
+                    _logFile.Log($"ERROR: Removal failed, no page file is currently configured for {driveLetter}:\\", SimpleLogger.MsgType.ERROR);
                     return false;
                 }
 
                 searcher.Dispose();
-                _logFile.Log("Removal successful.");
+                _logFile.Log("Removal successful");
                 return true;
             }
             catch (Exception e)
             {
-                _logFile.Log(e, "Failed to update page file configuration.");
+                _logFile.Log(e, "Failed to update page file configuration");
                 return false;
             }
         }

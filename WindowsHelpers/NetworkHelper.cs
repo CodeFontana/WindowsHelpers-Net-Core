@@ -73,7 +73,7 @@ namespace WindowsLibrary
             {
                 if (hideOutput == false)
                 {
-                    _logFile.Log(e, "Address resolution failure.");
+                    _logFile.Log(e, "Address resolution failure");
                 }
 
                 return new Tuple<bool, List<string>>(false, null);
@@ -114,7 +114,7 @@ namespace WindowsLibrary
             {
                 if (hideOutput == false)
                 {
-                    _logFile.Log("Unable to reverse [" + inputAddress + "] to hostname.");
+                    _logFile.Log("Unable to reverse [" + inputAddress + "] to hostname");
                 }
 
                 return null;
@@ -123,7 +123,7 @@ namespace WindowsLibrary
             {
                 if (hideOutput == false)
                 {
-                    _logFile.Log(e, "Reverse name lookup exception.");
+                    _logFile.Log(e, "Reverse name lookup exception");
                 }
 
                 return null;
@@ -174,13 +174,13 @@ namespace WindowsLibrary
                 }
                 else
                 {
-                    _logFile.Log("HTTP Response: TIMEOUT ERROR [" + result.Status.ToString() + "].");
+                    _logFile.Log("HTTP Response: TIMEOUT ERROR [" + result.Status.ToString() + "]");
                     return false;
                 }
             }
             catch (Exception e)
             {
-                _logFile.Log(e, "Test connection failed to [" + url + "].");
+                _logFile.Log(e, "Test connection failed to [" + url + "]");
                 return false;
             }
         }

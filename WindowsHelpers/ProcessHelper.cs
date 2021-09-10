@@ -31,7 +31,7 @@ namespace WindowsLibrary
             {
                 // Identify user from access token.
                 WindowsIdentity userId = new(hUserToken);
-                _logFile.Log("Create process for: " + userId.Name + " [" + appFileName + " " + appArgs + "].");
+                _logFile.Log("Create process for: " + userId.Name + " [" + appFileName + " " + appArgs + "]");
                 userId.Dispose();
 
                 // Obtain duplicated user token (elevated if UAC is turned on/enabled).
@@ -48,7 +48,7 @@ namespace WindowsLibrary
 
                 if (!NativeMethods.CreateEnvironmentBlock(out hEnvironment, hDuplicateToken, true))
                 {
-                    _logFile.Log("Unable to create environment block [CreateEnvironmentBlock=" + Marshal.GetLastWin32Error().ToString() + "].", SimpleLogger.MsgType.WARN);
+                    _logFile.Log("Unable to create environment block [CreateEnvironmentBlock=" + Marshal.GetLastWin32Error().ToString() + "]", SimpleLogger.MsgType.WARN);
                 }
 
                 if (!NativeMethods.CreateProcessAsUser(
@@ -66,7 +66,7 @@ namespace WindowsLibrary
                     ref si,
                     out pi))
                 {
-                    _logFile.Log("Unable to create user process [CreateProcessAsUser=" + Marshal.GetLastWin32Error().ToString() + "].", SimpleLogger.MsgType.ERROR);
+                    _logFile.Log("Unable to create user process [CreateProcessAsUser=" + Marshal.GetLastWin32Error().ToString() + "]", SimpleLogger.MsgType.ERROR);
 
                     Marshal.FreeHGlobal(hDuplicateToken);
                     Marshal.FreeHGlobal(hEnvironment);
@@ -98,7 +98,7 @@ namespace WindowsLibrary
             }
             catch (Exception e)
             {
-                _logFile.Log(e, "Failed to create process as user.");
+                _logFile.Log(e, "Failed to create process as user");
                 return new Tuple<bool, int>(false, -1);
             }
         }
@@ -122,13 +122,13 @@ namespace WindowsLibrary
 
                 if (sessionId == -1)
                 {
-                    _logFile.Log("Failed to match any/existing logon session with user [" + userId.Name + "].", SimpleLogger.MsgType.ERROR);
+                    _logFile.Log("Failed to match any/existing logon session with user [" + userId.Name + "]", SimpleLogger.MsgType.ERROR);
                     return false;
                 }
 
                 if (!NativeMethods.WTSQueryUserToken((uint)sessionId, out IntPtr hUserToken))
                 {
-                    _logFile.Log("Failed to query user token [WTSQueryUserToken=" + Marshal.GetLastWin32Error().ToString() + "].", SimpleLogger.MsgType.ERROR);
+                    _logFile.Log("Failed to query user token [WTSQueryUserToken=" + Marshal.GetLastWin32Error().ToString() + "]", SimpleLogger.MsgType.ERROR);
                     return false;
                 }
 
@@ -147,7 +147,7 @@ namespace WindowsLibrary
 
                 if (!NativeMethods.CreateEnvironmentBlock(out hEnvironment, hDuplicateToken, true))
                 {
-                    _logFile.Log("Unable to create environment block [CreateEnvironmentBlock=" + Marshal.GetLastWin32Error().ToString() + "].", SimpleLogger.MsgType.WARN);
+                    _logFile.Log("Unable to create environment block [CreateEnvironmentBlock=" + Marshal.GetLastWin32Error().ToString() + "]", SimpleLogger.MsgType.WARN);
                 }
 
                 if (!NativeMethods.CreateProcessAsUser(
@@ -165,7 +165,7 @@ namespace WindowsLibrary
                     ref si,
                     out pi))
                 {
-                    _logFile.Log("ERROR: Unable to create user process [CreateProcessAsUser=" + Marshal.GetLastWin32Error().ToString() + "].", SimpleLogger.MsgType.ERROR);
+                    _logFile.Log("ERROR: Unable to create user process [CreateProcessAsUser=" + Marshal.GetLastWin32Error().ToString() + "]", SimpleLogger.MsgType.ERROR);
                     return false;
                 }
                 else
@@ -189,7 +189,7 @@ namespace WindowsLibrary
             }
             catch (Exception e)
             {
-                _logFile.Log(e, "Failed to create process as user.");
+                _logFile.Log(e, "Failed to create process as user");
                 return false;
             }
         }
@@ -612,14 +612,14 @@ namespace WindowsLibrary
                     // Last chance.
                     if (!File.Exists(appFileName) && !File.Exists(appFileName.TrimStart('\\')))
                     {
-                        _logFile.Log("Application not found [" + origAppToExecute + "].", SimpleLogger.MsgType.ERROR);
+                        _logFile.Log("Application not found [" + origAppToExecute + "]", SimpleLogger.MsgType.ERROR);
                         return Tuple.Create((long)-1, "");
                     }
                 }
             }
             catch (Exception e)
             {
-                _logFile.Log(e, $"Failed to resolve explicit path for app [{appFileName}].");
+                _logFile.Log(e, $"Failed to resolve explicit path for app [{appFileName}]");
                 return Tuple.Create((long)-1, "");
             }
 
@@ -648,7 +648,7 @@ namespace WindowsLibrary
             }
             catch (Exception e)
             {
-                _logFile.Log(e, $"Failed to resolve working directory for app [{appFileName}].");
+                _logFile.Log(e, $"Failed to resolve working directory for app [{appFileName}]");
                 return Tuple.Create((long)-1, "");
             }
 
@@ -680,7 +680,7 @@ namespace WindowsLibrary
             }
             catch (Exception e)
             {
-                _logFile.Log(e, $"Failed to prepare new process for execution [{appFileName}].");
+                _logFile.Log(e, $"Failed to prepare new process for execution [{appFileName}]");
                 return Tuple.Create((long)-1, "");
             }
 
@@ -717,7 +717,7 @@ namespace WindowsLibrary
             }
             catch (Exception e)
             {
-                _logFile.Log(e, "Failed to start new process.");
+                _logFile.Log(e, "Failed to start new process");
                 return Tuple.Create((long)-1, "");
             }
 
@@ -766,19 +766,19 @@ namespace WindowsLibrary
             }
             catch (Exception e)
             {
-                _logFile.Log(e, "New process monitoring failure.");
+                _logFile.Log(e, "New process monitoring failure");
                 return Tuple.Create((long)-1, "");
             }
             finally
             {
                 try { if (consumeStdOut != null) { consumeStdOut.Dispose(); } }
-                catch (Exception) { /* _logger.Log(e, "Resource disposal failure [consumeStdOut]."); */ }
+                catch (Exception) { /* _logger.Log(e, "Resource disposal failure [consumeStdOut]"); */ }
                 try { if (consumeStdErr != null) { consumeStdErr.Dispose(); } }
-                catch (Exception) { /* _logger.Log(e, "Resource disposal failure [consumeStdErr]."); */ }
+                catch (Exception) { /* _logger.Log(e, "Resource disposal failure [consumeStdErr]"); */ }
                 try { cts.Dispose(); }
-                catch (Exception) {/*  _logger.Log(e, "Resource disposal failure [cts]."); */ }
+                catch (Exception) {/*  _logger.Log(e, "Resource disposal failure [cts]"); */ }
                 try { p.Dispose(); }
-                catch (Exception) { /* _logger.Log(e, "Resource disposal failure [p]."); */ }
+                catch (Exception) { /* _logger.Log(e, "Resource disposal failure [p]"); */ }
             }
         }
 
@@ -839,7 +839,7 @@ namespace WindowsLibrary
                 // Last chance.
                 if (File.Exists(appFileName) == false && File.Exists(appFileName.TrimStart('\\')) == false)
                 {
-                    _logFile.Log("Application not found [" + origAppToExecute + "].", SimpleLogger.MsgType.ERROR);
+                    _logFile.Log("Application not found [" + origAppToExecute + "]", SimpleLogger.MsgType.ERROR);
                     return false;
                 }
             }
@@ -901,7 +901,7 @@ namespace WindowsLibrary
             }
             catch (Exception e)
             {
-                _logFile.Log(e, "Failed to start new detached process.");
+                _logFile.Log(e, "Failed to start new detached process");
                 return false;
             }
 

@@ -102,7 +102,7 @@ namespace WindowsLibrary
                         }
                         catch (Exception e)
                         {
-                            _logFile.Log(e, $"Failed to query adapter current configuration for [{ newAdapter.AdapterName }].");
+                            _logFile.Log(e, $"Failed to query adapter current configuration for [{ newAdapter.AdapterName }]");
                         }
                     }
 

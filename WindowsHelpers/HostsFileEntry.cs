@@ -15,14 +15,14 @@ namespace WindowsLibrary
         {
             if (address == null || ValidateIPv4(address) == false)
             {
-                throw new ArgumentException($"Invalid IPv4 address [{address}].");
+                throw new ArgumentException($"Invalid IPv4 address [{address}]");
             }
 
             if (hostEntry == null ||
                 hostEntry.Count == 0 ||
                 hostEntry.Any(e => e == null || string.IsNullOrWhiteSpace(e)))
             {
-                throw new ArgumentException($"Invalid host entry [{ string.Join(",", hostEntry ?? new List<string> { "null" }) }].");
+                throw new ArgumentException($"Invalid host entry [{ string.Join(",", hostEntry ?? new List<string> { "null" }) }]");
             }
 
             Address = address;
