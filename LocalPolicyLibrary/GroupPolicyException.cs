@@ -1,12 +1,9 @@
 ﻿using System;
-using System.Runtime.Versioning;
 
-namespace LocalPolicyLibrary
+namespace LocalPolicyLibrary;
+
+public class GroupPolicyException : Exception
 {
-    [SupportedOSPlatform("windows")]
-    public class GroupPolicyException : Exception
-    {
-        internal GroupPolicyException(string message)
-            : base(message) { }
-    }
+    internal GroupPolicyException(string message)
+        : base(message) { }
 }

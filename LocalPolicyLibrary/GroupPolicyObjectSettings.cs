@@ -1,33 +1,29 @@
-﻿using System.Runtime.Versioning;
+﻿namespace LocalPolicyLibrary;
 
-namespace LocalPolicyLibrary
+public class GroupPolicyObjectSettings
 {
-    [SupportedOSPlatform("windows")]
-    public class GroupPolicyObjectSettings
+    public readonly bool LoadRegistryInformation;
+    public readonly bool Readonly;
+
+    public GroupPolicyObjectSettings(bool loadRegistryInfo = true, bool readOnly = false)
     {
-        public readonly bool LoadRegistryInformation;
-        public readonly bool Readonly;
+        LoadRegistryInformation = loadRegistryInfo;
+        Readonly = readOnly;
+    }
 
-        public GroupPolicyObjectSettings(bool loadRegistryInfo = true, bool readOnly = false)
+    private const uint registryFlag = 0x00000001;
+    private const uint readonlyFlag = 0x00000002;
+
+    internal uint Flag
+    {
+        get
         {
-            LoadRegistryInformation = loadRegistryInfo;
-            Readonly = readOnly;
-        }
-
-        private const uint registryFlag = 0x00000001;
-        private const uint readonlyFlag = 0x00000002;
-
-        internal uint Flag
-        {
-            get               
-            {
-                uint flag = 0x00000000;
-                if (LoadRegistryInformation)
-                    flag |= registryFlag;
-                if (Readonly)
-                    flag |= readonlyFlag;
-                return flag;
-            }
+            uint flag = 0x00000000;
+            if (LoadRegistryInformation)
+                flag |= registryFlag;
+            if (Readonly)
+                flag |= readonlyFlag;
+            return flag;
         }
     }
 }

@@ -358,14 +358,57 @@ namespace WindowsLibrary.Tests
             hostsFile.CreateEntry("38.38.38.40", "fqdn.sample.com\t\tshortname");
 
             // Assert.
-            Assert.True(hostsFile.ExistsEntry("38.38.38.38"));
-            Assert.True(hostsFile.ExistsEntry("fqdn.example.com"));
-            Assert.False(hostsFile.ExistsEntry("38.38.38.42"));
-            Assert.False(hostsFile.ExistsEntry("purple.monkey.dishwasher"));
+            Assert.True(hostsFile.ExistsEntry("38.38.38.38", out _));
+            Assert.True(hostsFile.ExistsEntry("fqdn.example.com", out _));
+            Assert.False(hostsFile.ExistsEntry("38.38.38.42", out _));
+            Assert.False(hostsFile.ExistsEntry("purple.monkey.dishwasher", out _));
 
             // Cleanup.
             hostsFile.DeleteEntry("38.38.38.38");
             hostsFile.DeleteEntry("38.38.38.40");
+        }
+
+        [Fact]
+        public void ExistsInHostFileEntries_1()
+        {
+            // Arrange.
+            var hostsFile = new HostsFileHelper();
+            hostsFile.DeleteEntry("10.35.148.26");
+            hostsFile.DeleteEntry("10.113.24.14");
+            hostsFile.DeleteEntry("10.113.24.15");
+            hostsFile.DeleteEntry("10.113.24.16");
+            hostsFile.DeleteEntry("10.113.24.17");
+            hostsFile.CreateEntry("10.113.24.14", "AITServer");
+            hostsFile.CreateEntry("10.113.24.15", "ncrvidyoportal.lab.example.com");
+            hostsFile.CreateEntry("10.113.24.16", "ncrvidyorouter.lab.example.com");
+            hostsFile.CreateEntry("10.113.24.17", "ncrvidyoreplay.lab.example.com");
+
+            // Act.
+            hostsFile.ExistsEntry("10.35.148.26", out HostsFileEntry ipv4Entry);
+            hostsFile.ExistsEntry("DEV4-EFT.EXAMPLE.NET", out HostsFileEntry fqdnEntry);
+
+            if (ipv4Entry == null
+                || fqdnEntry == null
+                || ipv4Entry.Equals(fqdnEntry) == false
+                || "16097".Equals("16097") == false)
+            {
+                hostsFile.UpsertEntry("10.35.148.26", "DEV4-EFT.EXAMPLE.NET");
+            }
+            else
+            {
+                hostsFile.DeleteEntry("10.35.148.26");
+            }
+
+            // Assert.
+            Assert.True(hostsFile.ExistsEntry("10.35.148.26", out _));
+            Assert.True(hostsFile.ExistsEntry("DEV4-EFT.EXAMPLE.NET", out _));
+
+            // Cleanup.
+            hostsFile.DeleteEntry("10.35.148.26");
+            hostsFile.DeleteEntry("10.113.24.14");
+            hostsFile.DeleteEntry("10.113.24.15");
+            hostsFile.DeleteEntry("10.113.24.16");
+            hostsFile.DeleteEntry("10.113.24.17");
         }
     }
 }
