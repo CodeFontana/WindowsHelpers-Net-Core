@@ -545,14 +545,13 @@ public class ProcessHelper
         return DotNetHelper.PadListElements(runningProcesses, 1);
     }
 
-    public Tuple<long, string> RunProcess(
-        string appFileName,
-        string arguments = "",
-        string workingDirectory = "",
-        int execTimeoutSeconds = Timeout.Infinite,
-        bool hideWindow = false,
-        bool hideStreamOutput = false,
-        bool hideExecution = false)
+    public Tuple<long, string> RunProcess(string appFileName,
+                                          string arguments = "",
+                                          string workingDirectory = "",
+                                          int execTimeoutSeconds = Timeout.Infinite,
+                                          bool hideWindow = false,
+                                          bool hideStreamOutput = false,
+                                          bool hideExecution = false)
     {
         // ******************************
         // Resolve Explicit Path of App to Run.
@@ -744,7 +743,7 @@ public class ProcessHelper
                     // Signal task cancellation for STDOUT/STDERR streams.
                     // Note: This is because batch files, if nested, automatically inherit STDOUT/STDERR
                     //       handles. Thus if the immediate child batch file has terminated, we need to
-                    //       signal the STDOUT/ERR threads to abort, so RunProcessEx() can continue.
+                    //       signal the STDOUT/ERR threads to abort, so RunProcess() can continue.
                     cts.Cancel();
                 }
 
