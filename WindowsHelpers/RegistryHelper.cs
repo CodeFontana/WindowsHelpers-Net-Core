@@ -378,35 +378,77 @@ public class RegistryHelper
         }
     }
 
-    public RegistryKey OpenKey(string regKey, bool writable = false, RegistryHive regTree = RegistryHive.LocalMachine)
+    public RegistryKey OpenKey(string regKey,
+                               bool writable = false,
+                               RegistryHive regTree = RegistryHive.LocalMachine,
+                               RegistryView regView = RegistryView.Default)
+    {
+        if (regView == RegistryView.Registry32)
+        {
+            return OpenKey32(regKey, writable, regTree);
+        }
+        else if (regView == RegistryView.Registry64)
+        {
+            return OpenKey64(regKey, writable, regTree);
+        }
+        else
+        {
+            RegistryKey output = OpenKey64(regKey, writable, regTree);
+
+            if (output == null)
+            {
+                return OpenKey32(regKey, writable, regTree);
+            }
+            else
+            {
+                return output;
+            }
+        }
+    }
+
+    public RegistryKey OpenKey32(string regKey,
+                                        bool writable = false,
+                                        RegistryHive regTree = RegistryHive.LocalMachine)
     {
         try
         {
             RegistryKey baseKey32 = RegistryKey.OpenBaseKey(regTree, RegistryView.Registry32);
-            RegistryKey baseKey64 = null;
-            RegistryKey regTest = null;
-
-            if (Environment.Is64BitOperatingSystem)
-            {
-                baseKey64 = RegistryKey.OpenBaseKey(regTree, RegistryView.Registry64);
-                regTest = baseKey64.OpenSubKey(regKey, writable);
-
-                if (regTest != null)
-                {
-                    baseKey64.Dispose();
-                    baseKey32.Dispose();
-                    return regTest;
-                }
-
-                baseKey64.Dispose();
-            }
-
-            regTest = baseKey32.OpenSubKey(regKey, writable);
+            RegistryKey regTest = baseKey32.OpenSubKey(regKey, writable);
             baseKey32.Dispose();
 
             if (regTest != null)
             {
                 return regTest;
+            }
+
+            return null;
+        }
+        catch (Exception)
+        {
+            return null;
+        }
+    }
+
+    public RegistryKey OpenKey64(string regKey,
+                                 bool writable = false,
+                                 RegistryHive regTree = RegistryHive.LocalMachine)
+    {
+        RegistryKey baseKey64 = null;
+
+        try
+        {
+            RegistryKey regTest = null;
+
+            if (Environment.Is64BitOperatingSystem)
+            {
+                baseKey64 = RegistryKey.OpenBaseKey(regTree, RegistryView.Registry64);
+                regTest = baseKey64?.OpenSubKey(regKey, writable);
+                baseKey64?.Dispose();
+
+                if (regTest != null)
+                {
+                    return regTest;
+                }
             }
 
             return null;
