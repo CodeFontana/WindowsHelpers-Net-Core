@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Threading.Tasks;
 
@@ -16,6 +17,77 @@ public class NetworkHelper
     public NetworkHelper(ISimpleLogger logFile)
     {
         _logFile = logFile;
+    }
+
+    public IPAddress GetCurrentIpAddress(string callStack)
+    {
+        try
+        {
+            IPAddress[] ip = Dns.GetHostAddresses(Dns.GetHostName());
+
+            if (ip.Length > 0)
+            {
+                return ip.FirstOrDefault(x => x.AddressFamily == AddressFamily.InterNetwork);
+            }
+            else
+            {
+                return null;
+            }
+        }
+        catch (Exception e)
+        {
+            _logFile.Log(e, "Failed to resolve current IP address");
+            return null;
+        }
+    }
+
+    public IPAddress GetSubnetMask(string callStack, IPAddress inputAddress)
+    {
+        if (inputAddress == null)
+        {
+            throw new ArgumentException("IP address cannot be null");
+        }
+
+        try
+        {
+            return NetworkInterface.GetAllNetworkInterfaces()
+            .First(i => i.GetIPProperties().UnicastAddresses
+                .Any(x => x.Address.Equals(inputAddress)))
+            .GetIPProperties()
+            .UnicastAddresses
+            .Where(a => a.Address.Equals(inputAddress))
+            .FirstOrDefault()?
+            .IPv4Mask;
+        }
+        catch (Exception e)
+        {
+            _logFile.Log(e, "Failed to resolve subnet mask for specified IP address");
+            return null;
+        }
+    }
+
+    public IPAddress GetDefaultGateway(string callStack, IPAddress inputAddress)
+    {
+        if (inputAddress == null)
+        {
+            throw new ArgumentException("IP address cannot be null");
+        }
+
+        try
+        {
+            return NetworkInterface.GetAllNetworkInterfaces()
+            .First(i => i.GetIPProperties().UnicastAddresses
+                .Any(x => x.Address.Equals(inputAddress)))
+            .GetIPProperties()
+            .GatewayAddresses
+            .FirstOrDefault()?
+            .Address;
+        }
+        catch (Exception e)
+        {
+            _logFile.Log(e, "Failed to resolve default gateway for specified IP address");
+            return null;
+        }
     }
 
     public Tuple<bool, List<string>> ResolveHostToIP(
