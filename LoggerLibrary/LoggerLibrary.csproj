@@ -7,6 +7,7 @@
     <AssemblyVersion>1.6.0.0</AssemblyVersion>
     <FileVersion>1.6.0.0</FileVersion>
     <Nullable>disable</Nullable>
+    <Copyright>CodeFoxtrot, 2021</Copyright>
   </PropertyGroup>
 
 </Project>
