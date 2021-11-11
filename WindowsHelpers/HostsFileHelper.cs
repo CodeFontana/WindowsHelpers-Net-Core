@@ -192,7 +192,7 @@ public class HostsFileHelper
 
     public void UpsertEntry(string address, string hostsEntry)
     {
-        if (ExistsEntry(address) || ExistsEntry(hostsEntry))
+        if (ExistsEntry(address, out _) || ExistsEntry(hostsEntry, out _))
         {
             UpdateEntry(address, hostsEntry);
         }
@@ -226,8 +226,9 @@ public class HostsFileHelper
         File.WriteAllLines(_hostsFile, contents, encoding);
     }
 
-    public bool ExistsEntry(string addressOrHost)
+    public bool ExistsEntry(string addressOrHost, out HostsFileEntry hostsEntry)
     {
+        hostsEntry = null;
         List<string> contents = File.ReadAllLines(_hostsFile).ToList();
 
         for (int i = 0; i < contents.Count; i++)
@@ -240,6 +241,7 @@ public class HostsFileHelper
                     entry.Address.Equals(addressOrHost) ||
                     entry.Hosts.Any(e => e.ToLower().Equals(addressOrHost.ToLower()))))
                 {
+                    hostsEntry = entry;
                     return true;
                 }
             }
