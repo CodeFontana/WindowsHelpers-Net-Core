@@ -29,12 +29,12 @@ public class HostsFileEntry
 
     public override bool Equals(object obj)
     {
-        var item = obj as HostsFileEntry;
-
-        if (item == null)
+        if (obj == null)
         {
             return false;
         }
+
+        var item = obj as HostsFileEntry;
 
         if (Address.Equals(item.Address) == false)
         {
