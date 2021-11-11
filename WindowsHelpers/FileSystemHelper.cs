@@ -652,18 +652,29 @@ public class FileSystemHelper
         return fileDeleted;
     }
 
-    public bool DeleteFilePattern(
-        string folderName, string filePattern, bool raiseException = false)
+    public bool DeleteFilePattern(string callStack, string folderName, string startsWith = "", string endsWith = "", bool raiseException = false)
     {
         bool fileDeleted = false;
 
+        if (string.IsNullOrWhiteSpace(startsWith) && string.IsNullOrWhiteSpace(endsWith))
+        {
+            _logFile.Log("No file pattern provided", SimpleLogger.MsgType.ERROR);
+            return false;
+        }
+
+        if (string.IsNullOrWhiteSpace(folderName))
+        {
+            _logFile.Log("Directory name cannot be empty", SimpleLogger.MsgType.ERROR);
+            return false;
+        }
+        else if (Directory.Exists(folderName) == false)
+        {
+            _logFile.Log($"Specified directory {folderName} does not exist", SimpleLogger.MsgType.ERROR);
+            return false;
+        }
+
         try
         {
-            if (!Directory.Exists(folderName))
-            {
-                return false;
-            }
-
             string[] fileList = Directory.GetFiles(folderName);
 
             if (fileList.Length > 0)
@@ -675,10 +686,30 @@ public class FileSystemHelper
                     strFile = fileList[n].ToString().ToLower();
                     strFile = strFile.Substring(strFile.LastIndexOf("\\") + 1);
 
-                    if (strFile.ToLower().StartsWith(filePattern.ToLower()))
+                    if (startsWith.Length > 0 && endsWith.Length > 0)
                     {
-                        DeleteFile(fileList[n]);
-                        fileDeleted = true;
+                        if (strFile.ToLower().StartsWith(startsWith.ToLower())
+                            && strFile.ToLower().EndsWith(endsWith.ToLower()))
+                        {
+                            DeleteFile(fileList[n]);
+                            fileDeleted = true;
+                        }
+                    }
+                    else if (startsWith.Length > 0)
+                    {
+                        if (strFile.ToLower().StartsWith(startsWith.ToLower()))
+                        {
+                            DeleteFile(fileList[n]);
+                            fileDeleted = true;
+                        }
+                    }
+                    else if (endsWith.Length > 0)
+                    {
+                        if (strFile.ToLower().EndsWith(endsWith.ToLower()))
+                        {
+                            DeleteFile(fileList[n]);
+                            fileDeleted = true;
+                        }
                     }
                 }
             }
