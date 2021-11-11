@@ -611,6 +611,19 @@ public class ServiceHelper
         }
     }
 
+    public bool IsService(uint pID)
+    {
+        using (ManagementObjectSearcher Searcher = new ManagementObjectSearcher("SELECT * FROM Win32_Service WHERE ProcessId =" + "\"" + pID + "\""))
+        {
+            foreach (ManagementObject service in Searcher.Get())
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public bool ServiceExists(string serviceName)
     {
         ServiceController[] sc = ServiceController.GetServices();
