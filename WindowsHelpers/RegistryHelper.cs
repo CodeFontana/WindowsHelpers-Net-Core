@@ -3,221 +3,203 @@ using LoggerLibrary.Interfaces;
 using Microsoft.Win32;
 using System;
 using System.Linq;
-using System.Runtime.Versioning;
 
-namespace WindowsLibrary
+namespace WindowsLibrary;
+
+public class RegistryHelper
 {
-    [SupportedOSPlatform("windows")]
-    public class RegistryHelper
+    private readonly ISimpleLogger _logFile;
+
+    public RegistryHelper(ISimpleLogger logFile)
     {
-        private readonly ISimpleLogger _logFile;
+        _logFile = logFile;
+    }
 
-        public RegistryHelper(ISimpleLogger logFile)
+    public void CopyKey(RegistryKey sourceKey, RegistryKey destKey)
+    {
+        try
         {
-            _logFile = logFile;
+            foreach (string regValue in sourceKey.GetValueNames())
+            {
+                destKey.SetValue(regValue, sourceKey.GetValue(regValue, regValue, RegistryValueOptions.DoNotExpandEnvironmentNames), sourceKey.GetValueKind(regValue));
+            }
+        }
+        catch (Exception e)
+        {
+            _logFile.Log(e, "Failed to copy registry values from [" + sourceKey.Name + "] to [" + destKey.Name + "]");
         }
 
-        public void CopyKey(RegistryKey sourceKey, RegistryKey destKey)
+        foreach (string strSubKey in sourceKey.GetSubKeyNames())
         {
             try
             {
-                foreach (string regValue in sourceKey.GetValueNames())
+                using (RegistryKey regSubKey = sourceKey.OpenSubKey(strSubKey, false))
                 {
-                    destKey.SetValue(regValue, sourceKey.GetValue(regValue, regValue, RegistryValueOptions.DoNotExpandEnvironmentNames), sourceKey.GetValueKind(regValue));
+                    RegistryKey dstSubKey = destKey.CreateSubKey(strSubKey);
+                    CopyKey(regSubKey, dstSubKey);
+                    dstSubKey.Dispose();
                 }
             }
             catch (Exception e)
             {
-                _logFile.Log(e, "Failed to copy registry values from [" + sourceKey.Name + "] to [" + destKey.Name + "]");
-            }
-
-            foreach (string strSubKey in sourceKey.GetSubKeyNames())
-            {
-                try
-                {
-                    using (RegistryKey regSubKey = sourceKey.OpenSubKey(strSubKey, false))
-                    {
-                        RegistryKey dstSubKey = destKey.CreateSubKey(strSubKey);
-                        CopyKey(regSubKey, dstSubKey);
-                        dstSubKey.Dispose();
-                    }
-                }
-                catch (Exception e)
-                {
-                    _logFile.Log(e, "Failed to copy registry subkey [" + strSubKey + "] to destination");
-                }
+                _logFile.Log(e, "Failed to copy registry subkey [" + strSubKey + "] to destination");
             }
         }
+    }
 
-        public void CopyValue(RegistryKey sourceKey, RegistryKey destKey, string sourceValueName, string destValueName)
+    public void CopyValue(RegistryKey sourceKey, RegistryKey destKey, string sourceValueName, string destValueName)
+    {
+        try
         {
-            try
+            if (sourceKey.GetValue(sourceValueName) == null)
             {
-                if (sourceKey.GetValue(sourceValueName) == null)
-                {
-                    _logFile.Log("Source value [" + sourceValueName + "] does not exist in [" + sourceKey.Name + "]", SimpleLogger.MsgType.ERROR);
-                }
+                _logFile.Log("Source value [" + sourceValueName + "] does not exist in [" + sourceKey.Name + "]", SimpleLogger.MsgType.ERROR);
+            }
 
-                destKey.SetValue(destValueName,
-                    sourceKey.GetValue(sourceValueName, sourceValueName, RegistryValueOptions.DoNotExpandEnvironmentNames),
-                    sourceKey.GetValueKind(sourceValueName));
-            }
-            catch (Exception e)
-            {
-                _logFile.Log(e, "Failed to move registry value [" + sourceValueName + "] from [" + sourceKey.Name + "] to [" + destKey.Name + "]");
-            }
+            destKey.SetValue(destValueName,
+                sourceKey.GetValue(sourceValueName, sourceValueName, RegistryValueOptions.DoNotExpandEnvironmentNames),
+                sourceKey.GetValueKind(sourceValueName));
         }
-
-        public bool DeleteSubKeysWithValue(RegistryHive regHive, string regKey, string valueName, string valueData)
+        catch (Exception e)
         {
-            try
-            {
-                RegistryKey baseKey32 = RegistryKey.OpenBaseKey(regHive, RegistryView.Registry32);
-                RegistryKey baseKey64 = null;
-
-                if (Environment.Is64BitOperatingSystem)
-                {
-                    baseKey64 = RegistryKey.OpenBaseKey(regHive, RegistryView.Registry64);
-                }
-
-                RegistryKey regTest = baseKey32.OpenSubKey(regKey, false);
-
-                // Does the specified key exist?
-                if (regTest == null)
-                {
-                    if (baseKey64 != null)
-                    {
-                        regTest = baseKey64.OpenSubKey(regKey, false);
-
-                        if (regTest == null)
-                        {
-                            return false;
-                        }
-                    }
-                }
-
-                foreach (string subKey in regTest.GetSubKeyNames())
-                {
-                    RegistryKey regSubKey = regTest.OpenSubKey(subKey, false);
-
-                    if (regSubKey == null)
-                    {
-                        continue;
-                    }
-
-                    string subKeyValue = (string)regSubKey.GetValue(valueName);
-
-                    // Was a matching value found, and if so, does its data match the specified input?
-                    if (subKeyValue != null && subKeyValue.ToString().ToLower().Equals(valueData.ToLower()))
-                    {
-                        regSubKey.Dispose();
-                        
-                        return DeleteSubKeyTree(regHive, regKey + "\\" + subKey);
-                    }
-                    else if (subKeyValue == null && regSubKey.SubKeyCount > 0)
-                    {
-                        // Does the subkey of the subkey contain a matching value-data entry?
-                        if (DeleteSubKeysWithValue(regHive, regKey + "\\" + subKey, valueName, valueData))
-                        {
-                            regSubKey.Dispose();
-                            _logFile.Log("Delete registry: " + regHive.ToString() + "\\" + regKey + "\\" + valueName + " = " + valueData);
-                            return DeleteSubKeyTree(regHive, regKey + "\\" + subKey);
-                        }
-                    }
-                    else
-                    {
-                        regSubKey.Dispose();
-                        continue;
-                    }
-                }
-
-                regTest.Dispose();
-                return false;
-            }
-            catch (Exception)
-            {
-                return false;
-            }
+            _logFile.Log(e, "Failed to move registry value [" + sourceValueName + "] from [" + sourceKey.Name + "] to [" + destKey.Name + "]");
         }
+    }
 
-        public bool DeleteSubKeyTree(RegistryHive regHive, string regKey)
+    public bool DeleteSubKeysWithValue(RegistryHive regHive, string regKey, string valueName, string valueData)
+    {
+        try
         {
-            try
+            RegistryKey baseKey32 = RegistryKey.OpenBaseKey(regHive, RegistryView.Registry32);
+            RegistryKey baseKey64 = null;
+
+            if (Environment.Is64BitOperatingSystem)
             {
-                RegistryKey baseKey32 = RegistryKey.OpenBaseKey(regHive, RegistryView.Registry32);
-                RegistryKey baseKey64 = null;
-                bool isFound = false;
+                baseKey64 = RegistryKey.OpenBaseKey(regHive, RegistryView.Registry64);
+            }
 
-                if (Environment.Is64BitOperatingSystem)
-                {
-                    baseKey64 = RegistryKey.OpenBaseKey(regHive, RegistryView.Registry64);
-                }
+            RegistryKey regTest = baseKey32.OpenSubKey(regKey, false);
 
-                RegistryKey regTest = baseKey32.OpenSubKey(regKey, false);
-
-                if (regTest != null)
-                {
-                    regTest.Dispose();
-                    _logFile.Log("Delete registry (32-bit): " + regHive + "\\" + regKey);
-                    baseKey32.DeleteSubKeyTree(regKey, false);
-                    isFound = true;
-                }
-
-                baseKey32.Dispose();
-
+            // Does the specified key exist?
+            if (regTest == null)
+            {
                 if (baseKey64 != null)
                 {
                     regTest = baseKey64.OpenSubKey(regKey, false);
 
-                    if (regTest != null)
+                    if (regTest == null)
                     {
-                        regTest.Dispose();
-                        _logFile.Log("Delete registry (64-bit): " + regHive + "\\" + regKey);
-                        baseKey64.DeleteSubKeyTree(regKey, false);
-                        isFound = true;
+                        return false;
                     }
-
-                    baseKey64.Dispose();
                 }
-
-                return isFound;
             }
-            catch (Exception)
+
+            foreach (string subKey in regTest.GetSubKeyNames())
             {
-                return false;
-            }
-        }
+                RegistryKey regSubKey = regTest.OpenSubKey(subKey, false);
 
-        public bool DeleteValue(RegistryHive regHive, string regKey, string regValue)
-        {
-            bool valueDeleted = false;
-
-            try
-            {
-                RegistryKey baseKey32 = RegistryKey.OpenBaseKey(regHive, RegistryView.Registry32);
-                RegistryKey baseKey64 = null;
-                RegistryKey regTest = null;
-
-                if (Environment.Is64BitOperatingSystem)
+                if (regSubKey == null)
                 {
-                    baseKey64 = RegistryKey.OpenBaseKey(regHive, RegistryView.Registry64);
-                    regTest = baseKey64.OpenSubKey(regKey, true);
-
-                    if (regTest != null && regTest.GetValue(regValue) != null)
-                    {
-                        object regData = regTest.GetValue(regValue);
-                        _logFile.Log("Delete value: " + regHive.ToString() + "\\" + regKey + "\\" + regValue + $" [{regData}]");
-                        regTest.DeleteValue(regValue);
-                        valueDeleted = true;
-                        baseKey64.Dispose();
-                        regTest.Dispose();
-                    }
-
-                    baseKey64.Dispose();
+                    continue;
                 }
 
-                regTest = baseKey32.OpenSubKey(regKey, true);
-                baseKey32.Dispose();
+                string subKeyValue = (string)regSubKey.GetValue(valueName);
+
+                // Was a matching value found, and if so, does its data match the specified input?
+                if (subKeyValue != null && subKeyValue.ToString().ToLower().Equals(valueData.ToLower()))
+                {
+                    regSubKey.Dispose();
+
+                    return DeleteSubKeyTree(regHive, regKey + "\\" + subKey);
+                }
+                else if (subKeyValue == null && regSubKey.SubKeyCount > 0)
+                {
+                    // Does the subkey of the subkey contain a matching value-data entry?
+                    if (DeleteSubKeysWithValue(regHive, regKey + "\\" + subKey, valueName, valueData))
+                    {
+                        regSubKey.Dispose();
+                        _logFile.Log("Delete registry: " + regHive.ToString() + "\\" + regKey + "\\" + valueName + " = " + valueData);
+                        return DeleteSubKeyTree(regHive, regKey + "\\" + subKey);
+                    }
+                }
+                else
+                {
+                    regSubKey.Dispose();
+                    continue;
+                }
+            }
+
+            regTest.Dispose();
+            return false;
+        }
+        catch (Exception)
+        {
+            return false;
+        }
+    }
+
+    public bool DeleteSubKeyTree(RegistryHive regHive, string regKey)
+    {
+        try
+        {
+            RegistryKey baseKey32 = RegistryKey.OpenBaseKey(regHive, RegistryView.Registry32);
+            RegistryKey baseKey64 = null;
+            bool isFound = false;
+
+            if (Environment.Is64BitOperatingSystem)
+            {
+                baseKey64 = RegistryKey.OpenBaseKey(regHive, RegistryView.Registry64);
+            }
+
+            RegistryKey regTest = baseKey32.OpenSubKey(regKey, false);
+
+            if (regTest != null)
+            {
+                regTest.Dispose();
+                _logFile.Log("Delete registry (32-bit): " + regHive + "\\" + regKey);
+                baseKey32.DeleteSubKeyTree(regKey, false);
+                isFound = true;
+            }
+
+            baseKey32.Dispose();
+
+            if (baseKey64 != null)
+            {
+                regTest = baseKey64.OpenSubKey(regKey, false);
+
+                if (regTest != null)
+                {
+                    regTest.Dispose();
+                    _logFile.Log("Delete registry (64-bit): " + regHive + "\\" + regKey);
+                    baseKey64.DeleteSubKeyTree(regKey, false);
+                    isFound = true;
+                }
+
+                baseKey64.Dispose();
+            }
+
+            return isFound;
+        }
+        catch (Exception)
+        {
+            return false;
+        }
+    }
+
+    public bool DeleteValue(RegistryHive regHive, string regKey, string regValue)
+    {
+        bool valueDeleted = false;
+
+        try
+        {
+            RegistryKey baseKey32 = RegistryKey.OpenBaseKey(regHive, RegistryView.Registry32);
+            RegistryKey baseKey64 = null;
+            RegistryKey regTest = null;
+
+            if (Environment.Is64BitOperatingSystem)
+            {
+                baseKey64 = RegistryKey.OpenBaseKey(regHive, RegistryView.Registry64);
+                regTest = baseKey64.OpenSubKey(regKey, true);
 
                 if (regTest != null && regTest.GetValue(regValue) != null)
                 {
@@ -225,263 +207,278 @@ namespace WindowsLibrary
                     _logFile.Log("Delete value: " + regHive.ToString() + "\\" + regKey + "\\" + regValue + $" [{regData}]");
                     regTest.DeleteValue(regValue);
                     valueDeleted = true;
+                    baseKey64.Dispose();
                     regTest.Dispose();
                 }
 
-                return valueDeleted;
+                baseKey64.Dispose();
             }
-            catch (Exception e)
+
+            regTest = baseKey32.OpenSubKey(regKey, true);
+            baseKey32.Dispose();
+
+            if (regTest != null && regTest.GetValue(regValue) != null)
             {
-                _logFile.Log(e, "Failed to delete registry value");
-                return valueDeleted;
+                object regData = regTest.GetValue(regValue);
+                _logFile.Log("Delete value: " + regHive.ToString() + "\\" + regKey + "\\" + regValue + $" [{regData}]");
+                regTest.DeleteValue(regValue);
+                valueDeleted = true;
+                regTest.Dispose();
             }
+
+            return valueDeleted;
+        }
+        catch (Exception e)
+        {
+            _logFile.Log(e, "Failed to delete registry value");
+            return valueDeleted;
+        }
+    }
+
+    public RegistryKey GetParentKey(RegistryKey childKey, bool writable)
+    {
+        string[] regPath = childKey.Name.Split('\\');
+        string childHive = regPath.First();
+        string parentKeyName = String.Join("\\", regPath.Skip(1).Reverse().Skip(1).Reverse());
+
+        // Local function for mapping hiveName(str) --> hiveName(registry).
+        RegistryHive GetHive()
+        {
+            if (childHive.Equals("HKEY_CLASSES_ROOT", StringComparison.OrdinalIgnoreCase))
+                return RegistryHive.ClassesRoot;
+            else if (childHive.Equals("HKEY_CURRENT_USER", StringComparison.OrdinalIgnoreCase))
+                return RegistryHive.CurrentUser;
+            else if (childHive.Equals("HKEY_LOCAL_MACHINE", StringComparison.OrdinalIgnoreCase))
+                return RegistryHive.LocalMachine;
+            else if (childHive.Equals("HKEY_USERS", StringComparison.OrdinalIgnoreCase))
+                return RegistryHive.Users;
+            else if (childHive.Equals("HKEY_CURRENT_CONFIG", StringComparison.OrdinalIgnoreCase))
+                return RegistryHive.CurrentConfig;
+            else
+                throw new NotImplementedException(childHive);
         }
 
-        public RegistryKey GetParentKey(RegistryKey childKey, bool writable)
+        RegistryHive parentHive = GetHive();
+
+        using (var baseKey = RegistryKey.OpenBaseKey(parentHive, childKey.View))
         {
-            string[] regPath = childKey.Name.Split('\\');
-            string childHive = regPath.First();
-            string parentKeyName = String.Join("\\", regPath.Skip(1).Reverse().Skip(1).Reverse());
-
-            // Local function for mapping hiveName(str) --> hiveName(registry).
-            RegistryHive GetHive()
-            {
-                if (childHive.Equals("HKEY_CLASSES_ROOT", StringComparison.OrdinalIgnoreCase))
-                    return RegistryHive.ClassesRoot;
-                else if (childHive.Equals("HKEY_CURRENT_USER", StringComparison.OrdinalIgnoreCase))
-                    return RegistryHive.CurrentUser;
-                else if (childHive.Equals("HKEY_LOCAL_MACHINE", StringComparison.OrdinalIgnoreCase))
-                    return RegistryHive.LocalMachine;
-                else if (childHive.Equals("HKEY_USERS", StringComparison.OrdinalIgnoreCase))
-                    return RegistryHive.Users;
-                else if (childHive.Equals("HKEY_CURRENT_CONFIG", StringComparison.OrdinalIgnoreCase))
-                    return RegistryHive.CurrentConfig;
-                else
-                    throw new NotImplementedException(childHive);
-            }
-
-            RegistryHive parentHive = GetHive();
-
-            using (var baseKey = RegistryKey.OpenBaseKey(parentHive, childKey.View))
-            {
-                return baseKey.OpenSubKey(parentKeyName, writable);
-            }
+            return baseKey.OpenSubKey(parentKeyName, writable);
         }
+    }
 
-        public bool KeyExists(string regKey, RegistryHive regHive = RegistryHive.LocalMachine)
+    public bool KeyExists(string regKey, RegistryHive regHive = RegistryHive.LocalMachine)
+    {
+        try
         {
-            try
+            RegistryKey baseKey32 = RegistryKey.OpenBaseKey(regHive, RegistryView.Registry32);
+
+            if (Environment.Is64BitOperatingSystem)
             {
-                RegistryKey baseKey32 = RegistryKey.OpenBaseKey(regHive, RegistryView.Registry32);
+                RegistryKey baseKey64 = RegistryKey.OpenBaseKey(regHive, RegistryView.Registry64);
+                RegistryKey testKey = baseKey64.OpenSubKey(regKey, false);
 
-                if (Environment.Is64BitOperatingSystem)
+                if (testKey != null)
                 {
-                    RegistryKey baseKey64 = RegistryKey.OpenBaseKey(regHive, RegistryView.Registry64);
-                    RegistryKey testKey = baseKey64.OpenSubKey(regKey, false);
-
-                    if (testKey != null)
-                    {
-                        testKey.Dispose();
-                        baseKey64.Dispose();
-                        baseKey32.Dispose();
-                        return true;
-                    }
-
-                    testKey = baseKey32.OpenSubKey(regKey, false);
-
-                    if (testKey != null)
-                    {
-                        testKey.Dispose();
-                        baseKey64.Dispose();
-                        baseKey32.Dispose();
-                        return true;
-                    }
-
-                    return false;
-                }
-                else
-                {
-                    RegistryKey TestKey = baseKey32.OpenSubKey(regKey, false);
-
-                    if (TestKey != null)
-                    {
-                        TestKey.Dispose();
-                        baseKey32.Dispose();
-                        return true;
-                    }
-
+                    testKey.Dispose();
+                    baseKey64.Dispose();
                     baseKey32.Dispose();
-                    return false;
+                    return true;
                 }
+
+                testKey = baseKey32.OpenSubKey(regKey, false);
+
+                if (testKey != null)
+                {
+                    testKey.Dispose();
+                    baseKey64.Dispose();
+                    baseKey32.Dispose();
+                    return true;
+                }
+
+                return false;
             }
-            catch (Exception)
+            else
             {
+                RegistryKey TestKey = baseKey32.OpenSubKey(regKey, false);
+
+                if (TestKey != null)
+                {
+                    TestKey.Dispose();
+                    baseKey32.Dispose();
+                    return true;
+                }
+
+                baseKey32.Dispose();
                 return false;
             }
         }
+        catch (Exception)
+        {
+            return false;
+        }
+    }
 
-        public void MoveKey(RegistryKey sourceKey, RegistryKey destKey)
+    public void MoveKey(RegistryKey sourceKey, RegistryKey destKey)
+    {
+        try
+        {
+            foreach (string regValue in sourceKey.GetValueNames())
+            {
+                destKey.SetValue(regValue, sourceKey.GetValue(regValue, regValue, RegistryValueOptions.DoNotExpandEnvironmentNames), sourceKey.GetValueKind(regValue));
+                sourceKey.DeleteValue(regValue, false);
+            }
+        }
+        catch (Exception e)
+        {
+            _logFile.Log(e, "Failed to move registry values from [" + sourceKey.Name + "] to [" + destKey.Name + "]");
+        }
+
+        foreach (string strSubKey in sourceKey.GetSubKeyNames())
         {
             try
             {
-                foreach (string regValue in sourceKey.GetValueNames())
+                using (RegistryKey regSubKey = sourceKey.OpenSubKey(strSubKey, false))
                 {
-                    destKey.SetValue(regValue, sourceKey.GetValue(regValue, regValue, RegistryValueOptions.DoNotExpandEnvironmentNames), sourceKey.GetValueKind(regValue));
-                    sourceKey.DeleteValue(regValue, false);
+                    RegistryKey dstSubKey = destKey.CreateSubKey(strSubKey);
+                    MoveKey(regSubKey, dstSubKey);
+                    destKey.Dispose();
+
+                    using (RegistryKey parentKey = GetParentKey(regSubKey, true))
+                    {
+                        string strChildKey = regSubKey.Name.Split('\\').Last();
+                        parentKey.DeleteSubKeyTree(strChildKey);
+                    }
                 }
             }
             catch (Exception e)
             {
-                _logFile.Log(e, "Failed to move registry values from [" + sourceKey.Name + "] to [" + destKey.Name + "]");
-            }
-
-            foreach (string strSubKey in sourceKey.GetSubKeyNames())
-            {
-                try
-                {
-                    using (RegistryKey regSubKey = sourceKey.OpenSubKey(strSubKey, false))
-                    {
-                        RegistryKey dstSubKey = destKey.CreateSubKey(strSubKey);
-                        MoveKey(regSubKey, dstSubKey);
-                        destKey.Dispose();
-
-                        using (RegistryKey parentKey = GetParentKey(regSubKey, true))
-                        {
-                            string strChildKey = regSubKey.Name.Split('\\').Last();
-                            parentKey.DeleteSubKeyTree(strChildKey);
-                        }
-                    }
-                }
-                catch (Exception e)
-                {
-                    _logFile.Log(e, "Failed to copy registry subkey [" + strSubKey + "] to destination");
-                }
+                _logFile.Log(e, "Failed to copy registry subkey [" + strSubKey + "] to destination");
             }
         }
+    }
 
-        public void MoveValue(RegistryKey sourceKey, RegistryKey destKey, string sourceValueName, string destValueName)
+    public void MoveValue(RegistryKey sourceKey, RegistryKey destKey, string sourceValueName, string destValueName)
+    {
+        try
         {
-            try
+            if (sourceKey.GetValue(sourceValueName) == null)
             {
-                if (sourceKey.GetValue(sourceValueName) == null)
-                {
-                    _logFile.Log("Source value [" + sourceValueName + "] does not exist in [" + sourceKey.Name + "]", SimpleLogger.MsgType.ERROR);
-                }
-
-                destKey.SetValue(destValueName, 
-                    sourceKey.GetValue(sourceValueName, sourceValueName, RegistryValueOptions.DoNotExpandEnvironmentNames), 
-                    sourceKey.GetValueKind(sourceValueName));
-
-                sourceKey.DeleteValue(sourceValueName, false);
+                _logFile.Log("Source value [" + sourceValueName + "] does not exist in [" + sourceKey.Name + "]", SimpleLogger.MsgType.ERROR);
             }
-            catch (Exception e)
-            {
-                _logFile.Log(e, "Failed to move registry value [" + sourceValueName + "] from [" + sourceKey.Name + "] to [" + destKey.Name + "]");
-            }
+
+            destKey.SetValue(destValueName,
+                sourceKey.GetValue(sourceValueName, sourceValueName, RegistryValueOptions.DoNotExpandEnvironmentNames),
+                sourceKey.GetValueKind(sourceValueName));
+
+            sourceKey.DeleteValue(sourceValueName, false);
         }
-
-        public RegistryKey OpenKey(string regKey, bool writable = false, RegistryHive regTree = RegistryHive.LocalMachine)
+        catch (Exception e)
         {
-            try
+            _logFile.Log(e, "Failed to move registry value [" + sourceValueName + "] from [" + sourceKey.Name + "] to [" + destKey.Name + "]");
+        }
+    }
+
+    public RegistryKey OpenKey(string regKey, bool writable = false, RegistryHive regTree = RegistryHive.LocalMachine)
+    {
+        try
+        {
+            RegistryKey baseKey32 = RegistryKey.OpenBaseKey(regTree, RegistryView.Registry32);
+            RegistryKey baseKey64 = null;
+            RegistryKey regTest = null;
+
+            if (Environment.Is64BitOperatingSystem)
             {
-                RegistryKey baseKey32 = RegistryKey.OpenBaseKey(regTree, RegistryView.Registry32);
-                RegistryKey baseKey64 = null;
-                RegistryKey regTest = null;
-
-                if (Environment.Is64BitOperatingSystem)
-                {
-                    baseKey64 = RegistryKey.OpenBaseKey(regTree, RegistryView.Registry64);
-                    regTest = baseKey64.OpenSubKey(regKey, writable);
-
-                    if (regTest != null)
-                    {
-                        baseKey64.Dispose();
-                        baseKey32.Dispose();
-                        return regTest;
-                    }
-
-                    baseKey64.Dispose();
-                }
-
-                regTest = baseKey32.OpenSubKey(regKey, writable);
-                baseKey32.Dispose();
+                baseKey64 = RegistryKey.OpenBaseKey(regTree, RegistryView.Registry64);
+                regTest = baseKey64.OpenSubKey(regKey, writable);
 
                 if (regTest != null)
                 {
+                    baseKey64.Dispose();
+                    baseKey32.Dispose();
                     return regTest;
                 }
 
-                return null;
+                baseKey64.Dispose();
             }
-            catch (Exception)
+
+            regTest = baseKey32.OpenSubKey(regKey, writable);
+            baseKey32.Dispose();
+
+            if (regTest != null)
             {
-                return null;
+                return regTest;
             }
+
+            return null;
         }
-
-        public bool ValueExists(string regKey, string regValueName, RegistryHive regHive = RegistryHive.LocalMachine)
+        catch (Exception)
         {
-            try
+            return null;
+        }
+    }
+
+    public bool ValueExists(string regKey, string regValueName, RegistryHive regHive = RegistryHive.LocalMachine)
+    {
+        try
+        {
+            RegistryKey baseKey32 = RegistryKey.OpenBaseKey(regHive, RegistryView.Registry32);
+
+            if (Environment.Is64BitOperatingSystem)
             {
-                RegistryKey baseKey32 = RegistryKey.OpenBaseKey(regHive, RegistryView.Registry32);
+                RegistryKey baseKey64 = RegistryKey.OpenBaseKey(regHive, RegistryView.Registry64);
+                RegistryKey testKey = baseKey64.OpenSubKey(regKey, false);
 
-                if (Environment.Is64BitOperatingSystem)
+                if (testKey != null && testKey.GetValue(regValueName) != null)
                 {
-                    RegistryKey baseKey64 = RegistryKey.OpenBaseKey(regHive, RegistryView.Registry64);
-                    RegistryKey testKey = baseKey64.OpenSubKey(regKey, false);
-
-                    if (testKey != null && testKey.GetValue(regValueName) != null)
-                    {
-                        testKey.Dispose();
-                        baseKey64.Dispose();
-                        baseKey32.Dispose();
-                        return true;
-                    }
-                    else if (testKey != null)
-                    {
-                        testKey.Dispose();
-                    }
-
+                    testKey.Dispose();
                     baseKey64.Dispose();
-                    testKey = baseKey32.OpenSubKey(regKey, false);
-
-                    if (testKey != null && testKey.GetValue(regValueName) != null)
-                    {
-                        testKey.Dispose();
-                        baseKey32.Dispose();
-                        return true;
-                    }
-                    else if (testKey != null)
-                    {
-                        testKey.Dispose();
-                    }
-
                     baseKey32.Dispose();
-                    return false;
+                    return true;
                 }
-                else
+                else if (testKey != null)
                 {
-                    RegistryKey testKey = baseKey32.OpenSubKey(regKey, false);
-
-                    if (testKey != null && testKey.GetValue(regValueName) != null)
-                    {
-                        testKey.Dispose();
-                        baseKey32.Dispose();
-                        return true;
-                    }
-                    else if (testKey != null)
-                    {
-                        testKey.Dispose();
-                    }
-
-                    baseKey32.Dispose();
-                    return false;
+                    testKey.Dispose();
                 }
-            }
-            catch (Exception)
-            {
+
+                baseKey64.Dispose();
+                testKey = baseKey32.OpenSubKey(regKey, false);
+
+                if (testKey != null && testKey.GetValue(regValueName) != null)
+                {
+                    testKey.Dispose();
+                    baseKey32.Dispose();
+                    return true;
+                }
+                else if (testKey != null)
+                {
+                    testKey.Dispose();
+                }
+
+                baseKey32.Dispose();
                 return false;
             }
+            else
+            {
+                RegistryKey testKey = baseKey32.OpenSubKey(regKey, false);
+
+                if (testKey != null && testKey.GetValue(regValueName) != null)
+                {
+                    testKey.Dispose();
+                    baseKey32.Dispose();
+                    return true;
+                }
+                else if (testKey != null)
+                {
+                    testKey.Dispose();
+                }
+
+                baseKey32.Dispose();
+                return false;
+            }
+        }
+        catch (Exception)
+        {
+            return false;
         }
     }
 }

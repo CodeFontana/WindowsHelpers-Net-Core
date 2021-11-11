@@ -4,167 +4,167 @@ using System.Globalization;
 using System.Text;
 using System.Threading;
 
-namespace WindowsLibrary
+namespace WindowsLibrary;
+
+public static class DotNetHelper
 {
-    public static class DotNetHelper
+    private static bool bacon = false;
+
+    public unsafe struct BufferOverflow
     {
-        private static bool bacon = false;
+        public int before;
+        public fixed int items[16];
+        public int after;
+    }
 
-        public unsafe struct BufferOverflow
+    public static void CreateBufferOverflow()
+    {
+        BufferOverflow x = new();
+        x.after = 1;
+
+        for (int i = 0; i <= 16; ++i)
         {
-            public int before;
-            public fixed int items[16];
-            public int after;
-        }
-
-        public static void CreateBufferOverflow()
-        {
-            BufferOverflow x = new();
-            x.after = 1;
-
-            for (int i = 0; i <= 16; ++i)
+            unsafe
             {
-                unsafe
-                {
-                    x.items[i] = 99;
-                }
+                x.items[i] = 99;
+            }
+        }
+    }
+
+    public static void CreateStackOverflow(int counter)
+    {
+        counter++;
+        CreateStackOverflow(counter);
+    }
+
+    public static bool IsHexChar(char c)
+    {
+        if (int.TryParse(c.ToString(), out int result) && result >= 0 && result <= 9)
+            return true;
+        if (c.ToString().ToLower().Equals("a"))
+            return true;
+        if (c.ToString().ToLower().Equals("b"))
+            return true;
+        if (c.ToString().ToLower().Equals("c"))
+            return true;
+        if (c.ToString().ToLower().Equals("d"))
+            return true;
+        if (c.ToString().ToLower().Equals("e"))
+            return true;
+        if (c.ToString().ToLower().Equals("f"))
+            return true;
+        return false;
+    }
+
+    public static bool IsHexString(string s)
+    {
+        foreach (char c in s)
+        {
+            if (!IsHexChar(c))
+            {
+                return false;
             }
         }
 
-        public static void CreateStackOverflow(int counter)
-        {
-            counter++;
-            CreateStackOverflow(counter);
-        }
+        return true;
+    }
 
-        public static bool IsHexChar(char c)
+    public static bool IsListStringEqual(
+        List<string> list1,
+        List<string> list2,
+        List<string> matchExceptions = null)
+    {
+        // Unequal number of elements?
+        if (list1.Count != list2.Count)
         {
-            if (int.TryParse(c.ToString(), out int result) && result >= 0 && result <= 9)
-                return true;
-            if (c.ToString().ToLower().Equals("a"))
-                return true;
-            if (c.ToString().ToLower().Equals("b"))
-                return true;
-            if (c.ToString().ToLower().Equals("c"))
-                return true;
-            if (c.ToString().ToLower().Equals("d"))
-                return true;
-            if (c.ToString().ToLower().Equals("e"))
-                return true;
-            if (c.ToString().ToLower().Equals("f"))
-                return true;
             return false;
         }
 
-        public static bool IsHexString(string s)
+        // Flag for skipping element check (based on exception)
+        bool skipFlag = false;
+
+        for (int i = 0; i < list1.Count; i++)
         {
-            foreach (char c in s) 
+            if (matchExceptions != null)
             {
-                if (!IsHexChar(c))
+                foreach (string s in matchExceptions)
                 {
-                    return false;
+                    if (list1[i].ToLower().Contains(s.ToLower()) || list1[i].ToLower().Contains(s.ToLower()) ||
+                        list2[i].ToLower().Contains(s.ToLower()) || list2[i].ToLower().Contains(s.ToLower()))
+                    {
+                        skipFlag = true;
+                        break;
+                    }
                 }
             }
-            
-            return true;
-        }
 
-        public static bool IsListStringEqual(
-            List<string> list1,
-            List<string> list2,
-            List<string> matchExceptions = null)
-        {
-            // Unequal number of elements?
-            if (list1.Count != list2.Count)
+            if (skipFlag)
+            {
+                skipFlag = false;
+                continue;
+            }
+
+            if (!list1[i].Equals(list2[i]))
             {
                 return false;
             }
+        }
 
-            // Flag for skipping element check (based on exception)
-            bool skipFlag = false;
+        return true;
+    }
 
-            for (int i = 0; i < list1.Count; i++)
+    public static bool IsListStringTupleEqual(
+        List<Tuple<string, string>> list1,
+        List<Tuple<string, string>> list2,
+        List<string> matchExceptions = null)
+    {
+        // Unequal number of elements?
+        if (list1.Count != list2.Count)
+        {
+            return false;
+        }
+
+        // Flag for skipping element check (based on exception)
+        bool skipFlag = false;
+
+        for (int i = 0; i < list1.Count; i++)
+        {
+            if (matchExceptions != null)
             {
-                if (matchExceptions != null)
+                foreach (string s in matchExceptions)
                 {
-                    foreach (string s in matchExceptions)
+                    if (list1[i].Item1.ToLower().Contains(s.ToLower()) ||
+                        list1[i].Item2.ToLower().Contains(s.ToLower()) ||
+                        list2[i].Item1.ToLower().Contains(s.ToLower()) ||
+                        list2[i].Item2.ToLower().Contains(s.ToLower()))
                     {
-                        if (list1[i].ToLower().Contains(s.ToLower()) || list1[i].ToLower().Contains(s.ToLower()) ||
-                            list2[i].ToLower().Contains(s.ToLower()) || list2[i].ToLower().Contains(s.ToLower()))
-                        {
-                            skipFlag = true;
-                            break;
-                        }
+                        skipFlag = true;
+                        break;
                     }
-                }
-
-                if (skipFlag)
-                {
-                    skipFlag = false;
-                    continue;
-                }
-
-                if (!list1[i].Equals(list2[i]))
-                {
-                    return false;
                 }
             }
 
-            return true;
-        }
+            if (skipFlag)
+            {
+                skipFlag = false;
+                continue;
+            }
 
-        public static bool IsListStringTupleEqual(
-            List<Tuple<string, string>> list1,
-            List<Tuple<string, string>> list2,
-            List<string> matchExceptions = null)
-        {
-            // Unequal number of elements?
-            if (list1.Count != list2.Count)
+            if (!list1[i].Item1.Equals(list2[i].Item1) ||
+                !list1[i].Item2.Equals(list2[i].Item2))
             {
                 return false;
             }
-
-            // Flag for skipping element check (based on exception)
-            bool skipFlag = false;
-
-            for (int i = 0; i < list1.Count; i++)
-            {
-                if (matchExceptions != null)
-                {
-                    foreach (string s in matchExceptions)
-                    {
-                        if (list1[i].Item1.ToLower().Contains(s.ToLower()) ||
-                            list1[i].Item2.ToLower().Contains(s.ToLower()) ||
-                            list2[i].Item1.ToLower().Contains(s.ToLower()) ||
-                            list2[i].Item2.ToLower().Contains(s.ToLower()))
-                        {
-                            skipFlag = true;
-                            break;
-                        }
-                    }
-                }
-
-                if (skipFlag)
-                {
-                    skipFlag = false;
-                    continue;
-                }
-
-                if (!list1[i].Item1.Equals(list2[i].Item1) ||
-                    !list1[i].Item2.Equals(list2[i].Item2))
-                {
-                    return false;
-                }
-            }
-
-            return true;
         }
 
-        public static string LoremIpsum(int minWords = 6, int maxWords = 20, int minSentences = 1, int maxSentences = 6)
-        {
-            var words = new[] {"bacon", "ipsum", "dolor", "amet", "bresola", "tempor", "strip",
+        return true;
+    }
+
+    public static string LoremIpsum(int minWords = 6, int maxWords = 20, int minSentences = 1, int maxSentences = 6)
+    {
+        var words = new[] {"bacon", "ipsum", "dolor", "amet", "bresola", "tempor", "strip",
                 "leberkas", "excepteur", "irure", "hamburger", "alcatra", "veniam", "turkey",
-                "est", "exercitation", "in", "brian", "sirloin", "chunk", "tri-tip", "salami", 
+                "est", "exercitation", "in", "brian", "sirloin", "chunk", "tri-tip", "salami",
                 "steak", "anim", "chislic", "commodo", "sint", "pastrami", "lorem", "chuck",
                 "exercitation", "sunt", "pork", "qui", "chicken", "minim", "voluptate", "ribeye",
                 "laborum", "andouille", "elit", "spare ribs", "anim", "cow", "id", "ea", "meatloaf",
@@ -175,129 +175,128 @@ namespace WindowsLibrary
                 "proident", "bresaola", "non", "leberkas", "turducken", "enim", "meatball", "laborum",
                 "nostrud", "strip steak", "officia", "short ribs", "nulla", "ham", "incididunt, " +
                 "velit", "do", "ex", "dolore", "sunt", "nostrud", "mollit", "bacon", "est",
-                "reprehenderit", "landjaeger", "frankfurter", "shoulder", "ground", "round", 
-                "swine", "pariatur", "susage tri-tip", "aute", "chicken tenderloin", "consequat", 
+                "reprehenderit", "landjaeger", "frankfurter", "shoulder", "ground", "round",
+                "swine", "pariatur", "susage tri-tip", "aute", "chicken tenderloin", "consequat",
                 "venison", "pork belly", "pig tongue", "brisket", "picanha", "ball", "tip",
                 "corned beef" };
 
-            Random rand = new();
-            int numSentences = rand.Next(maxSentences - minSentences) + minSentences;
-            int numWords = rand.Next(maxWords - minWords) + minWords;
-            StringBuilder result = new();
-            CultureInfo cultureInfo = Thread.CurrentThread.CurrentCulture;
-            TextInfo textInfo = cultureInfo.TextInfo;
+        Random rand = new();
+        int numSentences = rand.Next(maxSentences - minSentences) + minSentences;
+        int numWords = rand.Next(maxWords - minWords) + minWords;
+        StringBuilder result = new();
+        CultureInfo cultureInfo = Thread.CurrentThread.CurrentCulture;
+        TextInfo textInfo = cultureInfo.TextInfo;
 
-            if (bacon == false && numSentences > 1 && numWords >= 5)
-            {
-                result.Append("Bacon ipsum dolor amet ");
-                bacon = true;
-            }
-
-            for (int s = 0; s < numSentences; s++)
-            {
-                for (int w = 0; w < numWords; w++)
-                {
-                    if (w == 0)
-                    { 
-                        result.Append(textInfo.ToTitleCase(words[rand.Next(words.Length)]));
-                    }
-                    else
-                    {
-                        result.Append(words[rand.Next(words.Length)]);
-                    }
-                    
-                    if (w < numWords - 1)
-                    {
-                        result.Append(' ');
-                    }
-                }
-
-                if (numSentences > 1)
-                {
-                    result.Append(". ");
-                }
-            }
-
-            return result.ToString();
+        if (bacon == false && numSentences > 1 && numWords >= 5)
+        {
+            result.Append("Bacon ipsum dolor amet ");
+            bacon = true;
         }
 
-        public static string PadListElements(List<string[]> inputList, int columnPadding = 1)
+        for (int s = 0; s < numSentences; s++)
         {
-            // Using the first element as the template, store a value indicating
-            // the number of columns each string array has. As we are displaying
-            // a chart of information, it is presumed that all elements have the
-            // same number of columns.
-            int numColumns = inputList[0].Length;
-
-            // An array for storing the max length of each column, for all
-            // elements in the chart. This way content+padding of each element
-            // in the chart is equal to the max length, so all columns are
-            // properly aligned.
-            int[] maxValues = new int[numColumns];
-
-            // Iterate each column.
-            for (int i = 0; i < numColumns; i++)
+            for (int w = 0; w < numWords; w++)
             {
-                // Initialize -- for storing the max column length amongst
-                //               each element.
-                int maxColLength = 0;
-
-                // Iterate each element.
-                inputList.ForEach(e =>
+                if (w == 0)
                 {
+                    result.Append(textInfo.ToTitleCase(words[rand.Next(words.Length)]));
+                }
+                else
+                {
+                    result.Append(words[rand.Next(words.Length)]);
+                }
+
+                if (w < numWords - 1)
+                {
+                    result.Append(' ');
+                }
+            }
+
+            if (numSentences > 1)
+            {
+                result.Append(". ");
+            }
+        }
+
+        return result.ToString();
+    }
+
+    public static string PadListElements(List<string[]> inputList, int columnPadding = 1)
+    {
+        // Using the first element as the template, store a value indicating
+        // the number of columns each string array has. As we are displaying
+        // a chart of information, it is presumed that all elements have the
+        // same number of columns.
+        int numColumns = inputList[0].Length;
+
+        // An array for storing the max length of each column, for all
+        // elements in the chart. This way content+padding of each element
+        // in the chart is equal to the max length, so all columns are
+        // properly aligned.
+        int[] maxValues = new int[numColumns];
+
+        // Iterate each column.
+        for (int i = 0; i < numColumns; i++)
+        {
+            // Initialize -- for storing the max column length amongst
+            //               each element.
+            int maxColLength = 0;
+
+            // Iterate each element.
+            inputList.ForEach(e =>
+            {
                     // Does this element have an ith column?
                     if (i < e.Length)
-                    {
+                {
                         // Record the length of the ith column.
                         int colLength = e[i].Length;
 
                         // Is this column length greater than the max?
                         if (colLength > maxColLength)
-                        {
-                            maxColLength = colLength; // Store new maximum.
+                    {
+                        maxColLength = colLength; // Store new maximum.
                         }
-                    }
-                });
-
-                // Store max value.
-                maxValues[i] = maxColLength + columnPadding;
-            }
-
-            StringBuilder outputString = new();
-            bool isFirst = true;
-
-            // Iterate list elements (each string array)
-            foreach (var line in inputList)
-            {
-                if (!isFirst)
-                {
-                    outputString.AppendLine();
                 }
+            });
 
-                isFirst = false;
-
-                for (int i = 0; i < line.Length; i++)
-                {
-                    var value = line[i];
-
-                    // Append the value with padding of the maximum length of any value for this element
-                    outputString.Append(value.PadRight(maxValues[i]));
-                }
-            }
-
-            return outputString.ToString();
+            // Store max value.
+            maxValues[i] = maxColLength + columnPadding;
         }
 
-        public static string StringListToCommaString(string[] inputArray, string delimeter = ",")
+        StringBuilder outputString = new();
+        bool isFirst = true;
+
+        // Iterate list elements (each string array)
+        foreach (var line in inputList)
         {
-            string returnString = "";
-
-            foreach (string s in inputArray)
+            if (!isFirst)
             {
-                returnString += s + delimeter;
+                outputString.AppendLine();
             }
 
-            return returnString.TrimEnd(delimeter.ToCharArray());
+            isFirst = false;
+
+            for (int i = 0; i < line.Length; i++)
+            {
+                var value = line[i];
+
+                // Append the value with padding of the maximum length of any value for this element
+                outputString.Append(value.PadRight(maxValues[i]));
+            }
         }
+
+        return outputString.ToString();
+    }
+
+    public static string StringListToCommaString(string[] inputArray, string delimeter = ",")
+    {
+        string returnString = "";
+
+        foreach (string s in inputArray)
+        {
+            returnString += s + delimeter;
+        }
+
+        return returnString.TrimEnd(delimeter.ToCharArray());
     }
 }
