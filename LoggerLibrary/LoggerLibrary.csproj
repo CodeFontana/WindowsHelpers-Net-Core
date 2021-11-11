@@ -1,11 +1,13 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net5.0-windows7.0</TargetFramework>
+    <TargetFramework>net6.0-windows</TargetFramework>
     <Authors>Brian Fontana</Authors>
     <Company>CodeFoxtrot</Company>
-    <AssemblyVersion>1.5.1.2</AssemblyVersion>
-    <FileVersion>1.5.1.2</FileVersion>
+    <AssemblyVersion>1.6.0.0</AssemblyVersion>
+    <FileVersion>1.6.0.0</FileVersion>
+    <Nullable>disable</Nullable>
+    <Copyright>CodeFoxtrot, 2021</Copyright>
   </PropertyGroup>
 
 </Project>
