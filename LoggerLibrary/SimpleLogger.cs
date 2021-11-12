@@ -297,13 +297,13 @@ public class SimpleLogger : ISimpleLogger, IDisposable
                 foreach (var msg in _logBuffer)
                 {
                     Console.WriteLine(msg);
-                    _logWriter.WriteLineAsync(msg);
+                    _logWriter.WriteLine(msg);
                 }
 
                 _logBuffer.Clear();
 
                 Console.WriteLine(MsgHeader(LogName, logLevel) + message);
-                _logWriter.WriteLineAsync(MsgHeader(LogName, logLevel) + message);
+                _logWriter.WriteLine(MsgHeader(LogName, logLevel) + message);
             }
         }
     }
@@ -341,18 +341,18 @@ public class SimpleLogger : ISimpleLogger, IDisposable
                 foreach (var msg in _logBuffer)
                 {
                     Console.WriteLine(msg);
-                    _logWriter.WriteLineAsync(msg);
+                    _logWriter.WriteLine(msg);
                 }
 
                 _logBuffer.Clear();
 
                 Console.WriteLine(MsgHeader(LogName, MsgType.ERROR) + e.Message);
-                _logWriter.WriteLineAsync(MsgHeader(LogName, MsgType.ERROR) + e.Message);
+                _logWriter.WriteLine(MsgHeader(LogName, MsgType.ERROR) + e.Message);
 
                 if (string.IsNullOrWhiteSpace(message) == false)
                 {
                     Console.WriteLine(MsgHeader(LogName, MsgType.ERROR) + message);
-                    _logWriter.WriteLineAsync(MsgHeader(LogName, MsgType.ERROR) + message);
+                    _logWriter.WriteLine(MsgHeader(LogName, MsgType.ERROR) + message);
                 }
             }
         }
