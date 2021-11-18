@@ -21,7 +21,7 @@ public class WmiHelper
     /// </summary>
     public static void SampleUsage()
     {
-        var logFile = new SimpleLogger("WmiHelperSampleUsage");
+        var logFile = new FileLoggerProvider("WmiHelperSampleUsage");
         WmiHelper wmi = new(logFile);
 
         // EXAMPLE: Get Manufacturer + Model info.

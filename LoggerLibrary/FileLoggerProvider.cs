@@ -1,4 +1,4 @@
-﻿using LoggerLibrary.Interfaces;
+﻿using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -6,7 +6,7 @@ using System.IO;
 
 namespace LoggerLibrary;
 
-public class SimpleLogger : ISimpleLogger, IDisposable
+public class FileLoggerProvider : ILoggerProvider, IDisposable, IFileLoggerProvider
 {
     public FileStream _logStream = null;
     public StreamWriter _logWriter = null;
@@ -35,10 +35,10 @@ public class SimpleLogger : ISimpleLogger, IDisposable
     /// <param name="logMaxBytes">Maximum size (in bytes) for the log file. If unspecified, the default is 50MB per log.</param>
     /// <param name="logMaxCount">Maximum count of log files for rotation. If unspecified, the default is 10 logs.</param>
     /// <returns></returns>
-    public SimpleLogger(string logName,
-                        string logFolder = null,
-                        long logMaxBytes = 50 * 1048576,
-                        uint logMaxCount = 10)
+    public FileLoggerProvider(string logName,
+                              string logFolder = null,
+                              long logMaxBytes = 50 * 1048576,
+                              uint logMaxCount = 10)
     {
         if (string.IsNullOrWhiteSpace(logFolder))
         {
@@ -60,6 +60,26 @@ public class SimpleLogger : ISimpleLogger, IDisposable
         LogMaxBytes = logMaxBytes;
         LogMaxCount = logMaxCount;
         Open();
+    }
+
+    /// <summary>
+    /// Creates a new FileLogger instance of the specified category.
+    /// </summary>
+    /// <param name="categoryName">Category name</param>
+    /// <returns>The ILogger for requested category was created.</returns>
+    public IFileLogger CreateLogger(string categoryName)
+    {
+        return new FileLogger(this, categoryName);
+    }
+    
+    /// <summary>
+    /// Creates a new ILogger instance of the specified category.
+    /// </summary>
+    /// <param name="categoryName">Category name</param>
+    /// <returns>The ILogger for requested category was created.</returns>
+    ILogger ILoggerProvider.CreateLogger(string categoryName)
+    {
+        return new FileLogger(this, categoryName);
     }
 
     /// <summary>
@@ -206,8 +226,8 @@ public class SimpleLogger : ISimpleLogger, IDisposable
             lock (_lockObj)
             {
                 // Don't call Log() here, this will result in a -=#StackOverflow#=-.
-                _logWriter.Dispose();
-                _logStream.Dispose();
+                _logWriter?.Dispose();
+                _logStream?.Dispose();
                 _logWriter = null;
                 _logStream = null;
                 LogFilename = null;
@@ -257,12 +277,6 @@ public class SimpleLogger : ISimpleLogger, IDisposable
 
         return header;
     }
-
-    /* Member methods for writing messages or exceptions to a
-     * log file. No surprises here, this annotation only serves
-     * to call these member methods out seperately from the static
-     * methods below.
-     */
 
     /// <summary>
     /// Logs a message.
@@ -358,6 +372,54 @@ public class SimpleLogger : ISimpleLogger, IDisposable
         }
     }
 
+    /// <summary>
+    /// Logs a critical log message.
+    /// </summary>
+    /// <param name="message">The message.</param>
+    public void LogCritical(string message)
+    {
+        Log(message, MsgType.CRITICAL);
+    }
+
+    /// <summary>
+    /// Logs a debug log message.
+    /// </summary>
+    /// <param name="message">The message.</param>
+    public void LogDebug(string message)
+    {
+        Log(message, MsgType.DEBUG);
+    }
+
+    /// <summary>
+    /// Logs an error log message.
+    /// </summary>
+    /// <param name="message">The message.</param>
+    public void LogError(string message)
+    {
+        Log(message, MsgType.ERROR);
+    }
+
+    /// <summary>
+    /// Logs an informational log message.
+    /// </summary>
+    /// <param name="message">The message.</param>
+    public void LogInformation(string message)
+    {
+        Log(message, MsgType.INFO);
+    }
+
+    /// <summary>
+    /// Logs a warning log message.
+    /// </summary>
+    /// <param name="message">The message.</param>
+    public void LogWarning(string message)
+    {
+        Log(message, MsgType.WARN);
+    }
+
+    /// <summary>
+    /// Dispose resources.
+    /// </summary>
     public void Dispose()
     {
         Close();
