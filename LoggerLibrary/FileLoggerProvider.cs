@@ -290,23 +290,7 @@ public class FileLoggerProvider : ILoggerProvider, IDisposable, IFileLoggerProvi
         }
 
         string header = MsgHeader(logLevel);
-        string output;
-
-        if (message.Contains(Environment.NewLine))
-        {
-            string[] splitMsg = message.Split(Environment.NewLine);
-
-            for (int i = 1; i < splitMsg.Length; i++)
-            {
-                splitMsg[i] = new String(' ', header.Length) + splitMsg[i];
-            }
-
-            output = header + string.Join(Environment.NewLine, splitMsg);
-        }
-        else
-        {
-            output = header + message;
-        }
+        string output = PadMessage(header, message);
 
         if (LogFilename == null)
         {
@@ -341,21 +325,55 @@ public class FileLoggerProvider : ILoggerProvider, IDisposable, IFileLoggerProvi
     }
 
     /// <summary>
+    /// Indents multi-line messages to align with the message header, for
+    /// easier reading when glancing at log files.
+    /// </summary>
+    /// <param name="header">Header text for length measurement.</param>
+    /// <param name="message">Message text.</param>
+    /// <returns></returns>
+    private string PadMessage(string header, string message)
+    {
+        string output;
+
+        if (message.Contains(Environment.NewLine))
+        {
+            string[] splitMsg = message.Split(Environment.NewLine);
+
+            for (int i = 1; i < splitMsg.Length; i++)
+            {
+                splitMsg[i] = new String(' ', header.Length) + splitMsg[i];
+            }
+
+            output = header + string.Join(Environment.NewLine, splitMsg);
+        }
+        else
+        {
+            output = header + message;
+        }
+
+        return output;
+    }
+
+    /// <summary>
     /// Logs an exception message.
     /// </summary>
     /// <param name="e">Exception to be logged.</param>
     /// <param name="message">Additional message for debugging purposes.</param>
     public void Log(Exception e, string message)
     {
+        string header = MsgHeader(MsgType.ERROR);
+        string excMessage = PadMessage(header, e.Message);
+        string usrMessage = PadMessage(header, message);
+
         if (LogFilename == null)
         {
             lock (_lockObj)
             {
-                _logBuffer.Add(MsgHeader(MsgType.ERROR) + e.Message);
+                _logBuffer.Add(excMessage);
 
                 if (string.IsNullOrWhiteSpace(message) == false)
                 {
-                    _logBuffer.Add(MsgHeader(MsgType.ERROR) + message);
+                    _logBuffer.Add(usrMessage);
                 }
             }
         }
@@ -378,13 +396,13 @@ public class FileLoggerProvider : ILoggerProvider, IDisposable, IFileLoggerProvi
 
                 _logBuffer.Clear();
 
-                Console.WriteLine(MsgHeader(MsgType.ERROR) + e.Message);
-                _logWriter.WriteLine(MsgHeader(MsgType.ERROR) + e.Message);
+                Console.WriteLine(excMessage);
+                _logWriter.WriteLine(excMessage);
 
                 if (string.IsNullOrWhiteSpace(message) == false)
                 {
-                    Console.WriteLine(MsgHeader(MsgType.ERROR) + message);
-                    _logWriter.WriteLine(MsgHeader(MsgType.ERROR) + message);
+                    Console.WriteLine(usrMessage);
+                    _logWriter.WriteLine(usrMessage);
                 }
             }
         }
