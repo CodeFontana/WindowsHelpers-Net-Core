@@ -6,6 +6,7 @@ namespace LoggerLibrary
     public interface IFileLogger
     {
         IDisposable BeginScope<TState>(TState state);
+        IFileLogger CreateFileLogger(string categoryName);
         ILogger CreateLogger(string categoryName);
         void Dispose();
         bool IsEnabled(LogLevel logLevel);

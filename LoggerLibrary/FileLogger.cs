@@ -147,6 +147,16 @@ public class FileLogger : ILogger, ILoggerProvider, IFileLogger
     }
 
     /// <summary>
+    /// Creates a new FileLogger instance of the specified category.
+    /// </summary>
+    /// <param name="categoryName">Category name</param>
+    /// <returns>The ILogger for requested category was created.</returns>
+    public IFileLogger CreateFileLogger(string categoryName)
+    {
+        return new FileLogger(_fileLoggerProvider, categoryName);
+    }
+
+    /// <summary>
     /// Creates a new nested FileLogger instance of the specified category. This is useful for providing an in-depth callstack.
     /// </summary>
     /// <param name="categoryName">Category name</param>

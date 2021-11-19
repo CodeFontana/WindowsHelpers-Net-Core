@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Extensions.Logging;
+using System;
 
 namespace LoggerLibrary
 {
@@ -12,7 +13,8 @@ namespace LoggerLibrary
         string LogName { get; }
 
         bool Close();
-        IFileLogger CreateLogger(string categoryName);
+        IFileLogger CreateFileLogger(string categoryName);
+        ILogger CreateLogger(string categoryName);
         void Dispose();
         void Log(Exception e, string message);
         void Log(string message, FileLoggerProvider.MsgType logLevel = FileLoggerProvider.MsgType.INFO);

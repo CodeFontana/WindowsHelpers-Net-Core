@@ -67,7 +67,7 @@ public class FileLoggerProvider : ILoggerProvider, IDisposable, IFileLoggerProvi
     /// </summary>
     /// <param name="categoryName">Category name</param>
     /// <returns>The ILogger for requested category was created.</returns>
-    public IFileLogger CreateLogger(string categoryName)
+    public IFileLogger CreateFileLogger(string categoryName)
     {
         return new FileLogger(this, categoryName);
     }
@@ -77,7 +77,7 @@ public class FileLoggerProvider : ILoggerProvider, IDisposable, IFileLoggerProvi
     /// </summary>
     /// <param name="categoryName">Category name</param>
     /// <returns>The ILogger for requested category was created.</returns>
-    ILogger ILoggerProvider.CreateLogger(string categoryName)
+    public ILogger CreateLogger(string categoryName)
     {
         return new FileLogger(this, categoryName);
     }
@@ -248,10 +248,9 @@ public class FileLoggerProvider : ILoggerProvider, IDisposable, IFileLoggerProvi
     /// <param name="prefix">Message prefix.</param>
     /// <param name="entryType">The log level being annotated in the message preamble.</param>
     /// <returns>A consistently formatted preamble for human consumption.</returns>
-    public static string MsgHeader(string prefix, MsgType entryType)
+    public static string MsgHeader(MsgType entryType)
     {
         string header = DateTime.Now.ToString("yyyy-MM-dd--HH.mm.ss|");
-        header += prefix + "|";
 
         switch (entryType)
         {
@@ -290,11 +289,30 @@ public class FileLoggerProvider : ILoggerProvider, IDisposable, IFileLoggerProvi
             return;
         }
 
+        string header = MsgHeader(logLevel);
+        string output;
+
+        if (message.Contains(Environment.NewLine))
+        {
+            string[] splitMsg = message.Split(Environment.NewLine);
+
+            for (int i = 1; i < splitMsg.Length; i++)
+            {
+                splitMsg[i] = new String(' ', header.Length) + splitMsg[i];
+            }
+
+            output = header + string.Join(Environment.NewLine, splitMsg);
+        }
+        else
+        {
+            output = header + message;
+        }
+
         if (LogFilename == null)
         {
             lock (_lockObj)
             {
-                _logBuffer.Add(MsgHeader(LogName, logLevel) + message);
+                _logBuffer.Add(output);
             }
         }
         else
@@ -316,8 +334,8 @@ public class FileLoggerProvider : ILoggerProvider, IDisposable, IFileLoggerProvi
 
                 _logBuffer.Clear();
 
-                Console.WriteLine(MsgHeader(LogName, logLevel) + message);
-                _logWriter.WriteLine(MsgHeader(LogName, logLevel) + message);
+                Console.WriteLine(output);
+                _logWriter.WriteLine(output);
             }
         }
     }
@@ -333,11 +351,11 @@ public class FileLoggerProvider : ILoggerProvider, IDisposable, IFileLoggerProvi
         {
             lock (_lockObj)
             {
-                _logBuffer.Add(MsgHeader(LogName, MsgType.ERROR) + e.Message);
+                _logBuffer.Add(MsgHeader(MsgType.ERROR) + e.Message);
 
                 if (string.IsNullOrWhiteSpace(message) == false)
                 {
-                    _logBuffer.Add(MsgHeader(LogName, MsgType.ERROR) + message);
+                    _logBuffer.Add(MsgHeader(MsgType.ERROR) + message);
                 }
             }
         }
@@ -360,13 +378,13 @@ public class FileLoggerProvider : ILoggerProvider, IDisposable, IFileLoggerProvi
 
                 _logBuffer.Clear();
 
-                Console.WriteLine(MsgHeader(LogName, MsgType.ERROR) + e.Message);
-                _logWriter.WriteLine(MsgHeader(LogName, MsgType.ERROR) + e.Message);
+                Console.WriteLine(MsgHeader(MsgType.ERROR) + e.Message);
+                _logWriter.WriteLine(MsgHeader(MsgType.ERROR) + e.Message);
 
                 if (string.IsNullOrWhiteSpace(message) == false)
                 {
-                    Console.WriteLine(MsgHeader(LogName, MsgType.ERROR) + message);
-                    _logWriter.WriteLine(MsgHeader(LogName, MsgType.ERROR) + message);
+                    Console.WriteLine(MsgHeader(MsgType.ERROR) + message);
+                    _logWriter.WriteLine(MsgHeader(MsgType.ERROR) + message);
                 }
             }
         }
