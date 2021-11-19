@@ -1,4 +1,4 @@
-﻿using LoggerLibrary.Interfaces;
+﻿using LoggerLibrary;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using System;
@@ -11,15 +11,15 @@ public class Sandbox : IHostedService
 {
     private readonly IHostApplicationLifetime _hostApplicationLifetime;
     private readonly IConfiguration _configuration;
-    private readonly ISimpleLogger _logFile;
+    private readonly IFileLogger _logger;
 
     public Sandbox(IHostApplicationLifetime hostApplicationLifetime,
                    IConfiguration configuration,
-                   ISimpleLogger logFile)
+                   IFileLogger logger)
     {
         _hostApplicationLifetime = hostApplicationLifetime;
         _configuration = configuration;
-        _logFile = logFile;
+        _logger = logger;
     }
 
     public Task StartAsync(CancellationToken cancellationToken)
@@ -32,7 +32,7 @@ public class Sandbox : IHostedService
             }
             catch (Exception e)
             {
-                _logFile.Log(e, "Unhandled exceptiopn!");
+                _logger.Log(e, "Unhandled exceptiopn!");
             }
             finally
             {
@@ -50,6 +50,6 @@ public class Sandbox : IHostedService
 
     private void Run()
     {
-        _logFile.Log("TODO: Add code here...");
+        _logger.Log("TODO: Add code here...");
     }
 }

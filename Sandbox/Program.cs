@@ -5,8 +5,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using System.IO;
 using Microsoft.Extensions.Logging;
-using LoggerLibrary.Interfaces;
-using LoggerLibrary;
 using WindowsLibrary;
 
 namespace Sandbox;
@@ -35,14 +33,13 @@ class Program
             })
             .ConfigureServices((hostContext, services) =>
             {
-                services.AddTransient<ISimpleLoggerFactory, SimpleLoggerFactory>();
-                services.AddSingleton(sp => sp.GetRequiredService<ISimpleLoggerFactory>().CreateLogger("Sandbox"));
                 services.AddTransient<IWindowsLibraryFactory, WindowsLibraryFactory>();
                 services.AddHostedService<Sandbox>();
             })
             .ConfigureLogging((hostContext, config) =>
             {
                 config.ClearProviders();
+                config.AddFileLogger("Sandbox");
             })
             .RunConsoleAsync();
     }

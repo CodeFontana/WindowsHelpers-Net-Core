@@ -5,6 +5,7 @@
     <TargetFramework>net6.0-windows</TargetFramework>
     <Authors>Brian Fontana</Authors>
     <Company>CodeFoxtrot</Company>
+    <Nullable>disable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
