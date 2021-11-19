@@ -1,17 +1,17 @@
-﻿using LoggerLibrary.Interfaces;
+﻿using LoggerLibrary;
 
 namespace WindowsLibrary;
 
 public interface IWindowsLibraryFactory
 {
-    FileSystemHelper GetFilesystemHelper(ISimpleLogger logFile);
+    FileSystemHelper GetFilesystemHelper(IFileLogger logger);
     HostsFileHelper GetHostsFileHelper();
-    NetworkAdapterHelper GetNetworkAdapterHelper(ISimpleLogger logFile);
-    NetworkHelper GetNetworkHelper(ISimpleLogger logFile);
-    PageFileHelper GetPageFileHelper(ISimpleLogger logFile);
-    ProcessHelper GetProcessHelper(ISimpleLogger logFile);
-    RegistryHelper GetRegistryHelper(ISimpleLogger logFile);
-    ServiceHelper GetServiceHelper(ISimpleLogger logFile);
-    WindowsHelper GetWindowsHelper(ISimpleLogger logFile);
-    WmiHelper GetWmiHelper(ISimpleLogger logFile);
+    NetworkAdapterHelper GetNetworkAdapterHelper(IFileLogger logger);
+    NetworkHelper GetNetworkHelper(IFileLogger logger);
+    PageFileHelper GetPageFileHelper(IFileLogger logger);
+    ProcessHelper GetProcessHelper(IFileLogger logger);
+    RegistryHelper GetRegistryHelper(IFileLogger logger);
+    ServiceHelper GetServiceHelper(IFileLogger logger);
+    WindowsHelper GetWindowsHelper(IFileLogger logger);
+    WmiHelper GetWmiHelper(IFileLogger logger);
 }

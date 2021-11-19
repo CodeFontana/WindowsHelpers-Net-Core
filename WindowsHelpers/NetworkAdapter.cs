@@ -1,5 +1,4 @@
 ﻿using LoggerLibrary;
-using LoggerLibrary.Interfaces;
 using System;
 using System.Management;
 
@@ -106,7 +105,7 @@ public class NetworkAdapter
         return true;
     }
 
-    public bool EnableAdapter(SimpleLogger logger)
+    public bool EnableAdapter(FileLoggerProvider logger)
     {
         try
         {
@@ -127,7 +126,7 @@ public class NetworkAdapter
         }
     }
 
-    public bool ConfigStaticAddress(ISimpleLogger logger, string newAddress, string newSubnet, string newGateway)
+    public bool ConfigStaticAddress(IFileLogger logger, string newAddress, string newSubnet, string newGateway)
     {
         try
         {

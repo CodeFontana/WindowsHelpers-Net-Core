@@ -1,17 +1,17 @@
-﻿using LoggerLibrary.Interfaces;
+﻿using LoggerLibrary;
 
 namespace WindowsLibrary;
 
 public class WindowsLibraryFactory : IWindowsLibraryFactory
 {
-    public FileSystemHelper GetFilesystemHelper(ISimpleLogger logFile) => new FileSystemHelper(logFile);
+    public FileSystemHelper GetFilesystemHelper(IFileLogger logger) => new FileSystemHelper(logger);
     public HostsFileHelper GetHostsFileHelper() => new HostsFileHelper();
-    public NetworkAdapterHelper GetNetworkAdapterHelper(ISimpleLogger logFile) => new NetworkAdapterHelper(logFile);
-    public NetworkHelper GetNetworkHelper(ISimpleLogger logFile) => new NetworkHelper(logFile);
-    public PageFileHelper GetPageFileHelper(ISimpleLogger logFile) => new PageFileHelper(logFile);
-    public ProcessHelper GetProcessHelper(ISimpleLogger logFile) => new ProcessHelper(logFile);
-    public RegistryHelper GetRegistryHelper(ISimpleLogger logFile) => new RegistryHelper(logFile);
-    public ServiceHelper GetServiceHelper(ISimpleLogger logFile) => new ServiceHelper(logFile);
-    public WindowsHelper GetWindowsHelper(ISimpleLogger logFile) => new WindowsHelper(logFile);
-    public WmiHelper GetWmiHelper(ISimpleLogger logFile) => new WmiHelper(logFile);
+    public NetworkAdapterHelper GetNetworkAdapterHelper(IFileLogger logger) => new NetworkAdapterHelper(logger);
+    public NetworkHelper GetNetworkHelper(IFileLogger logger) => new NetworkHelper(logger);
+    public PageFileHelper GetPageFileHelper(IFileLogger logger) => new PageFileHelper(logger);
+    public ProcessHelper GetProcessHelper(IFileLogger logger) => new ProcessHelper(logger);
+    public RegistryHelper GetRegistryHelper(IFileLogger logger) => new RegistryHelper(logger);
+    public ServiceHelper GetServiceHelper(IFileLogger logger) => new ServiceHelper(logger);
+    public WindowsHelper GetWindowsHelper(IFileLogger logger) => new WindowsHelper(logger);
+    public WmiHelper GetWmiHelper(IFileLogger logger) => new WmiHelper(logger);
 }

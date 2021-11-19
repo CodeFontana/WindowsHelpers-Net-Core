@@ -1,4 +1,4 @@
-﻿using LoggerLibrary.Interfaces;
+﻿using LoggerLibrary;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,11 +12,11 @@ namespace WindowsLibrary;
 
 public class NetworkHelper
 {
-    private readonly ISimpleLogger _logFile;
+    private readonly IFileLogger _logger;
 
-    public NetworkHelper(ISimpleLogger logFile)
+    public NetworkHelper(IFileLogger logger)
     {
-        _logFile = logFile;
+        _logger = logger;
     }
 
     public IPAddress GetCurrentIpAddress(string callStack)
@@ -36,7 +36,7 @@ public class NetworkHelper
         }
         catch (Exception e)
         {
-            _logFile.Log(e, "Failed to resolve current IP address");
+            _logger.Log(e, "Failed to resolve current IP address");
             return null;
         }
     }
@@ -61,7 +61,7 @@ public class NetworkHelper
         }
         catch (Exception e)
         {
-            _logFile.Log(e, "Failed to resolve subnet mask for specified IP address");
+            _logger.Log(e, "Failed to resolve subnet mask for specified IP address");
             return null;
         }
     }
@@ -85,7 +85,7 @@ public class NetworkHelper
         }
         catch (Exception e)
         {
-            _logFile.Log(e, "Failed to resolve default gateway for specified IP address");
+            _logger.Log(e, "Failed to resolve default gateway for specified IP address");
             return null;
         }
     }
@@ -99,7 +99,7 @@ public class NetworkHelper
             {
                 if (hideOutput == false)
                 {
-                    _logFile.Log(hostAddress + " resolved to: " + hostAddress);
+                    _logger.Log(hostAddress + " resolved to: " + hostAddress);
                 }
 
                 return new Tuple<bool, List<string>>(true, new List<string> { hostAddress });
@@ -121,7 +121,7 @@ public class NetworkHelper
 
                         if (hideOutput == false)
                         {
-                            _logFile.Log(hostAddress + " resolved to: " + addr.ToString());
+                            _logger.Log(hostAddress + " resolved to: " + addr.ToString());
                         }
                     }
                 }
@@ -133,7 +133,7 @@ public class NetworkHelper
         {
             if (hideOutput == false)
             {
-                _logFile.Log("Unable to resolve: " + hostAddress);
+                _logger.Log("Unable to resolve: " + hostAddress);
             }
 
             return new Tuple<bool, List<string>>(false, null);
@@ -142,7 +142,7 @@ public class NetworkHelper
         {
             if (hideOutput == false)
             {
-                _logFile.Log(e, "Address resolution failure");
+                _logger.Log(e, "Address resolution failure");
             }
 
             return new Tuple<bool, List<string>>(false, null);
@@ -157,7 +157,7 @@ public class NetworkHelper
             {
                 if (hideOutput == false)
                 {
-                    _logFile.Log(inputAddress + " reversed to: " + inputAddress);
+                    _logger.Log(inputAddress + " reversed to: " + inputAddress);
                 }
 
                 return inputAddress;
@@ -169,7 +169,7 @@ public class NetworkHelper
             {
                 if (hideOutput == false)
                 {
-                    _logFile.Log(inputAddress + " reversed to: " + HostEntry.HostName);
+                    _logger.Log(inputAddress + " reversed to: " + HostEntry.HostName);
                 }
 
                 return HostEntry.HostName;
@@ -183,7 +183,7 @@ public class NetworkHelper
         {
             if (hideOutput == false)
             {
-                _logFile.Log("Unable to reverse [" + inputAddress + "] to hostname");
+                _logger.Log("Unable to reverse [" + inputAddress + "] to hostname");
             }
 
             return null;
@@ -192,7 +192,7 @@ public class NetworkHelper
         {
             if (hideOutput == false)
             {
-                _logFile.Log(e, "Reverse name lookup exception");
+                _logger.Log(e, "Reverse name lookup exception");
             }
 
             return null;
@@ -220,7 +220,7 @@ public class NetworkHelper
 
     public bool TestURL(string url, TimeSpan timeout)
     {
-        _logFile.Log("Test URL: " + url + " [Timeout=" + timeout.TotalSeconds + "s]");
+        _logger.Log("Test URL: " + url + " [Timeout=" + timeout.TotalSeconds + "s]");
 
         try
         {
@@ -230,7 +230,7 @@ public class NetworkHelper
 
             if (result.Status == TaskStatus.RanToCompletion)
             {
-                _logFile.Log("HTTP Response: " + result.Result.StatusCode.ToString());
+                _logger.Log("HTTP Response: " + result.Result.StatusCode.ToString());
 
                 if (result.Result.StatusCode == HttpStatusCode.OK)
                 {
@@ -243,13 +243,13 @@ public class NetworkHelper
             }
             else
             {
-                _logFile.Log("HTTP Response: TIMEOUT ERROR [" + result.Status.ToString() + "]");
+                _logger.Log("HTTP Response: TIMEOUT ERROR [" + result.Status.ToString() + "]");
                 return false;
             }
         }
         catch (Exception e)
         {
-            _logFile.Log(e, "Test connection failed to [" + url + "]");
+            _logger.Log(e, "Test connection failed to [" + url + "]");
             return false;
         }
     }

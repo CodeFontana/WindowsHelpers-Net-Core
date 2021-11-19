@@ -1,5 +1,4 @@
 ﻿using LoggerLibrary;
-using LoggerLibrary.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -11,12 +10,12 @@ namespace WindowsLibrary;
 
 public class PageFileHelper
 {
-    private readonly ISimpleLogger _logFile;
+    private readonly IFileLogger _logger;
     public static List<PageFile> PageFiles = new();
 
-    public PageFileHelper(ISimpleLogger logFile)
+    public PageFileHelper(IFileLogger logger)
     {
-        _logFile = logFile;
+        _logger = logger;
         ReadConfig();
     }
 
@@ -133,7 +132,7 @@ public class PageFileHelper
         }
         catch (Exception e)
         {
-            _logFile.Log(e, "Failed to read page file configuration");
+            _logger.Log(e, "Failed to read page file configuration");
             return false;
         }
     }
@@ -142,13 +141,13 @@ public class PageFileHelper
     {
         foreach (PageFile p in PageFiles)
         {
-            _logFile.Log($"Drive: {p.DriveLetter}");
-            _logFile.Log($"  Comment: {p.Comment}");
-            _logFile.Log($"  Initial Size: {p.InitialSize}MB");
-            _logFile.Log($"  Maximum Size: {p.MaximumSize}MB");
-            _logFile.Log($"  Allocated Size: {p.AllocatedBaseSize}MB");
-            _logFile.Log($"  Current usage: {p.CurrentUsage}MB");
-            _logFile.Log($"  Peak usage: {p.PeakUsage}MB");
+            _logger.Log($"Drive: {p.DriveLetter}");
+            _logger.Log($"  Comment: {p.Comment}");
+            _logger.Log($"  Initial Size: {p.InitialSize}MB");
+            _logger.Log($"  Maximum Size: {p.MaximumSize}MB");
+            _logger.Log($"  Allocated Size: {p.AllocatedBaseSize}MB");
+            _logger.Log($"  Current usage: {p.CurrentUsage}MB");
+            _logger.Log($"  Peak usage: {p.PeakUsage}MB");
         }
     }
 
@@ -160,11 +159,11 @@ public class PageFileHelper
 
             if (NativeMethods.OpenProcessToken(hProcess, NativeMethods.TOKEN_ALL_ACCESS, out IntPtr hToken) == false)
             {
-                _logFile.Log("ERROR: Unable to open specified process token [OpenProcessToken=" + Marshal.GetLastWin32Error().ToString() + "]", SimpleLogger.MsgType.ERROR);
+                _logger.LogError("Unable to open specified process token [OpenProcessToken=" + Marshal.GetLastWin32Error().ToString() + "]");
             }
 
-            new WindowsHelper(_logFile).EnablePrivilege(hToken, NativeMethods.SE_CREATE_PAGEFILE_NAME);
-            _logFile.Log($"Configure automatic page file management [Enable={enable.ToString().ToUpper()}]...");
+            new WindowsHelper(_logger).EnablePrivilege(hToken, NativeMethods.SE_CREATE_PAGEFILE_NAME);
+            _logger.Log($"Configure automatic page file management [Enable={enable.ToString().ToUpper()}]...");
 
             ManagementScope scope = new(@"\\.\root\cimv2");
             scope.Connect();
@@ -175,29 +174,29 @@ public class PageFileHelper
             {
                 if (enable && m["AutomaticManagedPagefile"].ToString().ToUpper().Equals("FALSE"))
                 {
-                    _logFile.Log("Current setting: OFF");
-                    _logFile.Log("New setting: ON");
+                    _logger.Log("Current setting: OFF");
+                    _logger.Log("New setting: ON");
                     m["AutomaticManagedPagefile"] = true;
                     m.Put();
-                    _logFile.Log("Configuration successful");
+                    _logger.Log("Configuration successful");
                 }
                 else if (enable && m["AutomaticManagedPagefile"].ToString().ToUpper().Equals("TRUE"))
                 {
-                    _logFile.Log("Current setting: ON");
-                    _logFile.Log("No configuration changes required");
+                    _logger.Log("Current setting: ON");
+                    _logger.Log("No configuration changes required");
                 }
                 else if (!enable && m["AutomaticManagedPagefile"].ToString().ToUpper().Equals("FALSE"))
                 {
-                    _logFile.Log("Current setting: OFF");
-                    _logFile.Log("No configuration changes required");
+                    _logger.Log("Current setting: OFF");
+                    _logger.Log("No configuration changes required");
                 }
                 else if (!enable && m["AutomaticManagedPagefile"].ToString().ToUpper().Equals("TRUE"))
                 {
-                    _logFile.Log("Current setting: ON");
-                    _logFile.Log("New setting: OFF");
+                    _logger.Log("Current setting: ON");
+                    _logger.Log("New setting: OFF");
                     m["AutomaticManagedPagefile"] = false;
                     m.Put();
-                    _logFile.Log("Configuration successful");
+                    _logger.Log("Configuration successful");
                 }
             }
 
@@ -205,7 +204,7 @@ public class PageFileHelper
         }
         catch (Exception e)
         {
-            _logFile.Log(e, "Failed to update automatic page file configuration");
+            _logger.Log(e, "Failed to update automatic page file configuration");
             return false;
         }
     }
@@ -218,19 +217,19 @@ public class PageFileHelper
             // Turn OFF Automatic Page File Management.
             // ******************************
 
-            _logFile.Log("Ensure automatic page file management is OFF...");
+            _logger.Log("Ensure automatic page file management is OFF...");
             bool success = ConfigureAutomaticPageFile(false);
 
             if (!success)
             {
-                _logFile.Log("ERROR: Failed to TURN OFF automatic page file management, further actions cancelled", SimpleLogger.MsgType.ERROR);
+                _logger.LogError("Failed to TURN OFF automatic page file management, further actions cancelled");
                 return false;
             }
 
-            _logFile.Log("Perform manual configuration...");
-            _logFile.Log($"  Drive letter: {driveLetter}:\\");
-            _logFile.Log($"  Initial Size: {initSize}");
-            _logFile.Log($"  Maximum Size: {maxSize}");
+            _logger.Log("Perform manual configuration...");
+            _logger.Log($"  Drive letter: {driveLetter}:\\");
+            _logger.Log($"  Initial Size: {initSize}");
+            _logger.Log($"  Maximum Size: {maxSize}");
 
             // ******************************
             // Verify Free Disk Space Available.
@@ -244,7 +243,7 @@ public class PageFileHelper
 
                     if (maxSize > freeSpaceMB)
                     {
-                        _logFile.Log($"ERROR: Page file maximum size [{maxSize}MB] exceeds available free disk space [{freeSpaceMB}MB]", SimpleLogger.MsgType.ERROR);
+                        _logger.LogError($"Page file maximum size [{maxSize}MB] exceeds available free disk space [{freeSpaceMB}MB]");
                         return false;
                     }
                     else
@@ -269,7 +268,7 @@ public class PageFileHelper
             {
                 if (m["Name"].ToString().ToUpper().StartsWith(driveLetter.ToUpper()))
                 {
-                    _logFile.Log("Update existing page file configuration...");
+                    _logger.Log("Update existing page file configuration...");
                     matchFound = true;
                     m["InitialSize"] = initSize;
                     m["MaximumSize"] = maxSize;
@@ -280,7 +279,7 @@ public class PageFileHelper
 
             if (queryCollection.Count == 0 || !matchFound)
             {
-                _logFile.Log("Create new page file configuration...");
+                _logger.Log("Create new page file configuration...");
                 ManagementClass mc = new(@"\\.\root\cimv2", "Win32_PageFileSetting", null);
                 ManagementObject mo = mc.CreateInstance();
                 mo["Caption"] = $"{driveLetter.ToUpper()}:\\ 'pagefile.sys'";
@@ -297,12 +296,12 @@ public class PageFileHelper
             }
 
             searcher.Dispose();
-            _logFile.Log("Configuration successful");
+            _logger.Log("Configuration successful");
             return true;
         }
         catch (Exception e)
         {
-            _logFile.Log(e, "Failed to update page file configuration");
+            _logger.Log(e, "Failed to update page file configuration");
             return false;
         }
     }
@@ -315,12 +314,12 @@ public class PageFileHelper
             // Turn OFF Automatic Page File Management.
             // ******************************
 
-            _logFile.Log("Ensure automatic page file management is OFF...");
+            _logger.Log("Ensure automatic page file management is OFF...");
             bool success = ConfigureAutomaticPageFile(false);
 
             if (success == false)
             {
-                _logFile.Log("ERROR: Failed to TURN OFF automatic page file management, further actions cancelled", SimpleLogger.MsgType.ERROR);
+                _logger.LogError("Failed to TURN OFF automatic page file management, further actions cancelled");
                 return false;
             }
 
@@ -328,8 +327,8 @@ public class PageFileHelper
             // Remove Page File Configuration.
             // ******************************
 
-            _logFile.Log("Remove page file configuration...");
-            _logFile.Log($"  Drive letter: {driveLetter}");
+            _logger.Log("Remove page file configuration...");
+            _logger.Log($"  Drive letter: {driveLetter}");
             ManagementScope scope = new(@"\\.\root\cimv2");
             scope.Connect();
             ObjectQuery query = new("SELECT * FROM Win32_PageFileSetting");
@@ -341,7 +340,7 @@ public class PageFileHelper
             {
                 if (m["Name"].ToString().ToUpper().StartsWith(driveLetter.ToUpper()))
                 {
-                    _logFile.Log("Found page file configuration, removing...");
+                    _logger.Log("Found page file configuration, removing...");
                     matchFound = true;
                     m.Delete();
                     break;
@@ -350,17 +349,17 @@ public class PageFileHelper
 
             if (queryCollection.Count == 0 || !matchFound)
             {
-                _logFile.Log($"ERROR: Removal failed, no page file is currently configured for {driveLetter}:\\", SimpleLogger.MsgType.ERROR);
+                _logger.LogError($"Removal failed, no page file is currently configured for {driveLetter}:\\");
                 return false;
             }
 
             searcher.Dispose();
-            _logFile.Log("Removal successful");
+            _logger.Log("Removal successful");
             return true;
         }
         catch (Exception e)
         {
-            _logFile.Log(e, "Failed to update page file configuration");
+            _logger.Log(e, "Failed to update page file configuration");
             return false;
         }
     }

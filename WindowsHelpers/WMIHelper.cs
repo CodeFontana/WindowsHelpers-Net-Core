@@ -1,5 +1,4 @@
 ﻿using LoggerLibrary;
-using LoggerLibrary.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,11 +8,11 @@ namespace WindowsLibrary;
 
 public class WmiHelper
 {
-    private readonly ISimpleLogger _logFile;
+    private readonly IFileLogger _logger;
 
-    public WmiHelper(ISimpleLogger logFile)
+    public WmiHelper(IFileLogger logger)
     {
-        _logFile = logFile;
+        _logger = logger;
     }
 
     /// <summary>
@@ -21,31 +20,31 @@ public class WmiHelper
     /// </summary>
     public static void SampleUsage()
     {
-        var logFile = new FileLoggerProvider("WmiHelperSampleUsage");
-        WmiHelper wmi = new(logFile);
+        var logger = new FileLoggerProvider("WmiHelper");
+        WmiHelper wmi = new(logger.CreateFileLogger("Sample"));
 
         // EXAMPLE: Get Manufacturer + Model info.
-        logFile.Log("Example: Win32_ComputerSystem [Manufacturer and Model]\n");
+        logger.Log("Example: Win32_ComputerSystem [Manufacturer and Model]\n");
         List<string[]> wmiData = wmi.GetWMIData("root\\cimv2", "Win32_ComputerSystem", new List<string> { "Manufacturer", "Model" });
-        logFile.Log($"Manufacturer: {wmiData[1][0]}");
-        logFile.Log($"Model: {wmiData[1][1]}");
+        logger.Log($"Manufacturer: {wmiData[1][0]}");
+        logger.Log($"Model: {wmiData[1][1]}");
 
         // EXAMPLE: Get all columns.
-        logFile.Log("Example: Win32_QuickFixEngineering [ALL COLUMNS]\n" +
+        logger.Log("Example: Win32_QuickFixEngineering [ALL COLUMNS]\n" +
             wmi.GetFormattedWMIData(
                 "root\\cimv2",
                 "Win32_QuickFixEngineering",
                 null));
 
         // EXAMPLE: Get specified columns.
-        logFile.Log("Example: Win32_QuickFixEngineering [SPECIFIC COLUMNS]\n" +
+        logger.Log("Example: Win32_QuickFixEngineering [SPECIFIC COLUMNS]\n" +
             wmi.GetFormattedWMIData(
                 "root\\cimv2",
                 "Win32_QuickFixEngineering",
                 new List<string> { "HotFixID", "Description", "InstalledOn", "Caption" },
                 4));
 
-        logFile.Close();
+        logger.Close();
     }
 
     /// <summary>
@@ -70,7 +69,7 @@ public class WmiHelper
         }
         catch (Exception e)
         {
-            _logFile.Log(e, "Failed to query list of WMI namespaces");
+            _logger.Log(e, "Failed to query list of WMI namespaces");
         }
 
         return namespaces?.OrderBy(s => s).ToList() ?? namespaces;
@@ -101,7 +100,7 @@ public class WmiHelper
         }
         catch (Exception e)
         {
-            _logFile.Log(e, $"Failed to query class name list for namespace '{wmiNamespaceName}'");
+            _logger.Log(e, $"Failed to query class name list for namespace '{wmiNamespaceName}'");
         }
 
         return classes?.OrderBy(s => s).ToList() ?? classes;
@@ -140,7 +139,7 @@ public class WmiHelper
         }
         catch (Exception e)
         {
-            _logFile.Log(e, $"Failed to query properties of specified class '{namespaceName}\\{wmiClassName}'");
+            _logger.Log(e, $"Failed to query properties of specified class '{namespaceName}\\{wmiClassName}'");
         }
 
         return output;
@@ -214,7 +213,7 @@ public class WmiHelper
         }
         catch (Exception e)
         {
-            _logFile.Log(e, $"Failed to query data from '{namespaceName}\\{wmiClassName}'");
+            _logger.Log(e, $"Failed to query data from '{namespaceName}\\{wmiClassName}'");
         }
 
         return output;
@@ -290,7 +289,7 @@ public class WmiHelper
         }
         catch (Exception e)
         {
-            _logFile.Log(e, $"Failed to query data from '{namespaceName}\\{wmiClassName}'");
+            _logger.Log(e, $"Failed to query data from '{namespaceName}\\{wmiClassName}'");
         }
 
         return DotNetHelper.PadListElements(output, columnPadding);

@@ -281,7 +281,7 @@ public static class DotNetHelper
                 var value = line[i];
 
                 // Append the value with padding of the maximum length of any value for this element
-                outputString.Append(value.PadRight(maxValues[i]));
+                outputString.Append(value.PadLeft(maxValues[i]));
             }
         }
 
