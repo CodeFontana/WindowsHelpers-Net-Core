@@ -12,7 +12,7 @@ public class NetworkAdapterHelper
 
     public NetworkAdapterHelper(IFileLogger logger)
     {
-        _logger = logger;
+        _logger = logger.CreateFileLogger(GetType().Name);
         QueryNetworkAdapters();
     }
 

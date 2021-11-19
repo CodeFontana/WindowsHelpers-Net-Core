@@ -16,7 +16,7 @@ public class NetworkHelper
 
     public NetworkHelper(IFileLogger logger)
     {
-        _logger = logger;
+        _logger = logger.CreateFileLogger(GetType().Name);
     }
 
     public IPAddress GetCurrentIpAddress(string callStack)

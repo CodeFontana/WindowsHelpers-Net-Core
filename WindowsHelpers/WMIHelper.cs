@@ -12,7 +12,7 @@ public class WmiHelper
 
     public WmiHelper(IFileLogger logger)
     {
-        _logger = logger;
+        _logger = logger.CreateFileLogger(GetType().Name);
     }
 
     /// <summary>

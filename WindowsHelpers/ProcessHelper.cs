@@ -19,7 +19,7 @@ public class ProcessHelper
 
     public ProcessHelper(IFileLogger logger)
     {
-        _logger = logger;
+        _logger = logger.CreateFileLogger(GetType().Name);
     }
 
     public Tuple<bool, int> CreateProcessAsUser(IntPtr hUserToken, string appFileName, string appArgs)

@@ -16,7 +16,7 @@ public class ServiceHelper
 
     public ServiceHelper(IFileLogger logger)
     {
-        _logger = logger;
+        _logger = logger.CreateFileLogger(GetType().Name);
         _psHelper = new ProcessHelper(_logger);
     }
 

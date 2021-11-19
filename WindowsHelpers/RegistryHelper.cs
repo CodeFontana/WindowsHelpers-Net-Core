@@ -11,7 +11,7 @@ public class RegistryHelper
 
     public RegistryHelper(IFileLogger logger)
     {
-        _logger = logger;
+        _logger = logger.CreateFileLogger(GetType().Name);
     }
 
     public void CopyKey(RegistryKey sourceKey, RegistryKey destKey)

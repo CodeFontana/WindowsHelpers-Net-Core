@@ -22,7 +22,7 @@ public class WindowsHelper
 
     public WindowsHelper(IFileLogger logger)
     {
-        _logger = logger;
+        _logger = logger.CreateFileLogger(GetType().Name);
     }
 
     public bool AddHostFileEntry(string entry)

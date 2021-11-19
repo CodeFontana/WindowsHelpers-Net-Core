@@ -15,7 +15,7 @@ public class PageFileHelper
 
     public PageFileHelper(IFileLogger logger)
     {
-        _logger = logger;
+        _logger = logger.CreateFileLogger(GetType().Name);
         ReadConfig();
     }
 
