@@ -54,7 +54,7 @@ public class FileLogger : ILogger, ILoggerProvider, IFileLogger
     /// <returns>The ILogger for requested category was created.</returns>
     public IFileLogger CreateFileLogger(string categoryName)
     {
-        return new FileLogger(_fileLoggerProvider, categoryName);
+        return new FileLogger(_fileLoggerProvider, $"{_fileLoggerProvider.LogName}|{categoryName}");
     }
 
     /// <summary>
