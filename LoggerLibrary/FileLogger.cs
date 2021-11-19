@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
 using System;
-using static LoggerLibrary.FileLoggerProvider;
 
 namespace LoggerLibrary;
 
@@ -28,11 +27,52 @@ public class FileLogger : ILogger, ILoggerProvider, IFileLogger
     }
 
     /// <summary>
+    /// Checks if the given logLevel is enabled.
+    /// </summary>
+    /// <param name="logLevel">The log level to check</param>
+    /// <returns></returns>
+    public bool IsEnabled(LogLevel logLevel)
+    {
+        return logLevel >= _fileLoggerProvider.LogMinLevel;
+    }
+
+    /// <summary>
+    /// Begins a logical operation scope.
+    /// </summary>
+    /// <typeparam name="TState">Type parameter</typeparam>
+    /// <param name="state">The entry to be written. Can be also an object.</param>
+    /// <returns>A disposable object that ends the logical operation scope on dispose.</returns>
+    public IDisposable BeginScope<TState>(TState state)
+    {
+        return null;
+    }
+
+    /// <summary>
+    /// Creates a new FileLogger instance of the specified category.
+    /// </summary>
+    /// <param name="categoryName">Category name</param>
+    /// <returns>The ILogger for requested category was created.</returns>
+    public IFileLogger CreateFileLogger(string categoryName)
+    {
+        return new FileLogger(_fileLoggerProvider, categoryName);
+    }
+
+    /// <summary>
+    /// Creates a new nested FileLogger instance of the specified category. This is useful for providing an in-depth callstack.
+    /// </summary>
+    /// <param name="categoryName">Category name</param>
+    /// <returns>The ILogger for requested category was created.</returns>
+    public ILogger CreateLogger(string categoryName)
+    {
+        return new FileLogger(_fileLoggerProvider, categoryName);
+    }
+
+    /// <summary>
     /// Formats the message and submits it to the Log Provider's Log() method.
     /// </summary>
     /// <param name="message">The message.</param>
     /// <param name="logLevel">The log level entry.</param>
-    public void Log(string message, MsgType logLevel = MsgType.INFO)
+    public void Log(string message, LogLevel logLevel = LogLevel.Information)
     {
         _fileLoggerProvider.Log($"{_logName}|{message}", logLevel);
     }
@@ -53,7 +93,7 @@ public class FileLogger : ILogger, ILoggerProvider, IFileLogger
     /// <param name="message">The message.</param>
     public void LogCritical(string message)
     {
-        _fileLoggerProvider.Log($"{_logName}|{message}", MsgType.CRITICAL);
+        _fileLoggerProvider.Log($"{_logName}|{message}", LogLevel.Critical);
     }
 
     /// <summary>
@@ -62,7 +102,7 @@ public class FileLogger : ILogger, ILoggerProvider, IFileLogger
     /// <param name="message">The message.</param>
     public void LogDebug(string message)
     {
-        _fileLoggerProvider.Log($"{_logName}|{message}", MsgType.DEBUG);
+        _fileLoggerProvider.Log($"{_logName}|{message}", LogLevel.Debug);
     }
 
     /// <summary>
@@ -71,7 +111,7 @@ public class FileLogger : ILogger, ILoggerProvider, IFileLogger
     /// <param name="message">The message.</param>
     public void LogError(string message)
     {
-        _fileLoggerProvider.Log($"{_logName}|{message}", MsgType.ERROR);
+        _fileLoggerProvider.Log($"{_logName}|{message}", LogLevel.Error);
     }
 
     /// <summary>
@@ -80,7 +120,16 @@ public class FileLogger : ILogger, ILoggerProvider, IFileLogger
     /// <param name="message">The message.</param>
     public void LogInformation(string message)
     {
-        _fileLoggerProvider.Log($"{_logName}|{message}", MsgType.INFO);
+        _fileLoggerProvider.Log($"{_logName}|{message}", LogLevel.Information);
+    }
+
+    /// <summary>
+    /// Formats and writes a trace log message.
+    /// </summary>
+    /// <param name="message">The message.</param>
+    public void LogTrace(string message)
+    {
+        _fileLoggerProvider.Log($"{_logName}|{message}", LogLevel.Trace);
     }
 
     /// <summary>
@@ -89,7 +138,7 @@ public class FileLogger : ILogger, ILoggerProvider, IFileLogger
     /// <param name="message">The message.</param>
     public void LogWarning(string message)
     {
-        _fileLoggerProvider.Log($"{_logName}|{message}", MsgType.WARN);
+        _fileLoggerProvider.Log($"{_logName}|{message}", LogLevel.Warning);
     }
 
     /// <summary>
@@ -122,21 +171,23 @@ public class FileLogger : ILogger, ILoggerProvider, IFileLogger
         {
             switch (logLevel)
             {
-                case LogLevel.Trace:
+                case LogLevel.Critical:
+                    LogCritical(formatter(state, exception));
+                    break;
                 case LogLevel.Debug:
                     LogDebug(formatter(state, exception));
-                    break;
-                case LogLevel.Warning:
-                    LogWarning(formatter(state, exception));
                     break;
                 case LogLevel.Error:
                     LogError(formatter(state, exception));
                     break;
-                case LogLevel.Critical:
-                    LogCritical(formatter(state, exception));
+                case LogLevel.Trace:
+                    LogTrace(formatter(state, exception));
+                    break;
+                case LogLevel.Warning:
+                    LogWarning(formatter(state, exception));
                     break;
                 case LogLevel.None:
-                    Log(formatter(state, exception), MsgType.NONE);
+                    Log(formatter(state, exception), LogLevel.None);
                     break;
                 case LogLevel.Information:
                 default:
@@ -144,47 +195,6 @@ public class FileLogger : ILogger, ILoggerProvider, IFileLogger
                     break;
             }
         }
-    }
-
-    /// <summary>
-    /// Creates a new FileLogger instance of the specified category.
-    /// </summary>
-    /// <param name="categoryName">Category name</param>
-    /// <returns>The ILogger for requested category was created.</returns>
-    public IFileLogger CreateFileLogger(string categoryName)
-    {
-        return new FileLogger(_fileLoggerProvider, categoryName);
-    }
-
-    /// <summary>
-    /// Creates a new nested FileLogger instance of the specified category. This is useful for providing an in-depth callstack.
-    /// </summary>
-    /// <param name="categoryName">Category name</param>
-    /// <returns>The ILogger for requested category was created.</returns>
-    public ILogger CreateLogger(string categoryName)
-    {
-        return new FileLogger(_fileLoggerProvider, categoryName);
-    }
-
-    /// <summary>
-    /// Checks if the given logLevel is enabled.
-    /// </summary>
-    /// <param name="logLevel">The log level to check</param>
-    /// <returns></returns>
-    public bool IsEnabled(LogLevel logLevel)
-    {
-        return true;
-    }
-
-    /// <summary>
-    /// Begins a logical operation scope.
-    /// </summary>
-    /// <typeparam name="TState">Type parameter</typeparam>
-    /// <param name="state">The entry to be written. Can be also an object.</param>
-    /// <returns>A disposable object that ends the logical operation scope on dispose.</returns>
-    public IDisposable BeginScope<TState>(TState state)
-    {
-        return null;
     }
 
     /// <summary>

@@ -20,11 +20,10 @@ public class FileLoggerProvider : ILoggerProvider, IDisposable, IFileLoggerProvi
     public int LogIncrement { get; private set; } = 0;
     public long LogMaxBytes { get; private set; } = 50 * 1048576;
     public uint LogMaxCount { get; private set; } = 10;
-
-    public enum MsgType { NONE, INFO, DEBUG, WARN, ERROR, CRITICAL };
+    public LogLevel LogMinLevel { get; set; } = LogLevel.Trace;
 
     /// <summary>
-    /// Default constructor, instantiates a new log file instance.
+    /// Default FileLoggerProvider constructor, instantiates a new log file instance.
     /// 
     /// For reference:
     ///   1 MB = 1000000 Bytes (in decimal)
@@ -59,6 +58,34 @@ public class FileLoggerProvider : ILoggerProvider, IDisposable, IFileLoggerProvi
         LogName = logName;
         LogMaxBytes = logMaxBytes;
         LogMaxCount = logMaxCount;
+        Open();
+    }
+
+    /// <summary>
+    /// FileLogger constructor, based on FileLoggerOptions configuration.
+    /// </summary>
+    /// <param name="options">Configuration options to configure the FileLoggerProvider instance.</param>
+    public FileLoggerProvider(FileLoggerOptions options)
+    {
+        if (string.IsNullOrWhiteSpace(options.LogFolder))
+        {
+            string processName = Process.GetCurrentProcess().MainModule.FileName;
+            string processPath = processName.Substring(0, processName.LastIndexOf("\\"));
+            LogFolder = processPath + @"\log";
+        }
+        else if (Directory.Exists(options.LogFolder) == false)
+        {
+            LogFolder = options.LogFolder;
+        }
+        else
+        {
+            LogFolder = options.LogFolder;
+        }
+
+        Directory.CreateDirectory(LogFolder);
+        LogName = options.LogName;
+        LogMaxBytes = options.LogMaxBytes;
+        LogMaxCount = options.LogMaxCount;
         Open();
     }
 
@@ -248,29 +275,32 @@ public class FileLoggerProvider : ILoggerProvider, IDisposable, IFileLoggerProvi
     /// <param name="prefix">Message prefix.</param>
     /// <param name="entryType">The log level being annotated in the message preamble.</param>
     /// <returns>A consistently formatted preamble for human consumption.</returns>
-    public static string MsgHeader(MsgType entryType)
+    public static string MsgHeader(LogLevel logLevel)
     {
         string header = DateTime.Now.ToString("yyyy-MM-dd--HH.mm.ss|");
 
-        switch (entryType)
+        switch (logLevel)
         {
-            case MsgType.NONE:
-                header += "    |";
+            case LogLevel.Critical:
+                header += "CRIT|";
                 break;
-            case MsgType.INFO:
-                header += "INFO|";
-                break;
-            case MsgType.DEBUG:
+            case LogLevel.Debug:
                 header += "DBUG|";
                 break;
-            case MsgType.WARN:
-                header += "WARN|";
-                break;
-            case MsgType.ERROR:
+            case LogLevel.Error:
                 header += "FAIL|";
                 break;
-            case MsgType.CRITICAL:
-                header += "CRIT|";
+            case LogLevel.Information:
+                header += "INFO|";
+                break;
+            case LogLevel.None:
+                header += "    |";
+                break;
+            case LogLevel.Trace:
+                header += "TRCE|";
+                break;
+            case LogLevel.Warning:
+                header += "WARN|";
                 break;
         }
 
@@ -282,7 +312,7 @@ public class FileLoggerProvider : ILoggerProvider, IDisposable, IFileLoggerProvi
     /// </summary>
     /// <param name="message">Message to be written.</param>
     /// <param name="logLevel">Log level specification. If unspecified, the default is 'INFO'.</param>
-    public void Log(string message, MsgType logLevel = MsgType.INFO)
+    public void Log(string message, LogLevel logLevel = LogLevel.Information)
     {
         if (string.IsNullOrWhiteSpace(message))
         {
@@ -361,7 +391,7 @@ public class FileLoggerProvider : ILoggerProvider, IDisposable, IFileLoggerProvi
     /// <param name="message">Additional message for debugging purposes.</param>
     public void Log(Exception e, string message)
     {
-        string header = MsgHeader(MsgType.ERROR);
+        string header = MsgHeader(LogLevel.Error);
         string excMessage = PadMessage(header, e.Message);
         string usrMessage = PadMessage(header, message);
 
@@ -414,7 +444,7 @@ public class FileLoggerProvider : ILoggerProvider, IDisposable, IFileLoggerProvi
     /// <param name="message">The message.</param>
     public void LogCritical(string message)
     {
-        Log(message, MsgType.CRITICAL);
+        Log(message, LogLevel.Critical);
     }
 
     /// <summary>
@@ -423,7 +453,7 @@ public class FileLoggerProvider : ILoggerProvider, IDisposable, IFileLoggerProvi
     /// <param name="message">The message.</param>
     public void LogDebug(string message)
     {
-        Log(message, MsgType.DEBUG);
+        Log(message, LogLevel.Debug);
     }
 
     /// <summary>
@@ -432,7 +462,7 @@ public class FileLoggerProvider : ILoggerProvider, IDisposable, IFileLoggerProvi
     /// <param name="message">The message.</param>
     public void LogError(string message)
     {
-        Log(message, MsgType.ERROR);
+        Log(message, LogLevel.Error);
     }
 
     /// <summary>
@@ -441,7 +471,16 @@ public class FileLoggerProvider : ILoggerProvider, IDisposable, IFileLoggerProvi
     /// <param name="message">The message.</param>
     public void LogInformation(string message)
     {
-        Log(message, MsgType.INFO);
+        Log(message, LogLevel.Information);
+    }
+
+    /// <summary>
+    /// Logs a trace log message.
+    /// </summary>
+    /// <param name="message">The message.</param>
+    public void LogTrace(string message)
+    {
+        Log(message, LogLevel.Trace);
     }
 
     /// <summary>
@@ -450,7 +489,7 @@ public class FileLoggerProvider : ILoggerProvider, IDisposable, IFileLoggerProvi
     /// <param name="message">The message.</param>
     public void LogWarning(string message)
     {
-        Log(message, MsgType.WARN);
+        Log(message, LogLevel.Warning);
     }
 
     /// <summary>

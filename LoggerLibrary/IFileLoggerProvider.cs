@@ -17,11 +17,12 @@ namespace LoggerLibrary
         ILogger CreateLogger(string categoryName);
         void Dispose();
         void Log(Exception e, string message);
-        void Log(string message, FileLoggerProvider.MsgType logLevel = FileLoggerProvider.MsgType.INFO);
+        void Log(string message, LogLevel logLevel = LogLevel.Information);
         void LogCritical(string message);
         void LogDebug(string message);
         void LogError(string message);
         void LogInformation(string message);
+        void LogTrace(string message);
         void LogWarning(string message);
         void Open();
     }
