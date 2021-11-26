@@ -367,7 +367,7 @@ public class FileLoggerProvider : ILoggerProvider, IDisposable, IFileLoggerProvi
 
         if (message.Contains(Environment.NewLine))
         {
-            string[] splitMsg = message.Split(Environment.NewLine);
+            string[] splitMsg = message.Split(new char[] { '\n' });
 
             for (int i = 1; i < splitMsg.Length; i++)
             {
