@@ -650,7 +650,7 @@ public class FileSystemHelper
         return fileDeleted;
     }
 
-    public bool DeleteFilePattern(string callStack, string folderName, string startsWith = "", string endsWith = "", bool raiseException = false)
+    public bool DeleteFilePattern(string folderName, string startsWith = "", string endsWith = "", bool raiseException = false)
     {
         bool fileDeleted = false;
 

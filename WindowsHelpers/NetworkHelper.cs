@@ -19,7 +19,7 @@ public class NetworkHelper
         _logger = logger.CreateFileLogger(GetType().Name);
     }
 
-    public IPAddress GetCurrentIpAddress(string callStack)
+    public IPAddress GetCurrentIpAddress()
     {
         try
         {
@@ -41,7 +41,7 @@ public class NetworkHelper
         }
     }
 
-    public IPAddress GetSubnetMask(string callStack, IPAddress inputAddress)
+    public IPAddress GetSubnetMask(IPAddress inputAddress)
     {
         if (inputAddress == null)
         {
@@ -66,7 +66,7 @@ public class NetworkHelper
         }
     }
 
-    public IPAddress GetDefaultGateway(string callStack, IPAddress inputAddress)
+    public IPAddress GetDefaultGateway(IPAddress inputAddress)
     {
         if (inputAddress == null)
         {
@@ -90,8 +90,7 @@ public class NetworkHelper
         }
     }
 
-    public Tuple<bool, List<string>> ResolveHostToIP(
-        string hostAddress, bool hideOutput = false)
+    public Tuple<bool, List<string>> ResolveHostToIP(string hostAddress, bool hideOutput = false)
     {
         try
         {
