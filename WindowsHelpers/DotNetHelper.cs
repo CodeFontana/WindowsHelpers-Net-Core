@@ -173,7 +173,7 @@ public static class DotNetHelper
                 "Consectetur", "occaecat", "fatback", "quis", "fugiat", "biltong", "t-bone",
                 "kielbasa", "flank", "voluptate", "pastrami", "ut", "in", "commodo", "adipisicing",
                 "proident", "bresaola", "non", "leberkas", "turducken", "enim", "meatball", "laborum",
-                "nostrud", "strip steak", "officia", "short ribs", "nulla", "ham", "incididunt, " +
+                "nostrud", "strip steak", "officia", "short ribs", "nulla", "ham", "incididunt" +
                 "velit", "do", "ex", "dolore", "sunt", "nostrud", "mollit", "bacon", "est",
                 "reprehenderit", "landjaeger", "frankfurter", "shoulder", "ground", "round",
                 "swine", "pariatur", "susage tri-tip", "aute", "chicken tenderloin", "consequat",
