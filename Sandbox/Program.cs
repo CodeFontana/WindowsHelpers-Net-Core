@@ -28,7 +28,7 @@ class Program
 
                 if (isDevelopment)
                 {
-                    //config.AddUserSecrets<Program>();
+                    config.AddUserSecrets<Program>(optional: true);
                 }
             })
             .ConfigureServices((hostContext, services) =>
