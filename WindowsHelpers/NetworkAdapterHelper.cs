@@ -1,4 +1,4 @@
-﻿using LoggerLibrary;
+﻿using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Management;
@@ -7,12 +7,12 @@ namespace WindowsLibrary;
 
 public class NetworkAdapterHelper
 {
-    private readonly IFileLogger _logger;
+    private readonly ILogger<NetworkAdapterHelper> _logger;
     public List<NetworkAdapter> adapterList;
 
-    public NetworkAdapterHelper(IFileLogger logger)
+    public NetworkAdapterHelper(ILogger<NetworkAdapterHelper> logger)
     {
-        _logger = logger.CreateFileLogger(GetType().Name);
+        _logger = logger;
         QueryNetworkAdapters();
     }
 
@@ -99,7 +99,7 @@ public class NetworkAdapterHelper
                     }
                     catch (Exception e)
                     {
-                        _logger.Log(e, $"Failed to query adapter current configuration for [{ newAdapter.AdapterName }]");
+                        _logger.LogError(e, $"Failed to query adapter current configuration for [{ newAdapter.AdapterName }]");
                     }
                 }
 

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Management;
 using System.Security.Principal;
 using System.IO;
+using System.Collections.Generic;
 
 namespace WindowsLibrary;
 
@@ -55,7 +56,7 @@ public class ProcessInfo
                 PID.ToString(),
                 UserName,
                 CPUTime,
-                new FileSystemHelper(null).BytesToReadableValue(NumBytes),
+                BytesToReadableValue(NumBytes),
                 HandleCount.ToString(),
                 ThreadCount.ToString(),
                 ProcessName + " " + CommandLineArgs };
@@ -117,5 +118,25 @@ public class ProcessInfo
                 NativeMethods.CloseHandle(hToken);
             }
         }
+    }
+
+    private static string BytesToReadableValue(long numBytes)
+    {
+        var suffixes = new List<string> { " B ", " KB", " MB", " GB", " TB", " PB" };
+
+        for (int i = 0; i < suffixes.Count; i++)
+        {
+            // Divide by powers of 1024, as we move through the scales
+            long temp = Math.Abs(numBytes / (long)Math.Pow(1024, i + 1));
+
+            // Have we gone off scale?
+            if (temp <= 0)
+            {
+                // Return prior suffix value
+                return String.Format("{0,9}", String.Format("{0:0.00}", Math.Round((double)numBytes / Math.Pow(1024, i), 2)) + suffixes[i]);
+            }
+        }
+
+        return numBytes.ToString();
     }
 }

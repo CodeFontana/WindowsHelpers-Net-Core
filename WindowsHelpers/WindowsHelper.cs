@@ -1,5 +1,4 @@
-﻿using LoggerLibrary;
-using Microsoft.Win32;
+﻿using Microsoft.Win32;
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -13,16 +12,19 @@ using System.DirectoryServices.AccountManagement;
 using System.Linq;
 using System.Management;
 using static System.Management.ManagementObjectCollection;
+using Microsoft.Extensions.Logging;
 
 namespace WindowsLibrary;
 
 public class WindowsHelper
 {
-    private readonly IFileLogger _logger;
+    private readonly ILogger<WindowsHelper> _logger;
+    private readonly RegistryHelper _registryHelper;
 
-    public WindowsHelper(IFileLogger logger)
+    public WindowsHelper(ILogger<WindowsHelper> logger, RegistryHelper registryHelper)
     {
-        _logger = logger.CreateFileLogger(GetType().Name);
+        _logger = logger;
+        _registryHelper = registryHelper;
     }
 
     public bool AddHostFileEntry(string entry)
@@ -36,7 +38,7 @@ public class WindowsHelper
         }
         catch (Exception e)
         {
-            _logger.Log(e, "Failed to add hosts file entry");
+            _logger.LogError(e, "Failed to add hosts file entry");
             return false;
         }
 
@@ -60,21 +62,21 @@ public class WindowsHelper
                 if (path.ToLower().Equals(folder.ToLower()))
                 {
                     existsOnPath = true;
-                    _logger.Log($"Already exists on PATH: {folder}");
+                    _logger.LogInformation($"Already exists on PATH: {folder}");
                     break;
                 }
             }
 
             if (existsOnPath == false)
             {
-                _logger.Log($"Add to PATH: {folder}");
+                _logger.LogInformation($"Add to PATH: {folder}");
                 string newPathVariable = pathVariable + ";" + folder;
                 Environment.SetEnvironmentVariable("Path", newPathVariable, EnvironmentVariableTarget.Machine);
             }
         }
         catch (Exception e)
         {
-            _logger.Log(e, $"Failed to add {folder} to system PATH variable");
+            _logger.LogError(e, $"Failed to add {folder} to system PATH variable");
             return false;
         }
 
@@ -92,7 +94,7 @@ public class WindowsHelper
             foreach (Screen s in Screen.AllScreens)
             {
                 string captureFileShortName = s.DeviceName.Substring(s.DeviceName.LastIndexOf("\\") + 1) + "--" + GetTimeStamp();
-                _logger.Log("Capture screen: " + s.DeviceName +
+                _logger.LogInformation("Capture screen: " + s.DeviceName +
                     " [" + s.Bounds.Width + "x" + s.Bounds.Height + "] [" + captureFileShortName + "]");
 
                 Bitmap bmpScreenshot = new(s.Bounds.Width, s.Bounds.Height, PixelFormat.Format32bppArgb);
@@ -105,7 +107,7 @@ public class WindowsHelper
         }
         catch (Exception e)
         {
-            _logger.Log(e, "Failed to capture screen");
+            _logger.LogError(e, "Failed to capture screen");
         }
 
         return null;
@@ -118,13 +120,13 @@ public class WindowsHelper
             foreach (Screen s in Screen.AllScreens)
             {
                 string captureFileShortName = s.DeviceName.Substring(s.DeviceName.LastIndexOf("\\") + 1) + "--" + GetTimeStamp();
-                _logger.Log("Capture screen: " + s.DeviceName +
+                _logger.LogInformation("Capture screen: " + s.DeviceName +
                     " [" + s.Bounds.Width + "x" + s.Bounds.Height + "] [" + captureFileShortName + "]");
 
                 Bitmap bmpScreenshot = new(s.Bounds.Width, s.Bounds.Height, PixelFormat.Format32bppArgb);
                 Graphics gfxScreenshot = Graphics.FromImage(bmpScreenshot);
                 gfxScreenshot.CopyFromScreen(s.Bounds.X, s.Bounds.Y, 0, 0, s.Bounds.Size, CopyPixelOperation.SourceCopy);
-                _logger.Log("Save: " + outputFolder + "\\" + captureFileShortName + ".png");
+                _logger.LogInformation("Save: " + outputFolder + "\\" + captureFileShortName + ".png");
                 bmpScreenshot.Save(outputFolder + "\\" + captureFileShortName + ".png", ImageFormat.Png);
             }
 
@@ -132,7 +134,7 @@ public class WindowsHelper
         }
         catch (Exception e)
         {
-            _logger.Log(e, "Failed to capture screen");
+            _logger.LogError(e, "Failed to capture screen");
         }
 
         return false;
@@ -187,10 +189,9 @@ public class WindowsHelper
     {
         try
         {
-            _logger.Log("Configure automatic logon user: " + logonUser);
+            _logger.LogInformation("Configure automatic logon user: " + logonUser);
 
-            RegistryHelper reg = new(_logger);
-            RegistryKey winLogonKey = reg.OpenKey("SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon", true, RegistryHive.LocalMachine);
+            RegistryKey winLogonKey = _registryHelper.OpenKey("SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon", true, RegistryHive.LocalMachine);
             winLogonKey.SetValue("AutoAdminLogon", "1", RegistryValueKind.String);
             winLogonKey.SetValue("DefaultUserName", logonUser, RegistryValueKind.String);
             winLogonKey.SetValue("DefaultPassword", logonPwd, RegistryValueKind.String);
@@ -199,7 +200,7 @@ public class WindowsHelper
             winLogonKey.DeleteValue("DefaultDomainName", false);
             winLogonKey.Dispose();
 
-            RegistryKey policiesKey = reg.OpenKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System", true, RegistryHive.LocalMachine);
+            RegistryKey policiesKey = _registryHelper.OpenKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System", true, RegistryHive.LocalMachine);
             policiesKey.SetValue("EnableFirstLogonAnimation", "0", RegistryValueKind.DWord);
             policiesKey.Dispose();
 
@@ -207,7 +208,7 @@ public class WindowsHelper
         }
         catch (Exception e)
         {
-            _logger.Log(e, "Failed to configure automatic logon");
+            _logger.LogError(e, "Failed to configure automatic logon");
             return false;
         }
     }
@@ -291,24 +292,24 @@ public class WindowsHelper
 
                     if (pLinkedToken != IntPtr.Zero)
                     {
-                        _logger.Log("Token has a LINKED token");
+                        _logger.LogInformation("Token has a LINKED token");
 
                         // Is the linked token an elevated token?
                         if (IsTokenElevated(Marshal.ReadIntPtr(pLinkedToken)))
                         {
-                            _logger.Log("LINKED token is ELEVATED, assign for duplication...");
+                            _logger.LogInformation("LINKED token is ELEVATED, assign for duplication...");
                             hTokenToDup = Marshal.ReadIntPtr(pLinkedToken);
                         }
                         else
                         {
-                            _logger.Log("LINKED token is not elevated");
+                            _logger.LogInformation("LINKED token is not elevated");
                         }
 
                         Marshal.FreeHGlobal(pLinkedToken);
                     }
                     else
                     {
-                        _logger.Log("Token does NOT have a LINKED token");
+                        _logger.LogInformation("Token does NOT have a LINKED token");
                     }
                 }
             }
@@ -340,13 +341,13 @@ public class WindowsHelper
             }
             else
             {
-                _logger.Log("Duplicated token is configured for session id [" +
+                _logger.LogInformation("Duplicated token is configured for session id [" +
                     Marshal.ReadInt32(pSessionId).ToString() + "]");
             }
 
             if (sessionId >= 0 && sessionId <= 65535 && sessionId != Marshal.ReadInt32(pSessionId))
             {
-                _logger.Log("Adjust token session: " + sessionId.ToString());
+                _logger.LogInformation("Adjust token session: " + sessionId.ToString());
 
                 if (!NativeMethods.SetTokenInformation(hDuplicateToken, NativeMethods.TOKEN_INFORMATION_CLASS.TokenSessionId, ref sessionId, (uint)Marshal.SizeOf(sessionId)))
                 {
@@ -360,7 +361,7 @@ public class WindowsHelper
         }
         catch (Exception e)
         {
-            _logger.Log(e, "Failed duplicating or elevating user token");
+            _logger.LogError(e, "Failed duplicating or elevating user token");
         }
 
         return hDuplicateToken;
@@ -397,7 +398,7 @@ public class WindowsHelper
                     else
                     {
                         WindowsIdentity userId = new(hUserToken);
-                        _logger.Log("Found session: " + si.SessionID.ToString() + "/" + userId.Name);
+                        _logger.LogInformation("Found session: " + si.SessionID.ToString() + "/" + userId.Name);
                         userSessions.Add(new Tuple<uint, string>(si.SessionID, userId.Name));
                         userId.Dispose();
                     }
@@ -412,7 +413,7 @@ public class WindowsHelper
         }
         catch (Exception e)
         {
-            _logger.Log(e, "Failed to query terminal user sessions");
+            _logger.LogError(e, "Failed to query terminal user sessions");
         }
 
         return userSessions;
@@ -420,7 +421,7 @@ public class WindowsHelper
 
     public bool EnablePrivilege(IntPtr hToken, string privilege)
     {
-        _logger.Log("Enable: " + privilege);
+        _logger.LogInformation("Enable: " + privilege);
 
         NativeMethods.LUID luid = new();
         NativeMethods.TOKEN_PRIVILEGES newState;
@@ -455,7 +456,7 @@ public class WindowsHelper
 
             if (consoleSessionId != 0xFFFFFFFF)
             {
-                _logger.Log("Found console session: " + consoleSessionId.ToString());
+                _logger.LogInformation("Found console session: " + consoleSessionId.ToString());
 
                 if (NativeMethods.WTSQueryUserToken(consoleSessionId, out IntPtr hUserToken) == false)
                 {
@@ -464,7 +465,7 @@ public class WindowsHelper
                 else
                 {
                     WindowsIdentity userId = new(hUserToken);
-                    _logger.Log("Console user: " + userId.Name);
+                    _logger.LogInformation("Console user: " + userId.Name);
                     userId.Dispose();
 
                     if (!IsUserInAdminGroup(hUserToken))
@@ -473,7 +474,7 @@ public class WindowsHelper
                     }
                     else
                     {
-                        _logger.Log("Console user is an administrator");
+                        _logger.LogInformation("Console user is an administrator");
                         return hUserToken;
                     }
                 }
@@ -481,7 +482,7 @@ public class WindowsHelper
         }
         catch (Exception e)
         {
-            _logger.Log(e, "Failed to query console user session");
+            _logger.LogError(e, "Failed to query console user session");
         }
 
         try
@@ -502,7 +503,7 @@ public class WindowsHelper
                 for (int i = 0; i < sessionCount; i++)
                 {
                     NativeMethods.WTS_SESSION_INFO si = (NativeMethods.WTS_SESSION_INFO)Marshal.PtrToStructure(hCurSession, typeof(NativeMethods.WTS_SESSION_INFO));
-                    _logger.Log("Found session: " + si.SessionID.ToString());
+                    _logger.LogInformation("Found session: " + si.SessionID.ToString());
 
                     if (!NativeMethods.WTSQueryUserToken(si.SessionID, out IntPtr hUserToken))
                     {
@@ -512,7 +513,7 @@ public class WindowsHelper
                     else
                     {
                         WindowsIdentity userId = new(hUserToken);
-                        _logger.Log("Terminal user: " + userId.Name);
+                        _logger.LogInformation("Terminal user: " + userId.Name);
                         userId.Dispose();
 
                         if (!IsUserInAdminGroup(hUserToken))
@@ -521,7 +522,7 @@ public class WindowsHelper
                         }
                         else
                         {
-                            _logger.Log("Terminal user is an administrator");
+                            _logger.LogInformation("Terminal user is an administrator");
                             return hUserToken;
                         }
                     }
@@ -536,7 +537,7 @@ public class WindowsHelper
         }
         catch (Exception e)
         {
-            _logger.Log(e, "Failed to query terminal user sessions");
+            _logger.LogError(e, "Failed to query terminal user sessions");
         }
 
         return IntPtr.Zero;
@@ -550,7 +551,7 @@ public class WindowsHelper
 
             if (consoleSessionId != 0xFFFFFFFF)
             {
-                _logger.Log("Found console session: " + consoleSessionId.ToString());
+                _logger.LogInformation("Found console session: " + consoleSessionId.ToString());
 
                 if (!NativeMethods.WTSQueryUserToken(consoleSessionId, out IntPtr hUserToken))
                 {
@@ -560,7 +561,7 @@ public class WindowsHelper
                 else
                 {
                     WindowsIdentity userId = new(hUserToken);
-                    _logger.Log("Console user: " + userId.Name);
+                    _logger.LogInformation("Console user: " + userId.Name);
                     userId.Dispose();
                     return hUserToken;
                 }
@@ -568,7 +569,7 @@ public class WindowsHelper
         }
         catch (Exception e)
         {
-            _logger.Log(e, "Failed to query console user session");
+            _logger.LogError(e, "Failed to query console user session");
         }
 
         return IntPtr.Zero;
@@ -608,7 +609,7 @@ public class WindowsHelper
             try
             {
                 string parentProcessName = Process.GetProcessById((int)parentPID).ProcessName;
-                _logger.Log($"Parent: {parentPID}/{parentProcessName}");
+                _logger.LogInformation($"Parent: {parentPID}/{parentProcessName}");
                 ParentProcessList.Add(new Tuple<uint, string>(parentPID, parentProcessName.ToLower()));
                 currentPID = (int)parentPID;
             }
@@ -654,7 +655,7 @@ public class WindowsHelper
                 }
                 catch (Exception e)
                 {
-                    _logger.Log(e, "Failed to open product key [" + subKeyName + "]");
+                    _logger.LogError(e, "Failed to open product key [" + subKeyName + "]");
                     continue;
                 }
             }
@@ -687,7 +688,7 @@ public class WindowsHelper
             }
             catch (Exception e)
             {
-                _logger.Log(e, "Failed to open product key [" + subKeyName + "]");
+                _logger.LogError(e, "Failed to open product key [" + subKeyName + "]");
                 continue;
             }
         }
@@ -734,7 +735,7 @@ public class WindowsHelper
                 }
                 catch (Exception e)
                 {
-                    _logger.Log(e, "Failed to open product key [" + subKeyName + "]");
+                    _logger.LogError(e, "Failed to open product key [" + subKeyName + "]");
                     continue;
                 }
             }
@@ -778,7 +779,7 @@ public class WindowsHelper
             }
             catch (Exception e)
             {
-                _logger.Log(e, "Failed to open product key [" + subKeyName + "]");
+                _logger.LogError(e, "Failed to open product key [" + subKeyName + "]");
                 continue;
             }
         }
@@ -845,13 +846,13 @@ public class WindowsHelper
 
             if (!store.Certificates.Contains(importCert))
             {
-                _logger.Log("Import certificate...");
+                _logger.LogInformation("Import certificate...");
                 store.Add(importCert);
-                _logger.Log("Certifcate imported successfully");
+                _logger.LogInformation("Certifcate imported successfully");
             }
             else
             {
-                _logger.Log("Certificate already imported");
+                _logger.LogInformation("Certificate already imported");
             }
 
             store.Dispose();
@@ -859,7 +860,7 @@ public class WindowsHelper
         }
         catch (Exception e)
         {
-            _logger.Log(e, "Failed to import certificate");
+            _logger.LogError(e, "Failed to import certificate");
             return false;
         }
     }
@@ -976,7 +977,7 @@ public class WindowsHelper
                 }
                 catch (Exception e)
                 {
-                    _logger.Log(e, "Failed to open product key [" + subKeyName + "]");
+                    _logger.LogError(e, "Failed to open product key [" + subKeyName + "]");
                     continue;
                 }
             }
@@ -1013,7 +1014,7 @@ public class WindowsHelper
             }
             catch (Exception e)
             {
-                _logger.Log(e, "Failed to open product key [" + subKeyName + "]");
+                _logger.LogError(e, "Failed to open product key [" + subKeyName + "]");
                 continue;
             }
         }
@@ -1039,8 +1040,8 @@ public class WindowsHelper
 
         try
         {
-            _logger.Log("Read logon configuration...");
-            RegistryKey winLogonKey = new RegistryHelper(_logger)
+            _logger.LogInformation("Read logon configuration...");
+            RegistryKey winLogonKey = _registryHelper
                 .OpenKey("SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon", true, RegistryHive.LocalMachine);
             var curAutoAdminLogon = winLogonKey.GetValue("AutoAdminLogon");
             var curAutoLogonCount = winLogonKey.GetValue("AutoLogonCount");
@@ -1055,11 +1056,11 @@ public class WindowsHelper
                     autoAdminLogon = -1;
                 }
 
-                _logger.Log("  AutoAdminLogon: " + autoAdminLogon.ToString());
+                _logger.LogInformation("  AutoAdminLogon: " + autoAdminLogon.ToString());
             }
             else
             {
-                _logger.Log("  AutoAdminLogon: <Not Available>");
+                _logger.LogInformation("  AutoAdminLogon: <Not Available>");
             }
 
             if (curAutoLogonCount != null)
@@ -1069,31 +1070,31 @@ public class WindowsHelper
                     autoLogonCount = -1;
                 }
 
-                _logger.Log("  AutoLogonCount: " + autoLogonCount.ToString());
+                _logger.LogInformation("  AutoLogonCount: " + autoLogonCount.ToString());
             }
             else
             {
-                _logger.Log("  AutoLogonCount: <Not Available>");
+                _logger.LogInformation("  AutoLogonCount: <Not Available>");
             }
 
             if (curDefaultUserName != null)
             {
                 logonUser = curDefaultUserName.ToString();
-                _logger.Log("  DefaultUserName: " + logonUser);
+                _logger.LogInformation("  DefaultUserName: " + logonUser);
             }
             else
             {
-                _logger.Log("  DefaultUserName: <Not Available>");
+                _logger.LogInformation("  DefaultUserName: <Not Available>");
             }
 
             if (curDefaultPassword != null)
             {
                 logonPwd = curDefaultPassword.ToString();
-                _logger.Log("  DefaultPassword: <Not Displayed>");
+                _logger.LogInformation("  DefaultPassword: <Not Displayed>");
             }
             else
             {
-                _logger.Log("  DefaultPassword: <Not Available>");
+                _logger.LogInformation("  DefaultPassword: <Not Available>");
             }
 
             if (curDisableCAD != null)
@@ -1103,27 +1104,27 @@ public class WindowsHelper
                     disableCAD = -1;
                 }
 
-                _logger.Log("  DisableCAD: " + disableCAD.ToString());
+                _logger.LogInformation("  DisableCAD: " + disableCAD.ToString());
             }
             else
             {
-                _logger.Log("  DisableCAD: <Not Available>");
+                _logger.LogInformation("  DisableCAD: <Not Available>");
             }
 
             if (autoAdminLogon == 1 && !logonUser.Equals(""))
             {
-                _logger.Log("Automatic logon: CONFIGURED");
+                _logger.LogInformation("Automatic logon: CONFIGURED");
                 return true;
             }
             else
             {
-                _logger.Log("Automatic logon: NOT CONFIGURED");
+                _logger.LogInformation("Automatic logon: NOT CONFIGURED");
                 return false;
             }
         }
         catch (Exception e)
         {
-            _logger.Log(e, "Failed to inspect automatic logon configuration");
+            _logger.LogError(e, "Failed to inspect automatic logon configuration");
             return false;
         }
     }
@@ -1147,7 +1148,7 @@ public class WindowsHelper
         }
         catch (Exception e)
         {
-            _logger.Log(e, "Failed to validate domain user credentials");
+            _logger.LogError(e, "Failed to validate domain user credentials");
         }
 
         return userExists;
@@ -1172,7 +1173,7 @@ public class WindowsHelper
         }
         catch (Exception e)
         {
-            _logger.Log(e, "Failed to validate local user credentials");
+            _logger.LogError(e, "Failed to validate local user credentials");
         }
 
         return userExists;
@@ -1216,7 +1217,7 @@ public class WindowsHelper
                  * administrative privilege, and the user does not choose to start
                  * the program using Run as administrator.*/
 
-                _logger.Log("Token elevation type: Limited");
+                _logger.LogInformation("Token elevation type: Limited");
                 Marshal.FreeHGlobal(hToken);
                 Marshal.FreeHGlobal(pElevationType);
                 return false;
@@ -1228,7 +1229,7 @@ public class WindowsHelper
                  * the user is the built -in Administrator account (for which UAC 
                  * disabled by default), service account or local system account.*/
 
-                _logger.Log("Token elevation type: Default");
+                _logger.LogInformation("Token elevation type: Default");
                 Marshal.FreeHGlobal(hToken);
                 Marshal.FreeHGlobal(pElevationType);
                 return true;
@@ -1243,14 +1244,14 @@ public class WindowsHelper
                  * always require maximum privilege, and the user is a member of the
                  * Administrators group.*/
 
-                _logger.Log("Token elevation type: Full");
+                _logger.LogInformation("Token elevation type: Full");
                 Marshal.FreeHGlobal(hToken);
                 Marshal.FreeHGlobal(pElevationType);
                 return true;
             }
             else
             {
-                _logger.Log("Token elevation type: Unknown");
+                _logger.LogInformation("Token elevation type: Unknown");
                 Marshal.FreeHGlobal(hToken);
                 Marshal.FreeHGlobal(pElevationType);
                 return false;
@@ -1280,12 +1281,12 @@ public class WindowsHelper
 
                     if (enableLua == 1)
                     {
-                        _logger.Log("User account control (UAC): Enabled");
+                        _logger.LogInformation("User account control (UAC): Enabled");
                         isUserAccountControlEnabled = true;
                     }
                     else
                     {
-                        _logger.Log("User account control (UAC): Disabled");
+                        _logger.LogInformation("User account control (UAC): Disabled");
                         isUserAccountControlEnabled = false;
                     }
                 }
@@ -1303,12 +1304,12 @@ public class WindowsHelper
 
                     if (enableLua == 1)
                     {
-                        _logger.Log("User account control (UAC): Enabled");
+                        _logger.LogInformation("User account control (UAC): Enabled");
                         isUserAccountControlEnabled = true;
                     }
                     else
                     {
-                        _logger.Log("User account control (UAC): Disabled");
+                        _logger.LogInformation("User account control (UAC): Disabled");
                         isUserAccountControlEnabled = false;
                     }
                 }
@@ -1318,7 +1319,7 @@ public class WindowsHelper
         }
         catch (Exception e)
         {
-            _logger.Log(e, "Failed to determine if UAC is enabled");
+            _logger.LogError(e, "Failed to determine if UAC is enabled");
             return isUserAccountControlEnabled;
         }
 
@@ -1369,7 +1370,7 @@ public class WindowsHelper
 
                     if (elevType == NativeMethods.TOKEN_ELEVATION_TYPE.TokenElevationTypeLimited)
                     {
-                        _logger.Log("Token elevation type: Limited");
+                        _logger.LogInformation("Token elevation type: Limited");
                         cbSize = IntPtr.Size;
                         pLinkedToken = Marshal.AllocHGlobal(cbSize);
 
@@ -1422,7 +1423,7 @@ public class WindowsHelper
             }
             catch (Exception e)
             {
-                _logger.Log(e, "Failed to verify if user token is in admin group");
+                _logger.LogError(e, "Failed to verify if user token is in admin group");
                 return false;
             }
 
@@ -1559,7 +1560,7 @@ public class WindowsHelper
         }
         catch (Exception e)
         {
-            _logger.Log(e, "Failed to determine admin group membership [NativeMethods.method]");
+            _logger.LogError(e, "Failed to determine admin group membership [NativeMethods.method]");
         }
 
         return false;
@@ -1648,7 +1649,7 @@ public class WindowsHelper
         }
         catch (Exception e)
         {
-            _logger.Log(e, "Failed to determine admin group membership [NativeMethods.method]");
+            _logger.LogError(e, "Failed to determine admin group membership [NativeMethods.method]");
         }
 
         return false;
@@ -1666,7 +1667,7 @@ public class WindowsHelper
             {
                 if (strPath.ToLower().Equals(folder.ToLower()))
                 {
-                    _logger.Log($"Remove from PATH: {folder}");
+                    _logger.LogInformation($"Remove from PATH: {folder}");
                 }
                 else
                 {
@@ -1679,7 +1680,7 @@ public class WindowsHelper
         }
         catch (Exception e)
         {
-            _logger.Log(e, $"Failed to remove {folder} to system PATH variable");
+            _logger.LogError(e, $"Failed to remove {folder} to system PATH variable");
             return false;
         }
 
@@ -1721,7 +1722,7 @@ public class WindowsHelper
             comment = friendlyName + " initiated a reboot of the system";
         }
 
-        _logger.Log($"Windows reboot [{comment}]");
+        _logger.LogInformation($"Windows reboot [{comment}]");
 
         if (!NativeMethods.InitiateSystemShutdownEx(null, comment, delaySeconds, true, true, shutdownReason))
         {
@@ -1739,16 +1740,16 @@ public class WindowsHelper
             }
             else if (lastError == 1115)
             {
-                _logger.Log("REBOOT: A system shutdown is in progress");
+                _logger.LogInformation("REBOOT: A system shutdown is in progress");
             }
             else if (lastError == 1190)
             {
-                _logger.Log("REBOOT: A system shutdown has already been scheduled");
+                _logger.LogInformation("REBOOT: A system shutdown has already been scheduled");
             }
         }
         else
         {
-            _logger.Log($"REBOOT: System will restart in ({delaySeconds}) seconds");
+            _logger.LogInformation($"REBOOT: System will restart in ({delaySeconds}) seconds");
         }
 
         return true;
@@ -1821,12 +1822,12 @@ public class WindowsHelper
                     synthArgs[i] = synthArgs[i].Substring(1, synthArgs[i].Length - 2);
                 }
 
-                _logger?.Log("Argument [" + i.ToString() + "]: " + synthArgs[i]);
+                _logger.LogInformation("Argument [" + i.ToString() + "]: " + synthArgs[i]);
             }
         }
         else
         {
-            _logger?.Log("Arguments: <None>");
+            _logger.LogInformation("Arguments: <None>");
         }
 
         return synthArgs;

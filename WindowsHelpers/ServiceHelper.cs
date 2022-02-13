@@ -1,4 +1,4 @@
-﻿using LoggerLibrary;
+﻿using Microsoft.Extensions.Logging;
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -11,13 +11,14 @@ namespace WindowsLibrary;
 
 public class ServiceHelper
 {
-    private readonly IFileLogger _logger;
+    private readonly ILogger<ServiceHelper> _logger;
     private readonly ProcessHelper _psHelper;
 
-    public ServiceHelper(IFileLogger logger)
+    public ServiceHelper(ILogger<ServiceHelper> logger,
+        ProcessHelper psHelper)
     {
-        _logger = logger.CreateFileLogger(GetType().Name);
-        _psHelper = new ProcessHelper(_logger);
+        _logger = logger;
+        _psHelper = psHelper;
     }
 
     public enum ServiceStart // For reference.
@@ -82,7 +83,7 @@ public class ServiceHelper
         }
         catch (Exception e)
         {
-            _logger.Log(e, "Failed to change service logon user");
+            _logger.LogError(e, "Failed to change service logon user");
         }
         finally
         {
@@ -143,7 +144,7 @@ public class ServiceHelper
         }
         catch (Exception e)
         {
-            _logger.Log(e, "Failed to change service startup mode");
+            _logger.LogError(e, "Failed to change service startup mode");
         }
         finally
         {
@@ -216,7 +217,7 @@ public class ServiceHelper
         }
         catch (Exception e)
         {
-            _logger.Log(e, "Failed to configure service failure actions");
+            _logger.LogError(e, "Failed to configure service failure actions");
         }
         finally
         {
@@ -311,7 +312,7 @@ public class ServiceHelper
         }
         catch (Exception e)
         {
-            _logger.Log(e, "Failed to configure service failure actions");
+            _logger.LogError(e, "Failed to configure service failure actions");
         }
         finally
         {
@@ -447,7 +448,7 @@ public class ServiceHelper
         }
         catch (Exception e)
         {
-            _logger.Log(e, "Failed to create new Windows service");
+            _logger.LogError(e, "Failed to create new Windows service");
             return false;
         }
         finally
@@ -464,17 +465,17 @@ public class ServiceHelper
         {
             if (ServiceExists(serviceName))
             {
-                _logger.Log($"Start service [{serviceName}]...");
+                _logger.LogInformation($"Start service [{serviceName}]...");
                 ServiceController sc = new(serviceName);
 
                 if (sc.Status != ServiceControllerStatus.Stopped)
                 {
-                    _logger.Log("Service is already running");
+                    _logger.LogInformation("Service is already running");
                 }
                 else
                 {
                     sc.Start();
-                    _logger.Log("Service started");
+                    _logger.LogInformation("Service started");
                 }
 
                 sc.Dispose();
@@ -488,7 +489,7 @@ public class ServiceHelper
         }
         catch (Exception e)
         {
-            _logger.Log(e, $"Failed to start requested service [{serviceName}]");
+            _logger.LogError(e, $"Failed to start requested service [{serviceName}]");
             return false;
         }
     }
@@ -507,29 +508,29 @@ public class ServiceHelper
 
                     try
                     {
-                        _logger.Log($"Service running [{serviceName}], send stop request...");
+                        _logger.LogInformation($"Service running [{serviceName}], send stop request...");
                         svcCtrl.Stop();
                         svcCtrl.WaitForStatus(ServiceControllerStatus.Stopped,
                             new TimeSpan(0, 2, 0));
                     }
                     catch (Exception e)
                     {
-                        _logger.Log(e, "Failed to gracefully stop service");
+                        _logger.LogError(e, "Failed to gracefully stop service");
                     }
                     finally
                     {
                         if (Process.GetProcesses().Any(p => p.Id == pid))
                         {
-                            _logger.Log("Killing service...");
+                            _logger.LogInformation("Killing service...");
                             _psHelper.KillProcess(pid);
                         }
 
-                        _logger.Log("Service stopped");
+                        _logger.LogInformation("Service stopped");
                     }
                 }
                 else
                 {
-                    _logger.Log($"Service not running [{serviceName}]");
+                    _logger.LogInformation($"Service not running [{serviceName}]");
                 }
 
                 svcCtrl.Dispose();
@@ -543,7 +544,7 @@ public class ServiceHelper
         }
         catch (Exception e)
         {
-            _logger.Log(e, $"Failed to stop requested service [{serviceName}]");
+            _logger.LogError(e, $"Failed to stop requested service [{serviceName}]");
             return false;
         }
     }
@@ -599,7 +600,7 @@ public class ServiceHelper
         }
         catch (Exception e)
         {
-            _logger.Log(e, $"Failed to delete Windows service [{serviceName}]");
+            _logger.LogError(e, $"Failed to delete Windows service [{serviceName}]");
             return false;
         }
         finally

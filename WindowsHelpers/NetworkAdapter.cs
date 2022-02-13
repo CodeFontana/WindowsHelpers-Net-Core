@@ -1,4 +1,4 @@
-﻿using LoggerLibrary;
+﻿using Microsoft.Extensions.Logging;
 using System;
 using System.Management;
 
@@ -105,7 +105,7 @@ public class NetworkAdapter
         return true;
     }
 
-    public bool EnableAdapter(FileLoggerProvider logger)
+    public bool EnableAdapter(ILogger logger)
     {
         try
         {
@@ -121,12 +121,12 @@ public class NetworkAdapter
         }
         catch (Exception e)
         {
-            logger.Log(e, $"Failed to ENABLE adapter [{ AdapterName }]");
+            logger.LogError(e, $"Failed to ENABLE adapter [{ AdapterName }]");
             return false;
         }
     }
 
-    public bool ConfigStaticAddress(IFileLogger logger, string newAddress, string newSubnet, string newGateway)
+    public bool ConfigStaticAddress(ILogger logger, string newAddress, string newSubnet, string newGateway)
     {
         try
         {
@@ -150,7 +150,7 @@ public class NetworkAdapter
         }
         catch (Exception e)
         {
-            logger.Log(e, $"Failed to configure adapter [{ AdapterName }] for static IP address");
+            logger.LogError(e, $"Failed to configure adapter[{ AdapterName }] for static IP address");
             return false;
         }
     }
