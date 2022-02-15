@@ -31,7 +31,7 @@ public class ProcessHelper
         {
             // Identify user from access token.
             WindowsIdentity userId = new(hUserToken);
-            _logger.LogInformation("Create process for: " + userId.Name + " [" + appFileName + " " + appArgs + "]");
+            _logger.LogInformation($"Create process for: {userId.Name} [{appFileName} {appArgs}]");
             userId.Dispose();
 
             // Obtain duplicated user token (elevated if UAC is turned on/enabled).
@@ -46,12 +46,12 @@ public class ProcessHelper
             NativeMethods.SECURITY_ATTRIBUTES lpThreadAttributes = new();
             IntPtr hEnvironment = IntPtr.Zero;
 
-            if (!NativeMethods.CreateEnvironmentBlock(out hEnvironment, hDuplicateToken, true))
+            if (NativeMethods.CreateEnvironmentBlock(out hEnvironment, hDuplicateToken, true) == false)
             {
-                _logger.LogWarning("Unable to create environment block [CreateEnvironmentBlock=" + Marshal.GetLastWin32Error().ToString() + "]");
+                _logger.LogWarning($"Unable to create environment block [CreateEnvironmentBlock={Marshal.GetLastWin32Error()}]");
             }
 
-            if (!NativeMethods.CreateProcessAsUser(
+            if (NativeMethods.CreateProcessAsUser(
                 hDuplicateToken,
                 null,
                 appFileName + " " + appArgs,
@@ -64,9 +64,9 @@ public class ProcessHelper
                 hEnvironment,
                 Path.GetDirectoryName(appFileName),
                 ref si,
-                out pi))
+                out pi) == false)
             {
-                _logger.LogError("Unable to create user process [CreateProcessAsUser=" + Marshal.GetLastWin32Error().ToString() + "]");
+                _logger.LogError($"Unable to create user process [CreateProcessAsUser={Marshal.GetLastWin32Error()}]");
 
                 Marshal.FreeHGlobal(hDuplicateToken);
                 Marshal.FreeHGlobal(hEnvironment);
@@ -75,7 +75,7 @@ public class ProcessHelper
             }
             else
             {
-                _logger.LogInformation("Created new process: " + pi.dwProcessId.ToString() + "/" + appFileName + " " + appArgs);
+                _logger.LogInformation($"Created new process: {pi.dwProcessId}/{appFileName} {appArgs}");
                 var newProcess = Process.GetProcessById(pi.dwProcessId);
 
                 try
@@ -107,7 +107,7 @@ public class ProcessHelper
     {
         try
         {
-            _logger.LogInformation("Create process for: " + userId.Name);
+            _logger.LogInformation($"Create process for: {userId.Name}");
             List<Tuple<uint, string>> userSessions = _winHelper.GetUserSessions();
             int sessionId = -1;
 
@@ -122,13 +122,13 @@ public class ProcessHelper
 
             if (sessionId == -1)
             {
-                _logger.LogError("Failed to match any/existing logon session with user [" + userId.Name + "]");
+                _logger.LogError($"Failed to match any/existing logon session with user [{userId.Name}]");
                 return false;
             }
 
-            if (!NativeMethods.WTSQueryUserToken((uint)sessionId, out IntPtr hUserToken))
+            if (NativeMethods.WTSQueryUserToken((uint)sessionId, out IntPtr hUserToken) == false)
             {
-                _logger.LogError("Failed to query user token [WTSQueryUserToken=" + Marshal.GetLastWin32Error().ToString() + "]");
+                _logger.LogError($"Failed to query user token [WTSQueryUserToken={Marshal.GetLastWin32Error()}]");
                 return false;
             }
 
@@ -147,7 +147,7 @@ public class ProcessHelper
 
             if (NativeMethods.CreateEnvironmentBlock(out hEnvironment, hDuplicateToken, true) == false)
             {
-                _logger.LogWarning("Unable to create environment block [CreateEnvironmentBlock=" + Marshal.GetLastWin32Error().ToString() + "]");
+                _logger.LogWarning($"Unable to create environment block [CreateEnvironmentBlock={Marshal.GetLastWin32Error()}]");
             }
 
             if (NativeMethods.CreateProcessAsUser(
@@ -165,12 +165,12 @@ public class ProcessHelper
                 ref si,
                 out pi) == false)
             {
-                _logger.LogError("Unable to create user process [CreateProcessAsUser=" + Marshal.GetLastWin32Error().ToString() + "]");
+                _logger.LogError($"Unable to create user process [CreateProcessAsUser={Marshal.GetLastWin32Error()}]");
                 return false;
             }
             else
             {
-                _logger.LogInformation("Created new process: " + pi.dwProcessId.ToString() + "/" + appFileName + " " + appArgs);
+                _logger.LogInformation($"Created new process: {pi.dwProcessId}/{appFileName} {appArgs}");
                 var newProcess = Process.GetProcessById(pi.dwProcessId);
 
                 try
@@ -208,7 +208,7 @@ public class ProcessHelper
 
                     try
                     {
-                        ManagementObjectSearcher wmiQuery = new("SELECT CommandLine FROM Win32_Process WHERE ProcessId='" + runningProcess.Id.ToString() + "'");
+                        ManagementObjectSearcher wmiQuery = new($"SELECT CommandLine FROM Win32_Process WHERE ProcessId='{runningProcess.Id}'");
 
                         foreach (ManagementObject wmiProcess in wmiQuery.Get())
                         {
@@ -222,7 +222,7 @@ public class ProcessHelper
                         commandLine = "unavailable";
                     }
 
-                    _logger.LogInformation("IsProcessRunning() found: " + runningProcess.Id.ToString() + "/" + runningProcess.ProcessName + " [" + commandLine + "]");
+                    _logger.LogInformation($"IsProcessRunning() found: {runningProcess.Id}/{runningProcess.ProcessName} [{commandLine}]");
 
                     try
                     {
@@ -236,7 +236,7 @@ public class ProcessHelper
                         // Iterate no more than the process count, divided by 2.
                         for (int i = 0; i <= Process.GetProcesses().Count() / 2; i++)
                         {
-                            ManagementObjectSearcher wmiQuery = new("SELECT ParentProcessId FROM Win32_Process WHERE ProcessId=" + currentID);
+                            ManagementObjectSearcher wmiQuery = new($"SELECT ParentProcessId FROM Win32_Process WHERE ProcessId={currentID}");
                             ManagementObjectEnumerator wmiResult = wmiQuery.Get().GetEnumerator();
                             wmiResult.MoveNext();
                             var queryObj = wmiResult.Current;
@@ -263,7 +263,7 @@ public class ProcessHelper
                             try
                             {
                                 string parentName = Process.GetProcessById((int)parentId).ProcessName;
-                                _logger.LogInformation("IsProcessRunning() parent: " + parentId.ToString() + "/" + parentName);
+                                _logger.LogInformation($"IsProcessRunning() parent: {parentId}/{parentName}");
                                 currentID = (int)parentId;
                             }
                             catch (ArgumentException)
@@ -324,8 +324,8 @@ public class ProcessHelper
                     {
                         try
                         {
-                            ManagementObjectSearcher wmiQuery = new("SELECT CommandLine FROM Win32_Process WHERE ProcessId='" +
-                                runningProcess.Id.ToString() + "'");
+                            ManagementObjectSearcher wmiQuery = new(
+                                $"SELECT CommandLine FROM Win32_Process WHERE ProcessId='{runningProcess.Id}'");
 
                             foreach (ManagementObject wmiProcess in wmiQuery.Get())
                             {
@@ -344,11 +344,11 @@ public class ProcessHelper
 
                     if (moreInfo)
                     {
-                        _logger.LogInformation("Killed: " + runningProcess.Id.ToString() + "/" + runningProcess.MainModule.FileName + " [" + commandLine + "]");
+                        _logger.LogInformation($"Killed: {runningProcess.Id}/{runningProcess.MainModule.FileName} [{commandLine}]");
                     }
                     else
                     {
-                        _logger.LogInformation("Killed: " + runningProcess.Id.ToString() + "/" + runningProcess.MainModule.FileName);
+                        _logger.LogInformation($"Killed: {runningProcess.Id}/{runningProcess.MainModule.FileName}");
                     }
                 }
 
@@ -368,7 +368,7 @@ public class ProcessHelper
 
         try
         {
-            ManagementObjectSearcher wmiQuery = new("SELECT ProcessID FROM Win32_Process WHERE Name='" + friendlyOrShortName + "'");
+            ManagementObjectSearcher wmiQuery = new($"SELECT ProcessID FROM Win32_Process WHERE Name='{friendlyOrShortName}'");
 
             foreach (ManagementObject wmiProcess in wmiQuery.Get())
             {
@@ -410,8 +410,7 @@ public class ProcessHelper
                     {
                         try
                         {
-                            ManagementObjectSearcher wmiQuery = new("SELECT CommandLine FROM Win32_Process WHERE ProcessId='" +
-                                runningProcess.Id.ToString() + "'");
+                            ManagementObjectSearcher wmiQuery = new($"SELECT CommandLine FROM Win32_Process WHERE ProcessId='{runningProcess.Id}'");
 
                             foreach (ManagementObject wmiProcess in wmiQuery.Get())
                             {
@@ -430,11 +429,11 @@ public class ProcessHelper
 
                     if (moreInfo)
                     {
-                        _logger.LogInformation("Killed: " + runningProcess.Id.ToString() + "/" + runningProcess.MainModule.FileName + " [" + commandLine + "]");
+                        _logger.LogInformation($"Killed: {runningProcess.Id}/{runningProcess.MainModule.FileName} [{commandLine}]");
                     }
                     else
                     {
-                        _logger.LogInformation("Killed: " + runningProcess.Id.ToString() + "/" + runningProcess.MainModule.FileName);
+                        _logger.LogInformation($"Killed: {runningProcess.Id}/{runningProcess.MainModule.FileName}");
                     }
 
                     runningProcess.Dispose();
@@ -455,7 +454,7 @@ public class ProcessHelper
 
         try
         {
-            ManagementObjectSearcher wmiQuery = new("SELECT ProcessID,CommandLine FROM Win32_Process WHERE Name='" + processShortName + "'");
+            ManagementObjectSearcher wmiQuery = new($"SELECT ProcessID,CommandLine FROM Win32_Process WHERE Name='{processShortName}'");
 
             foreach (ManagementObject wmiProcess in wmiQuery.Get())
             {
@@ -494,7 +493,7 @@ public class ProcessHelper
 
         try
         {
-            ManagementObjectSearcher wmiQuery = new("SELECT ProcessID,ExecutablePath FROM Win32_Process WHERE Name='" + processShortName + "'");
+            ManagementObjectSearcher wmiQuery = new($"SELECT ProcessID,ExecutablePath FROM Win32_Process WHERE Name='{processShortName}");
 
             foreach (ManagementObject wmiProcess in wmiQuery.Get())
             {
@@ -565,7 +564,7 @@ public class ProcessHelper
         try
         {
             // Prepend relative path with current process path.
-            if (appFileName.Contains("\\") && !appFileName.Contains(":\\"))
+            if (appFileName.Contains("\\") && appFileName.Contains(":\\") == false)
             {
                 if (appFileName.StartsWith("\\"))
                 {
@@ -576,14 +575,16 @@ public class ProcessHelper
                     appFileName = processPath + "\\" + appFileName;
                 }
             }
-            else if (!appFileName.Contains("\\") && !appFileName.Contains(":\\"))
+            else if (appFileName.Contains("\\") == false 
+                && appFileName.Contains(":\\") == false)
             {
                 appFileName = processPath + "\\" + appFileName;
             }
 
             // Application executable doesn't exists?
             // Note: File.Exists() accepts relative paths via current working directory.
-            if (!File.Exists(appFileName) && !File.Exists(appFileName.TrimStart('\\')))
+            if (File.Exists(appFileName) == false 
+                && File.Exists(appFileName.TrimStart('\\')) == false)
             {
                 // Take a copy of the original string.
                 string origAppToExecute = appFileName;
@@ -635,7 +636,7 @@ public class ProcessHelper
                 {
                     workingDirectory = Path.GetDirectoryName(appFileName);
 
-                    if (!Directory.Exists(workingDirectory))
+                    if (Directory.Exists(workingDirectory) == false)
                     {
                         workingDirectory = processPath;
                     }
@@ -675,7 +676,7 @@ public class ProcessHelper
 
             if (hideExecution == false)
             {
-                _logger.LogInformation("Create process: " + appFileName + " " + arguments + " [Timeout=" + execTimeoutSeconds.ToString() + "s]");
+                _logger.LogInformation($"Create process: {appFileName} {arguments} [Timeout={execTimeoutSeconds}s]");
             }
         }
         catch (Exception e)
@@ -734,10 +735,10 @@ public class ProcessHelper
 
             p.WaitForExit(execTimeoutSeconds);
 
-            if (!p.HasExited)
+            if (p.HasExited == false)
             {
                 p.Kill();
-                _logger.LogError("Killed: " + Path.GetFileName(appFileName) + " [Timeout breached]");
+                _logger.LogError($"Killed: {Path.GetFileName(appFileName)} [Timeout breached]");
             }
             else
             {
@@ -759,7 +760,7 @@ public class ProcessHelper
 
             if (hideExecution == false)
             {
-                _logger.LogInformation(Path.GetFileName(appFileName) + " return code: " + ExitCode.ToString());
+                _logger.LogInformation($"{Path.GetFileName(appFileName)} return code: {ExitCode}");
             }
 
             return Tuple.Create((long)ExitCode, String.Join(Environment.NewLine, combinedOutput.ToList()));
@@ -782,18 +783,18 @@ public class ProcessHelper
         }
     }
 
-    public bool RunProcessDetached(
-        string appFileName,
-        string arguments,
-        string workingDirectory = "",
-        bool hideWindow = false,
-        bool hideExecution = false)
+    public bool RunProcessDetached(string appFileName,
+                                   string arguments,
+                                   string workingDirectory = "",
+                                   bool hideWindow = false,
+                                   bool hideExecution = false)
     {
         string processName = Process.GetCurrentProcess().MainModule.FileName;
         string processPath = processName.Substring(0, processName.LastIndexOf("\\"));
 
         // Prepend relative path with current process path.
-        if (appFileName.Contains("\\") && !appFileName.Contains(":\\"))
+        if (appFileName.Contains("\\") 
+            && appFileName.Contains(":\\") == false)
         {
             if (appFileName.StartsWith("\\"))
             {
@@ -804,14 +805,16 @@ public class ProcessHelper
                 appFileName = processPath + "\\" + appFileName;
             }
         }
-        else if (!appFileName.Contains("\\") && !appFileName.Contains(":\\"))
+        else if (appFileName.Contains("\\") == false 
+            && appFileName.Contains(":\\") == false)
         {
             appFileName = processPath + "\\" + appFileName;
         }
 
         // Application executable doesn't exists?
         // Note: File.Exists() accepts relative paths via current working directory.
-        if (!File.Exists(appFileName) && !File.Exists(appFileName.TrimStart('\\')))
+        if (File.Exists(appFileName) == false 
+            && File.Exists(appFileName.TrimStart('\\')) == false)
         {
             // Take a copy of the original string.
             string origAppToExecute = appFileName;
@@ -850,7 +853,7 @@ public class ProcessHelper
             {
                 workingDirectory = Path.GetDirectoryName(appFileName);
 
-                if (!Directory.Exists(workingDirectory))
+                if (Directory.Exists(workingDirectory) == false)
                 {
                     workingDirectory = processPath;
                 }
@@ -869,7 +872,7 @@ public class ProcessHelper
         p.StartInfo.CreateNoWindow = hideWindow; // Passed into function
         p.StartInfo.Verb = "runas"; // Elevate (note sure if this works with UseShellExecute=false)
 
-        if (!hideExecution)
+        if (hideExecution == false)
         {
             _logger.LogInformation("Execute [Detached]: " + appFileName + " " + arguments);
         }
@@ -877,7 +880,7 @@ public class ProcessHelper
         try
         {
             p.Start();
-            _logger.LogInformation("Created detached process: " + p.Id.ToString() + "/" + appFileName.Replace("\\\\", "\\") + " " + arguments);
+            _logger.LogInformation($"Created detached process: {p.Id}/{appFileName.Replace("\\\\", "\\")} {arguments}");
 
             // Brief delay for app startup, before continuing.
             // Note: This is for the scenario where the parent app (this app)

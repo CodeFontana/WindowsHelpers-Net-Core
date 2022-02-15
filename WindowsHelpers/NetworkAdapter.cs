@@ -109,7 +109,7 @@ public class NetworkAdapter
     {
         try
         {
-            ManagementObjectSearcher searchProcedure = new("SELECT * FROM Win32_NetworkAdapter WHERE Index = " + AdapterIndex);
+            ManagementObjectSearcher searchProcedure = new($"SELECT * FROM Win32_NetworkAdapter WHERE Index = {AdapterIndex}");
 
             foreach (ManagementObject item in searchProcedure.Get())
             {
@@ -130,7 +130,7 @@ public class NetworkAdapter
     {
         try
         {
-            ManagementObjectSearcher configQuery = new("SELECT * FROM Win32_NetworkAdapterConfiguration WHERE Index = " + AdapterIndex.ToString());
+            ManagementObjectSearcher configQuery = new($"SELECT * FROM Win32_NetworkAdapterConfiguration WHERE Index = {AdapterIndex}");
 
             foreach (ManagementObject configResult in configQuery.Get())
             {

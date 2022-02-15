@@ -41,7 +41,7 @@ public class NetworkAdapterHelper
         {
             var netConnectionId = adapterResult["NetConnectionId"];
 
-            if (netConnectionId != null && !netConnectionId.ToString().Equals(""))
+            if (netConnectionId != null && netConnectionId.ToString().Equals("") == false)
             {
                 int adapterIndex = int.Parse(adapterResult["Index"].ToString());
                 string adapterName = adapterResult["Name"].ToString();
@@ -49,8 +49,7 @@ public class NetworkAdapterHelper
                 int adapterStatus = int.Parse(adapterResult["NetConnectionStatus"].ToString());
                 NetworkAdapter newAdapter = new(adapterIndex, adapterName, adapterEnabled, adapterStatus);
                 ManagementObjectSearcher configQuery = new(
-                    "SELECT DHCPEnabled,IPAddress,IPSubnet,DefaultIPGateway FROM Win32_NetworkAdapterConfiguration WHERE Index = " +
-                    newAdapter.AdapterIndex.ToString());
+                    $"SELECT DHCPEnabled,IPAddress,IPSubnet,DefaultIPGateway FROM Win32_NetworkAdapterConfiguration WHERE Index = {newAdapter.AdapterIndex}");
 
                 foreach (ManagementObject configResult in configQuery.Get())
                 {
@@ -61,7 +60,7 @@ public class NetworkAdapterHelper
                         var rawCurrentSubnet = configResult["IPSubnet"];
                         var rawCurrentGatewayAddr = configResult["DefaultIPGateway"];
 
-                        if (!bool.TryParse(rawIsDHCPEnabled.ToString(), out bool isEnabled))
+                        if (bool.TryParse(rawIsDHCPEnabled.ToString(), out bool isEnabled) == false)
                         {
                             newAdapter.IsDHCPEnabled = true;
                         }

@@ -38,8 +38,8 @@ public class StringLogicalComparer
         bool sp1 = Char.IsLetterOrDigit(s1, 0);
         bool sp2 = Char.IsLetterOrDigit(s2, 0);
 
-        if (sp1 && !sp2) return 1;
-        if (!sp1 && sp2) return -1;
+        if (sp1 && sp2 == false) return 1;
+        if (sp1 == false && sp2) return -1;
 
         int i1 = 0, i2 = 0; // current index
         int r = 0; // temp result
@@ -49,12 +49,12 @@ public class StringLogicalComparer
             bool c1 = Char.IsDigit(s1, i1);
             bool c2 = Char.IsDigit(s2, i2);
 
-            if (!c1 && !c2)
+            if (c1 == false && c2 == false)
             {
                 bool letter1 = Char.IsLetter(s1, i1);
                 bool letter2 = Char.IsLetter(s2, i2);
 
-                if ((letter1 && letter2) || (!letter1 && !letter2))
+                if ((letter1 && letter2) || (letter1 == false && letter2 == false))
                 {
                     if (letter1 && letter2)
                     {
@@ -67,8 +67,8 @@ public class StringLogicalComparer
 
                     if (r != 0) return r;
                 }
-                else if (!letter1 && letter2) return -1;
-                else if (letter1 && !letter2) return 1;
+                else if (letter1 == false && letter2) return -1;
+                else if (letter1 && letter2 == false) return 1;
             }
 
             else if (c1 && c2)

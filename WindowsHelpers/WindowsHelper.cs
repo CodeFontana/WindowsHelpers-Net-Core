@@ -140,12 +140,11 @@ public class WindowsHelper
         return false;
     }*/
 
-    public void CreateShortcut(
-        string shortcutFileName,
-        string targetFileName,
-        string targetArguments = "",
-        string shortcutDescription = "",
-        int iconNumber = 2)
+    public void CreateShortcut(string shortcutFileName,
+                               string targetFileName,
+                               string targetArguments = "",
+                               string shortcutDescription = "",
+                               int iconNumber = 2)
     {
         // Icon index numbers can be referenced at this link:
         //   https://help4windows.com/windows_7_shell32_dll.shtml
@@ -158,7 +157,7 @@ public class WindowsHelper
 
         try
         {
-            if (!shortcutFileName.EndsWith(".lnk"))
+            if (shortcutFileName.EndsWith(".lnk") == false)
             {
                 shortcutFileName += ".lnk";
             }
@@ -191,7 +190,7 @@ public class WindowsHelper
         {
             _logger.LogInformation("Configure automatic logon user: " + logonUser);
 
-            RegistryKey winLogonKey = _registryHelper.OpenKey("SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon", true, RegistryHive.LocalMachine);
+            RegistryKey winLogonKey = _registryHelper.OpenKey(@"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon", true, RegistryHive.LocalMachine);
             winLogonKey.SetValue("AutoAdminLogon", "1", RegistryValueKind.String);
             winLogonKey.SetValue("DefaultUserName", logonUser, RegistryValueKind.String);
             winLogonKey.SetValue("DefaultPassword", logonPwd, RegistryValueKind.String);
@@ -200,7 +199,7 @@ public class WindowsHelper
             winLogonKey.DeleteValue("DefaultDomainName", false);
             winLogonKey.Dispose();
 
-            RegistryKey policiesKey = _registryHelper.OpenKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System", true, RegistryHive.LocalMachine);
+            RegistryKey policiesKey = _registryHelper.OpenKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System", true, RegistryHive.LocalMachine);
             policiesKey.SetValue("EnableFirstLogonAnimation", "0", RegistryValueKind.DWord);
             policiesKey.Dispose();
 
@@ -266,7 +265,7 @@ public class WindowsHelper
             if (Environment.OSVersion.Version.Major >= 6)
             {
                 // Is the provided token NOT elevated?
-                if (!IsTokenElevated(hUserToken))
+                if (IsTokenElevated(hUserToken) == false)
                 {
                     cbSize = IntPtr.Size;
                     IntPtr pLinkedToken = Marshal.AllocHGlobal(cbSize);
@@ -278,14 +277,13 @@ public class WindowsHelper
                     }
 
                     // Are we NOT able to query the linked token? [Note: If the user is an admin, the linked token will be the elevation token!!!!!]
-                    if (!NativeMethods.GetTokenInformation(hUserToken,
-                        NativeMethods.TOKEN_INFORMATION_CLASS.TokenLinkedToken,
-                        pLinkedToken,
-                        cbSize,
-                        out cbSize))
+                    if (NativeMethods.GetTokenInformation(hUserToken,
+                                                          NativeMethods.TOKEN_INFORMATION_CLASS.TokenLinkedToken,
+                                                          pLinkedToken,
+                                                          cbSize,
+                                                          out cbSize) == false)
                     {
-                        _logger.LogError("Failed to query LINKED token [GetTokenInformation=" +
-                            Marshal.GetLastWin32Error().ToString() + "]");
+                        _logger.LogError($"Failed to query LINKED token [GetTokenInformation={Marshal.GetLastWin32Error()}]");
                         Marshal.FreeHGlobal(pLinkedToken);
                         return IntPtr.Zero;
                     }
@@ -314,15 +312,14 @@ public class WindowsHelper
                 }
             }
 
-            if (!NativeMethods.DuplicateTokenEx(hTokenToDup,
-                                             NativeMethods.TOKEN_MAXIMUM_ALLOWED,
-                                             ref sa,
-                                             NativeMethods.SECURITY_IMPERSONATION_LEVEL.SecurityImpersonation,
-                                             NativeMethods.TOKEN_TYPE.TokenPrimary,
-                                             ref hDuplicateToken))
+            if (NativeMethods.DuplicateTokenEx(hTokenToDup,
+                                               NativeMethods.TOKEN_MAXIMUM_ALLOWED,
+                                               ref sa,
+                                               NativeMethods.SECURITY_IMPERSONATION_LEVEL.SecurityImpersonation,
+                                               NativeMethods.TOKEN_TYPE.TokenPrimary,
+                                               ref hDuplicateToken) == false)
             {
-                _logger.LogError("Failed to duplicate token [DuplicateTokenEx=" +
-                    Marshal.GetLastWin32Error().ToString() + "]");
+                _logger.LogError($"Failed to duplicate token [DuplicateTokenEx={Marshal.GetLastWin32Error()}]");
                 Marshal.FreeHGlobal(hTokenToDup);
                 return IntPtr.Zero;
             }
@@ -332,27 +329,31 @@ public class WindowsHelper
             cbSize = IntPtr.Size;
             IntPtr pSessionId = Marshal.AllocHGlobal(cbSize);
 
-            if (!NativeMethods.GetTokenInformation(hDuplicateToken, NativeMethods.TOKEN_INFORMATION_CLASS.TokenSessionId, pSessionId, cbSize, out cbSize))
+            if (NativeMethods.GetTokenInformation(hDuplicateToken,
+                                                  NativeMethods.TOKEN_INFORMATION_CLASS.TokenSessionId,
+                                                  pSessionId,
+                                                  cbSize,
+                                                  out cbSize) == false)
             {
-                _logger.LogError("Failed to token's session id [GetTokenInformation=" +
-                    Marshal.GetLastWin32Error().ToString() + "]");
+                _logger.LogError($"Failed to token's session id [GetTokenInformation={Marshal.GetLastWin32Error()}]");
                 Marshal.FreeHGlobal(pSessionId);
                 return IntPtr.Zero;
             }
             else
             {
-                _logger.LogInformation("Duplicated token is configured for session id [" +
-                    Marshal.ReadInt32(pSessionId).ToString() + "]");
+                _logger.LogInformation($"Duplicated token is configured for session id [{Marshal.ReadInt32(pSessionId)}]");
             }
 
             if (sessionId >= 0 && sessionId <= 65535 && sessionId != Marshal.ReadInt32(pSessionId))
             {
-                _logger.LogInformation("Adjust token session: " + sessionId.ToString());
+                _logger.LogInformation($"Adjust token session: {sessionId}");
 
-                if (!NativeMethods.SetTokenInformation(hDuplicateToken, NativeMethods.TOKEN_INFORMATION_CLASS.TokenSessionId, ref sessionId, (uint)Marshal.SizeOf(sessionId)))
+                if (NativeMethods.SetTokenInformation(hDuplicateToken,
+                                                      NativeMethods.TOKEN_INFORMATION_CLASS.TokenSessionId,
+                                                      ref sessionId,
+                                                      (uint)Marshal.SizeOf(sessionId)) == false)
                 {
-                    _logger.LogError("Failed to assign token session [SetTokenInformation=" +
-                        Marshal.GetLastWin32Error().ToString() + "]");
+                    _logger.LogError($"Failed to assign token session [SetTokenInformation={Marshal.GetLastWin32Error()}]");
                     return hDuplicateToken;
                 }
             }
@@ -376,10 +377,13 @@ public class WindowsHelper
             IntPtr hServer = NativeMethods.WTSOpenServer(Environment.MachineName);
             IntPtr hSessionInfo = IntPtr.Zero;
 
-            if (!NativeMethods.WTSEnumerateSessions(hServer, 0, 1, ref hSessionInfo, out UInt32 sessionCount))
+            if (NativeMethods.WTSEnumerateSessions(hServer,
+                                                   0,
+                                                   1,
+                                                   ref hSessionInfo,
+                                                   out UInt32 sessionCount) == false)
             {
-                _logger.LogError("Failed to enumerate user sessions [WTSEnumerateSessions=" +
-                    Marshal.GetLastWin32Error().ToString() + "]");
+                _logger.LogError($"Failed to enumerate user sessions [WTSEnumerateSessions={Marshal.GetLastWin32Error()}]");
             }
             else
             {
@@ -388,17 +392,17 @@ public class WindowsHelper
 
                 for (int i = 1; i < sessionCount; i++)
                 {
-                    NativeMethods.WTS_SESSION_INFO si = (NativeMethods.WTS_SESSION_INFO)Marshal.PtrToStructure(hCurSession, typeof(NativeMethods.WTS_SESSION_INFO));
+                    NativeMethods.WTS_SESSION_INFO si = (NativeMethods.WTS_SESSION_INFO)Marshal.PtrToStructure(hCurSession,
+                                                                                                               typeof(NativeMethods.WTS_SESSION_INFO));
 
-                    if (!NativeMethods.WTSQueryUserToken(si.SessionID, out IntPtr hUserToken))
+                    if (NativeMethods.WTSQueryUserToken(si.SessionID, out IntPtr hUserToken) == false)
                     {
-                        _logger.LogError("Failed to query terminal user token [WTSQueryUserToken=" +
-                            Marshal.GetLastWin32Error().ToString() + "] in session [" + si.SessionID.ToString() + "]");
+                        _logger.LogError($"Failed to query terminal user token [WTSQueryUserToken={Marshal.GetLastWin32Error()}] in session [{si.SessionID}]");
                     }
                     else
                     {
                         WindowsIdentity userId = new(hUserToken);
-                        _logger.LogInformation("Found session: " + si.SessionID.ToString() + "/" + userId.Name);
+                        _logger.LogInformation($"Found session: {si.SessionID}/{userId.Name}");
                         userSessions.Add(new Tuple<uint, string>(si.SessionID, userId.Name));
                         userId.Dispose();
                     }
@@ -421,27 +425,30 @@ public class WindowsHelper
 
     public bool EnablePrivilege(IntPtr hToken, string privilege)
     {
-        _logger.LogInformation("Enable: " + privilege);
+        _logger.LogInformation($"Enable: {privilege}");
 
         NativeMethods.LUID luid = new();
         NativeMethods.TOKEN_PRIVILEGES newState;
         newState.PrivilegeCount = 1;
         newState.Privileges = new NativeMethods.LUID_AND_ATTRIBUTES[1];
 
-        if (!NativeMethods.LookupPrivilegeValue(null, privilege, ref luid))
+        if (NativeMethods.LookupPrivilegeValue(null, privilege, ref luid) == false)
         {
-            _logger.LogError("Unable to lookup privilege (LookupPrivilegeValue=" +
-                Marshal.GetLastWin32Error().ToString() + ")");
+            _logger.LogError($"Unable to lookup privilege (LookupPrivilegeValue={Marshal.GetLastWin32Error()})");
             return false;
         }
 
         newState.Privileges[0].Luid = luid;
         newState.Privileges[0].Attributes = NativeMethods.SE_PRIVILEGE_ENABLED;
 
-        if (!NativeMethods.AdjustTokenPrivileges(hToken, false, ref newState, (UInt32)Marshal.SizeOf(newState), out NativeMethods.TOKEN_PRIVILEGES oldState, out UInt32 outBytes))
+        if (NativeMethods.AdjustTokenPrivileges(hToken,
+                                                false,
+                                                ref newState,
+                                                (UInt32)Marshal.SizeOf(newState),
+                                                out NativeMethods.TOKEN_PRIVILEGES oldState,
+                                                out UInt32 outBytes) == false)
         {
-            _logger.LogError("Unable to adjust token privileges (AdjustTokenPrivileges=" +
-                Marshal.GetLastWin32Error().ToString() + ")");
+            _logger.LogError($"Unable to adjust token privileges (AdjustTokenPrivileges={Marshal.GetLastWin32Error()})");
             return false;
         }
 
@@ -456,19 +463,19 @@ public class WindowsHelper
 
             if (consoleSessionId != 0xFFFFFFFF)
             {
-                _logger.LogInformation("Found console session: " + consoleSessionId.ToString());
+                _logger.LogInformation($"Found console session: {consoleSessionId}");
 
                 if (NativeMethods.WTSQueryUserToken(consoleSessionId, out IntPtr hUserToken) == false)
                 {
-                    _logger.LogError("Failed to query console user token [WTSQueryUserToken=" + Marshal.GetLastWin32Error().ToString() + "]");
+                    _logger.LogError($"Failed to query console user token [WTSQueryUserToken={Marshal.GetLastWin32Error()}]");
                 }
                 else
                 {
                     WindowsIdentity userId = new(hUserToken);
-                    _logger.LogInformation("Console user: " + userId.Name);
+                    _logger.LogInformation($"Console user: {userId.Name}");
                     userId.Dispose();
 
-                    if (!IsUserInAdminGroup(hUserToken))
+                    if (IsUserInAdminGroup(hUserToken) == false)
                     {
                         _logger.LogWarning("Console user is not an administrator");
                     }
@@ -490,10 +497,13 @@ public class WindowsHelper
             IntPtr hServer = NativeMethods.WTSOpenServer(Environment.MachineName);
             IntPtr hSessionInfo = IntPtr.Zero;
 
-            if (!NativeMethods.WTSEnumerateSessions(hServer, 0, 1, ref hSessionInfo, out UInt32 sessionCount))
+            if (NativeMethods.WTSEnumerateSessions(hServer,
+                                                   0,
+                                                   1,
+                                                   ref hSessionInfo,
+                                                   out UInt32 sessionCount) == false)
             {
-                _logger.LogError("Failed to enumerate user sessions [WTSEnumerateSessions=" +
-                    Marshal.GetLastWin32Error().ToString() + "]");
+                _logger.LogError($"Failed to enumerate user sessions [WTSEnumerateSessions={Marshal.GetLastWin32Error()}]");
             }
             else
             {
@@ -502,21 +512,21 @@ public class WindowsHelper
 
                 for (int i = 0; i < sessionCount; i++)
                 {
-                    NativeMethods.WTS_SESSION_INFO si = (NativeMethods.WTS_SESSION_INFO)Marshal.PtrToStructure(hCurSession, typeof(NativeMethods.WTS_SESSION_INFO));
-                    _logger.LogInformation("Found session: " + si.SessionID.ToString());
+                    NativeMethods.WTS_SESSION_INFO si = (NativeMethods.WTS_SESSION_INFO)Marshal.PtrToStructure(hCurSession,
+                                                                                                               typeof(NativeMethods.WTS_SESSION_INFO));
+                    _logger.LogInformation($"Found session: {si.SessionID}");
 
-                    if (!NativeMethods.WTSQueryUserToken(si.SessionID, out IntPtr hUserToken))
+                    if (NativeMethods.WTSQueryUserToken(si.SessionID, out IntPtr hUserToken) == false)
                     {
-                        _logger.LogError("Failed to query terminal user token [WTSQueryUserToken=" +
-                            Marshal.GetLastWin32Error().ToString() + "]");
+                        _logger.LogError($"Failed to query terminal user token [WTSQueryUserToken={Marshal.GetLastWin32Error()}]");
                     }
                     else
                     {
                         WindowsIdentity userId = new(hUserToken);
-                        _logger.LogInformation("Terminal user: " + userId.Name);
+                        _logger.LogInformation($"Terminal user: {userId.Name}");
                         userId.Dispose();
 
-                        if (!IsUserInAdminGroup(hUserToken))
+                        if (IsUserInAdminGroup(hUserToken) == false)
                         {
                             _logger.LogWarning("Terminal user is not an administrator");
                         }
@@ -551,17 +561,16 @@ public class WindowsHelper
 
             if (consoleSessionId != 0xFFFFFFFF)
             {
-                _logger.LogInformation("Found console session: " + consoleSessionId.ToString());
+                _logger.LogInformation($"Found console session: {consoleSessionId}");
 
-                if (!NativeMethods.WTSQueryUserToken(consoleSessionId, out IntPtr hUserToken))
+                if (NativeMethods.WTSQueryUserToken(consoleSessionId, out IntPtr hUserToken) == false)
                 {
-                    _logger.LogError("Failed to query console user token [WTSQueryUserToken=" +
-                        Marshal.GetLastWin32Error().ToString() + "]");
+                    _logger.LogError($"Failed to query console user token [WTSQueryUserToken={Marshal.GetLastWin32Error()}]");
                 }
                 else
                 {
                     WindowsIdentity userId = new(hUserToken);
-                    _logger.LogInformation("Console user: " + userId.Name);
+                    _logger.LogInformation($"Console user: {userId.Name}");
                     userId.Dispose();
                     return hUserToken;
                 }
@@ -578,13 +587,13 @@ public class WindowsHelper
     public List<Tuple<uint, string>> GetParentProcesses()
     {
         List<Tuple<uint, string>> ParentProcessList = new();
-        int currentPID = Process.GetCurrentProcess().Id;
+        int currentPid = Process.GetCurrentProcess().Id;
         List<uint> loopSafetyList = new();
-        loopSafetyList.Add((uint)currentPID);
+        loopSafetyList.Add((uint)currentPid);
 
         for (int i = 0; i <= Process.GetProcesses().Count() / 2; i++)
         {
-            ManagementObjectSearcher wmiQuery = new("SELECT ParentProcessId FROM Win32_Process WHERE ProcessId=" + currentPID);
+            ManagementObjectSearcher wmiQuery = new($"SELECT ParentProcessId FROM Win32_Process WHERE ProcessId={currentPid}");
             ManagementObjectEnumerator wmiResult = wmiQuery.Get().GetEnumerator();
             wmiResult.MoveNext();
             ManagementBaseObject currentObject = wmiResult.Current;
@@ -611,7 +620,7 @@ public class WindowsHelper
                 string parentProcessName = Process.GetProcessById((int)parentPID).ProcessName;
                 _logger.LogInformation($"Parent: {parentPID}/{parentProcessName}");
                 ParentProcessList.Add(new Tuple<uint, string>(parentPID, parentProcessName.ToLower()));
-                currentPID = (int)parentPID;
+                currentPid = (int)parentPID;
             }
             catch (Exception)
             {
@@ -632,7 +641,7 @@ public class WindowsHelper
         if (Environment.Is64BitOperatingSystem)
         {
             RegistryKey localMachine64 = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64);
-            RegistryKey uninstallKey64 = localMachine64.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall", false);
+            RegistryKey uninstallKey64 = localMachine64.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall", false);
 
             foreach (string subKeyName in uninstallKey64.GetSubKeyNames())
             {
@@ -647,7 +656,7 @@ public class WindowsHelper
                         {
                             uninstallKey64.Dispose();
                             localMachine64.Dispose();
-                            return "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\" + subKeyName;
+                            return $@"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{subKeyName}";
                         }
                     }
 
@@ -655,7 +664,7 @@ public class WindowsHelper
                 }
                 catch (Exception e)
                 {
-                    _logger.LogError(e, "Failed to open product key [" + subKeyName + "]");
+                    _logger.LogError(e, $"Failed to open product key [{subKeyName}]");
                     continue;
                 }
             }
@@ -665,7 +674,7 @@ public class WindowsHelper
         }
 
         RegistryKey localMachine32 = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry32);
-        RegistryKey uninstallKey32 = localMachine32.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall", false);
+        RegistryKey uninstallKey32 = localMachine32.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall", false);
 
         foreach (string subKeyName in uninstallKey32.GetSubKeyNames())
         {
@@ -680,7 +689,7 @@ public class WindowsHelper
                     {
                         uninstallKey32.Dispose();
                         localMachine32.Dispose();
-                        return "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\" + subKeyName;
+                        return @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\" + subKeyName;
                     }
                 }
 
@@ -688,7 +697,7 @@ public class WindowsHelper
             }
             catch (Exception e)
             {
-                _logger.LogError(e, "Failed to open product key [" + subKeyName + "]");
+                _logger.LogError(e, $"Failed to open product key [{subKeyName}]");
                 continue;
             }
         }
@@ -706,7 +715,7 @@ public class WindowsHelper
         if (Environment.Is64BitOperatingSystem)
         {
             RegistryKey localMachine64 = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64);
-            RegistryKey uninstallKey64 = localMachine64.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall", false);
+            RegistryKey uninstallKey64 = localMachine64.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall", false);
 
             foreach (string subKeyName in uninstallKey64.GetSubKeyNames())
             {
@@ -735,7 +744,7 @@ public class WindowsHelper
                 }
                 catch (Exception e)
                 {
-                    _logger.LogError(e, "Failed to open product key [" + subKeyName + "]");
+                    _logger.LogError(e, $"Failed to open product key [{subKeyName}]");
                     continue;
                 }
             }
@@ -750,7 +759,7 @@ public class WindowsHelper
         }
 
         RegistryKey localMachine32 = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry32);
-        RegistryKey uninstallKey32 = localMachine32.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall", false);
+        RegistryKey uninstallKey32 = localMachine32.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall", false);
 
         foreach (string subKeyName in uninstallKey32.GetSubKeyNames())
         {
@@ -800,8 +809,13 @@ public class WindowsHelper
     private static void GrantAccess(string username, IntPtr handle, int accessMask)
     {
         SafeHandle safeHandle = new NativeMethods.NoopSafeHandle(handle);
-        NativeMethods.GenericSecurity security = new NativeMethods.GenericSecurity(false, ResourceType.WindowObject, safeHandle, AccessControlSections.Access);
-        security.AddAccessRule(new NativeMethods.GenericAccessRule(new NTAccount(username), accessMask, AccessControlType.Allow));
+        NativeMethods.GenericSecurity security = new NativeMethods.GenericSecurity(false,
+                                                                                   ResourceType.WindowObject,
+                                                                                   safeHandle,
+                                                                                   AccessControlSections.Access);
+        security.AddAccessRule(new NativeMethods.GenericAccessRule(new NTAccount(username),
+                                                                   accessMask,
+                                                                   AccessControlType.Allow));
         security.Persist(safeHandle, AccessControlSections.Access);
     }
 
@@ -816,17 +830,16 @@ public class WindowsHelper
         GrantAccess(username, handle, DesktopRightsAllAccess);
     }
 
-    public bool ImportCertificate(
-        string certFilename,
-        string certPassword = "",
-        StoreName certStore = StoreName.My,
-        StoreLocation certLocation = StoreLocation.CurrentUser)
+    public bool ImportCertificate(string certFilename,
+                                  string certPassword = "",
+                                  StoreName certStore = StoreName.My,
+                                  StoreLocation certLocation = StoreLocation.CurrentUser)
     {
         try
         {
-            if (!File.Exists(certFilename))
+            if (File.Exists(certFilename) == false)
             {
-                _logger.LogError("Specified certifcate file does not exist [" + certFilename + "]");
+                _logger.LogError($"Specified certifcate file does not exist [{certFilename}]");
                 return false;
             }
 
@@ -844,7 +857,7 @@ public class WindowsHelper
             X509Store store = new(certStore, certLocation);
             store.Open(OpenFlags.ReadWrite);
 
-            if (!store.Certificates.Contains(importCert))
+            if (store.Certificates.Contains(importCert) == false)
             {
                 _logger.LogInformation("Import certificate...");
                 store.Add(importCert);
@@ -869,10 +882,11 @@ public class WindowsHelper
     {
         IntPtr hProcess = targetProcess.Handle;
 
-        if (!NativeMethods.OpenProcessToken(hProcess, NativeMethods.TOKEN_ALL_ACCESS, out IntPtr hToken))
+        if (NativeMethods.OpenProcessToken(hProcess,
+                                           NativeMethods.TOKEN_ALL_ACCESS,
+                                           out IntPtr hToken) == false)
         {
-            _logger.LogError("Unable to open specified process token [OpenProcessToken=" +
-                Marshal.GetLastWin32Error().ToString() + "]");
+            _logger.LogError($"Unable to open specified process token [OpenProcessToken={Marshal.GetLastWin32Error()}]");
             return false;
         }
 
@@ -955,7 +969,7 @@ public class WindowsHelper
         if (Environment.Is64BitOperatingSystem)
         {
             RegistryKey localMachine64 = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64);
-            RegistryKey uninstallKey64 = localMachine64.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall", false);
+            RegistryKey uninstallKey64 = localMachine64.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall", false);
 
             foreach (string subKeyName in uninstallKey64.GetSubKeyNames())
             {
@@ -977,7 +991,7 @@ public class WindowsHelper
                 }
                 catch (Exception e)
                 {
-                    _logger.LogError(e, "Failed to open product key [" + subKeyName + "]");
+                    _logger.LogError(e, $"Failed to open product key [{subKeyName}]");
                     continue;
                 }
             }
@@ -992,7 +1006,7 @@ public class WindowsHelper
         }
 
         RegistryKey localMachine32 = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry32);
-        RegistryKey uninstallKey32 = localMachine32.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall", false);
+        RegistryKey uninstallKey32 = localMachine32.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall", false);
 
         foreach (string subKeyName in uninstallKey32.GetSubKeyNames())
         {
@@ -1014,7 +1028,7 @@ public class WindowsHelper
             }
             catch (Exception e)
             {
-                _logger.LogError(e, "Failed to open product key [" + subKeyName + "]");
+                _logger.LogError(e, $"Failed to open product key [{subKeyName}]");
                 continue;
             }
         }
@@ -1042,7 +1056,7 @@ public class WindowsHelper
         {
             _logger.LogInformation("Read logon configuration...");
             RegistryKey winLogonKey = _registryHelper
-                .OpenKey("SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon", true, RegistryHive.LocalMachine);
+                .OpenKey(@"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon", true, RegistryHive.LocalMachine);
             var curAutoAdminLogon = winLogonKey.GetValue("AutoAdminLogon");
             var curAutoLogonCount = winLogonKey.GetValue("AutoLogonCount");
             var curDefaultUserName = winLogonKey.GetValue("DefaultUserName");
@@ -1051,12 +1065,12 @@ public class WindowsHelper
 
             if (curAutoAdminLogon != null)
             {
-                if (!int.TryParse(curAutoAdminLogon.ToString(), out autoAdminLogon))
+                if (int.TryParse(curAutoAdminLogon.ToString(), out autoAdminLogon) == false)
                 {
                     autoAdminLogon = -1;
                 }
 
-                _logger.LogInformation("  AutoAdminLogon: " + autoAdminLogon.ToString());
+                _logger.LogInformation($"  AutoAdminLogon: {autoAdminLogon}");
             }
             else
             {
@@ -1065,12 +1079,12 @@ public class WindowsHelper
 
             if (curAutoLogonCount != null)
             {
-                if (!int.TryParse(curAutoLogonCount.ToString(), out int autoLogonCount))
+                if (int.TryParse(curAutoLogonCount.ToString(), out int autoLogonCount) == false)
                 {
                     autoLogonCount = -1;
                 }
 
-                _logger.LogInformation("  AutoLogonCount: " + autoLogonCount.ToString());
+                _logger.LogInformation($"  AutoLogonCount: {autoLogonCount}");
             }
             else
             {
@@ -1080,7 +1094,7 @@ public class WindowsHelper
             if (curDefaultUserName != null)
             {
                 logonUser = curDefaultUserName.ToString();
-                _logger.LogInformation("  DefaultUserName: " + logonUser);
+                _logger.LogInformation($"  DefaultUserName: {logonUser}");
             }
             else
             {
@@ -1099,19 +1113,19 @@ public class WindowsHelper
 
             if (curDisableCAD != null)
             {
-                if (!int.TryParse(curDisableCAD.ToString(), out int disableCAD))
+                if (int.TryParse(curDisableCAD.ToString(), out int disableCAD) == false)
                 {
                     disableCAD = -1;
                 }
 
-                _logger.LogInformation("  DisableCAD: " + disableCAD.ToString());
+                _logger.LogInformation($"  DisableCAD: {disableCAD}");
             }
             else
             {
                 _logger.LogInformation("  DisableCAD: <Not Available>");
             }
 
-            if (autoAdminLogon == 1 && !logonUser.Equals(""))
+            if (autoAdminLogon == 1 && logonUser.Equals("") == false)
             {
                 _logger.LogInformation("Automatic logon: CONFIGURED");
                 return true;
@@ -1193,14 +1207,13 @@ public class WindowsHelper
                 return false;
             }
 
-            if (!NativeMethods.GetTokenInformation(hToken,
+            if (NativeMethods.GetTokenInformation(hToken,
                 NativeMethods.TOKEN_INFORMATION_CLASS.TokenElevationType,
                 pElevationType,
                 cbSize,
-                out cbSize))
+                out cbSize) == false)
             {
-                _logger.LogError("Failed to query user-token elevation type [GetTokenInformation=" +
-                    Marshal.GetLastWin32Error().ToString() + "]");
+                _logger.LogError($"Failed to query user-token elevation type [GetTokenInformation={Marshal.GetLastWin32Error()}]");
 
                 Marshal.FreeHGlobal(hToken);
                 Marshal.FreeHGlobal(pElevationType);
@@ -1273,7 +1286,7 @@ public class WindowsHelper
             if (Environment.Is64BitOperatingSystem)
             {
                 RegistryKey localMachine64 = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64);
-                RegistryKey systemPolicies = localMachine64.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System");
+                RegistryKey systemPolicies = localMachine64.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System");
 
                 if (systemPolicies != null)
                 {
@@ -1296,7 +1309,7 @@ public class WindowsHelper
             else
             {
                 RegistryKey localMachine32 = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry32);
-                RegistryKey systemPolicies = localMachine32.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System");
+                RegistryKey systemPolicies = localMachine32.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System");
 
                 if (systemPolicies != null)
                 {
@@ -1360,9 +1373,13 @@ public class WindowsHelper
                         return false;
                     }
 
-                    if (!NativeMethods.GetTokenInformation(hToken, NativeMethods.TOKEN_INFORMATION_CLASS.TokenElevationType, pElevationType, cbSize, out cbSize))
+                    if (NativeMethods.GetTokenInformation(hToken,
+                                                          NativeMethods.TOKEN_INFORMATION_CLASS.TokenElevationType,
+                                                          pElevationType,
+                                                          cbSize,
+                                                          out cbSize) == false)
                     {
-                        _logger.LogError("Failed to query token elevation type [GetTokenInformation=" + Marshal.GetLastWin32Error().ToString() + "]");
+                        _logger.LogError($"Failed to query token elevation type [GetTokenInformation={Marshal.GetLastWin32Error()}]");
                         return false;
                     }
 
@@ -1380,9 +1397,13 @@ public class WindowsHelper
                             return false;
                         }
 
-                        if (!NativeMethods.GetTokenInformation(hToken, NativeMethods.TOKEN_INFORMATION_CLASS.TokenLinkedToken, pLinkedToken, cbSize, out cbSize))
+                        if (NativeMethods.GetTokenInformation(hToken,
+                                                              NativeMethods.TOKEN_INFORMATION_CLASS.TokenLinkedToken,
+                                                              pLinkedToken,
+                                                              cbSize,
+                                                              out cbSize) == false)
                         {
-                            _logger.LogError("Failed to query LINKED token [GetTokenInformation=" + Marshal.GetLastWin32Error().ToString() + "]");
+                            _logger.LogError($"Failed to query LINKED token [GetTokenInformation={Marshal.GetLastWin32Error()}]");
                             return false;
                         }
                         else
@@ -1408,10 +1429,11 @@ public class WindowsHelper
 
                 if (hTokenToCheck == IntPtr.Zero)
                 {
-                    if (!NativeMethods.DuplicateToken(hToken, NativeMethods.SECURITY_IMPERSONATION_LEVEL.SecurityIdentification, out hTokenToCheck))
+                    if (NativeMethods.DuplicateToken(hToken,
+                                                     NativeMethods.SECURITY_IMPERSONATION_LEVEL.SecurityIdentification,
+                                                     out hTokenToCheck) == false)
                     {
-                        _logger.LogError("Failed to duplicate ORIGNAL access token [DuplicateToken=" +
-                            Marshal.GetLastWin32Error().ToString() + "]");
+                        _logger.LogError($"Failed to duplicate ORIGNAL access token [DuplicateToken={Marshal.GetLastWin32Error()}]");
                         return false;
                     }
                 }
@@ -1491,7 +1513,13 @@ public class WindowsHelper
                 groupInfoPtr = IntPtr.Zero;
                 userInfoPtr = IntPtr.Zero;
 
-                NativeMethods.NetLocalGroupEnum(IntPtr.Zero, 1, ref groupInfoPtr, 0xFFFFFFFF, ref entriesRead, ref totalEntries, IntPtr.Zero);
+                NativeMethods.NetLocalGroupEnum(IntPtr.Zero,
+                                                1,
+                                                ref groupInfoPtr,
+                                                0xFFFFFFFF,
+                                                ref entriesRead,
+                                                ref totalEntries,
+                                                IntPtr.Zero);
 
                 for (int i = 0; i < totalEntries; i++)
                 {
@@ -1502,22 +1530,31 @@ public class WindowsHelper
                     if (Environment.Is64BitOperatingSystem)
                     {
                         newOffset64 = groupInfoPtr.ToInt64() + LOCALGROUP_INFO_1_SIZE * i;
-                        groupInfo = (NativeMethods.LOCALGROUP_INFO_1)Marshal.PtrToStructure(new IntPtr(newOffset64), typeof(NativeMethods.LOCALGROUP_INFO_1));
+                        groupInfo = (NativeMethods.LOCALGROUP_INFO_1)Marshal.PtrToStructure(new IntPtr(newOffset64),
+                                                                                            typeof(NativeMethods.LOCALGROUP_INFO_1));
                     }
                     else
                     {
                         newOffset = groupInfoPtr.ToInt32() + LOCALGROUP_INFO_1_SIZE * i;
-                        groupInfo = (NativeMethods.LOCALGROUP_INFO_1)Marshal.PtrToStructure(new IntPtr(newOffset), typeof(NativeMethods.LOCALGROUP_INFO_1));
+                        groupInfo = (NativeMethods.LOCALGROUP_INFO_1)Marshal.PtrToStructure(new IntPtr(newOffset),
+                                                                                            typeof(NativeMethods.LOCALGROUP_INFO_1));
                     }
 
                     string currentGroupName = Marshal.PtrToStringAuto(groupInfo.lpszGroupName);
 
-                    _logger.LogDebug("Group: " + currentGroupName);
+                    _logger.LogDebug($"Group: {currentGroupName}");
 
                     if (currentGroupName.ToLower().Equals("administrators"))
                     {
                         uint entriesRead1 = 0, totalEntries1 = 0;
-                        NativeMethods.NetLocalGroupGetMembers(IntPtr.Zero, groupInfo.lpszGroupName, 1, ref userInfoPtr, 0xFFFFFFFF, ref entriesRead1, ref totalEntries1, IntPtr.Zero);
+                        NativeMethods.NetLocalGroupGetMembers(IntPtr.Zero,
+                                                              groupInfo.lpszGroupName,
+                                                              1,
+                                                              ref userInfoPtr,
+                                                              0xFFFFFFFF,
+                                                              ref entriesRead1,
+                                                              ref totalEntries1,
+                                                              IntPtr.Zero);
 
                         for (int j = 0; j < totalEntries1; j++)
                         {
@@ -1528,21 +1565,25 @@ public class WindowsHelper
                             if (Environment.Is64BitOperatingSystem)
                             {
                                 newOffset1_64 = userInfoPtr.ToInt64() + LOCALGROUP_MEMBERS_INFO_1_SIZE * j;
-                                memberInfo = (NativeMethods.LOCALGROUP_MEMBERS_INFO_1)Marshal.PtrToStructure(new IntPtr(newOffset1_64), typeof(NativeMethods.LOCALGROUP_MEMBERS_INFO_1));
+                                memberInfo = (NativeMethods.LOCALGROUP_MEMBERS_INFO_1)Marshal.PtrToStructure(new IntPtr(newOffset1_64),
+                                                                                                             typeof(NativeMethods.LOCALGROUP_MEMBERS_INFO_1));
                             }
                             else
                             {
                                 newOffset1 = userInfoPtr.ToInt32() + LOCALGROUP_MEMBERS_INFO_1_SIZE * j;
-                                memberInfo = (NativeMethods.LOCALGROUP_MEMBERS_INFO_1)Marshal.PtrToStructure(new IntPtr(newOffset1), typeof(NativeMethods.LOCALGROUP_MEMBERS_INFO_1));
+                                memberInfo = (NativeMethods.LOCALGROUP_MEMBERS_INFO_1)Marshal.PtrToStructure(new IntPtr(newOffset1),
+                                                                                                             typeof(NativeMethods.LOCALGROUP_MEMBERS_INFO_1));
                             }
 
                             string currentUserName = Marshal.PtrToStringAuto(memberInfo.lgrmi1_name);
 
-                            _logger.LogDebug("  Member: " + currentUserName);
+                            _logger.LogDebug($"  Member: {currentUserName}");
 
-                            if (currentUserName.ToLower().Equals(userToCheck.Name.ToLower()) ||
-                                (userToCheck.Name.Contains("\\") && currentUserName.ToLower().Equals(
-                                    userToCheck.Name.ToLower().Substring(userToCheck.Name.IndexOf("\\") + 1))))
+                            if (currentUserName.ToLower().Equals(userToCheck.Name.ToLower()) 
+                                || (userToCheck.Name.Contains("\\") 
+                                    && currentUserName.ToLower().Equals(
+                                        userToCheck.Name.ToLower().Substring(
+                                            userToCheck.Name.IndexOf("\\") + 1))))
                             {
                                 NativeMethods.NetApiBufferFree(userInfoPtr);
                                 NativeMethods.NetApiBufferFree(groupInfoPtr);
@@ -1580,7 +1621,13 @@ public class WindowsHelper
                 groupInfoPtr = IntPtr.Zero;
                 userInfoPtr = IntPtr.Zero;
 
-                NativeMethods.NetLocalGroupEnum(IntPtr.Zero, 1, ref groupInfoPtr, 0xFFFFFFFF, ref entriesRead, ref totalEntries, IntPtr.Zero);
+                NativeMethods.NetLocalGroupEnum(IntPtr.Zero,
+                                                1,
+                                                ref groupInfoPtr,
+                                                0xFFFFFFFF,
+                                                ref entriesRead,
+                                                ref totalEntries,
+                                                IntPtr.Zero);
 
                 for (int i = 0; i < totalEntries; i++)
                 {
@@ -1591,22 +1638,31 @@ public class WindowsHelper
                     if (Environment.Is64BitOperatingSystem)
                     {
                         newOffset64 = groupInfoPtr.ToInt64() + LOCALGROUP_INFO_1_SIZE * i;
-                        groupInfo = (NativeMethods.LOCALGROUP_INFO_1)Marshal.PtrToStructure(new IntPtr(newOffset64), typeof(NativeMethods.LOCALGROUP_INFO_1));
+                        groupInfo = (NativeMethods.LOCALGROUP_INFO_1)Marshal.PtrToStructure(new IntPtr(newOffset64),
+                                                                                            typeof(NativeMethods.LOCALGROUP_INFO_1));
                     }
                     else
                     {
                         newOffset = groupInfoPtr.ToInt32() + LOCALGROUP_INFO_1_SIZE * i;
-                        groupInfo = (NativeMethods.LOCALGROUP_INFO_1)Marshal.PtrToStructure(new IntPtr(newOffset), typeof(NativeMethods.LOCALGROUP_INFO_1));
+                        groupInfo = (NativeMethods.LOCALGROUP_INFO_1)Marshal.PtrToStructure(new IntPtr(newOffset),
+                                                                                            typeof(NativeMethods.LOCALGROUP_INFO_1));
                     }
 
                     string currentGroupName = Marshal.PtrToStringAuto(groupInfo.lpszGroupName);
 
-                    _logger.LogDebug("Group: " + currentGroupName);
+                    _logger.LogDebug($"Group: {currentGroupName}");
 
                     if (currentGroupName.ToLower().Equals("administrators"))
                     {
                         uint entriesRead1 = 0, totalEntries1 = 0;
-                        NativeMethods.NetLocalGroupGetMembers(IntPtr.Zero, groupInfo.lpszGroupName, 1, ref userInfoPtr, 0xFFFFFFFF, ref entriesRead1, ref totalEntries1, IntPtr.Zero);
+                        NativeMethods.NetLocalGroupGetMembers(IntPtr.Zero,
+                                                              groupInfo.lpszGroupName,
+                                                              1,
+                                                              ref userInfoPtr,
+                                                              0xFFFFFFFF,
+                                                              ref entriesRead1,
+                                                              ref totalEntries1,
+                                                              IntPtr.Zero);
 
                         for (int j = 0; j < totalEntries1; j++)
                         {
@@ -1617,21 +1673,25 @@ public class WindowsHelper
                             if (Environment.Is64BitOperatingSystem)
                             {
                                 newOffset1_64 = userInfoPtr.ToInt64() + LOCALGROUP_MEMBERS_INFO_1_SIZE * j;
-                                memberInfo = (NativeMethods.LOCALGROUP_MEMBERS_INFO_1)Marshal.PtrToStructure(new IntPtr(newOffset1_64), typeof(NativeMethods.LOCALGROUP_MEMBERS_INFO_1));
+                                memberInfo = (NativeMethods.LOCALGROUP_MEMBERS_INFO_1)Marshal.PtrToStructure(new IntPtr(newOffset1_64),
+                                                                                                             typeof(NativeMethods.LOCALGROUP_MEMBERS_INFO_1));
                             }
                             else
                             {
                                 newOffset1 = userInfoPtr.ToInt32() + LOCALGROUP_MEMBERS_INFO_1_SIZE * j;
-                                memberInfo = (NativeMethods.LOCALGROUP_MEMBERS_INFO_1)Marshal.PtrToStructure(new IntPtr(newOffset1), typeof(NativeMethods.LOCALGROUP_MEMBERS_INFO_1));
+                                memberInfo = (NativeMethods.LOCALGROUP_MEMBERS_INFO_1)Marshal.PtrToStructure(new IntPtr(newOffset1),
+                                                                                                             typeof(NativeMethods.LOCALGROUP_MEMBERS_INFO_1));
                             }
 
                             string currentUserName = Marshal.PtrToStringAuto(memberInfo.lgrmi1_name);
 
-                            _logger.LogDebug("  Member: " + currentUserName);
+                            _logger.LogDebug($"  Member: {currentUserName}");
 
-                            if (currentUserName.ToLower().Equals(userName.ToLower()) ||
-                                (userName.Contains("\\") && currentUserName.ToLower().Equals(
-                                    userName.ToLower().Substring(userName.IndexOf("\\") + 1))))
+                            if (currentUserName.ToLower().Equals(userName.ToLower()) 
+                                || (userName.Contains("\\") 
+                                    && currentUserName.ToLower().Equals(
+                                        userName.ToLower().Substring(
+                                            userName.IndexOf("\\") + 1))))
                             {
                                 NativeMethods.NetApiBufferFree(userInfoPtr);
                                 NativeMethods.NetApiBufferFree(groupInfoPtr);
@@ -1659,11 +1719,12 @@ public class WindowsHelper
     {
         try
         {
-            RegistryKey pathKey = Registry.LocalMachine.OpenSubKey(
-            @"SYSTEM\CurrentControlSet\Control\Session Manager\Environment\", true);
+            RegistryKey pathKey = Registry.LocalMachine.OpenSubKey(@"SYSTEM\CurrentControlSet\Control\Session Manager\Environment\", true);
             string cleanPath = "";
 
-            foreach (string strPath in pathKey.GetValue("PATH", null, RegistryValueOptions.DoNotExpandEnvironmentNames).ToString().Split(';'))
+            foreach (string strPath in pathKey.GetValue("PATH",
+                                                        null,
+                                                        RegistryValueOptions.DoNotExpandEnvironmentNames).ToString().Split(';'))
             {
                 if (strPath.ToLower().Equals(folder.ToLower()))
                 {
@@ -1687,23 +1748,24 @@ public class WindowsHelper
         return true;
     }
 
-    public bool RebootSystem(
-        uint delaySeconds = 10,
-        string comment = null,
-        NativeMethods.ShutdownReason shutdownReason =
-            NativeMethods.ShutdownReason.MajorOther |
-            NativeMethods.ShutdownReason.MinorOther)
+    public bool RebootSystem(uint delaySeconds = 10,
+                             string comment = null,
+                             NativeMethods.ShutdownReason shutdownReason =
+                                NativeMethods.ShutdownReason.MajorOther 
+                                | NativeMethods.ShutdownReason.MinorOther)
     {
         IntPtr hProcess = Process.GetCurrentProcess().Handle;
 
-        if (!NativeMethods.OpenProcessToken(hProcess, NativeMethods.TOKEN_ALL_ACCESS, out IntPtr hToken))
+        if (NativeMethods.OpenProcessToken(hProcess,
+                                           NativeMethods.TOKEN_ALL_ACCESS,
+                                           out IntPtr hToken) == false)
         {
-            _logger.LogError("Unable to open specified process token [OpenProcessToken=" + Marshal.GetLastWin32Error().ToString() + "]");
+            _logger.LogError($"Unable to open specified process token [OpenProcessToken={Marshal.GetLastWin32Error()}]");
             Marshal.FreeHGlobal(hProcess);
             return false;
         }
 
-        if (!EnablePrivilege(hToken, NativeMethods.SE_SHUTDOWN_NAME))
+        if (EnablePrivilege(hToken, NativeMethods.SE_SHUTDOWN_NAME) == false)
         {
             _logger.LogWarning("Failed to enable privilege [SeShutdownPrivilege]");
             Marshal.FreeHGlobal(hProcess);
@@ -1724,7 +1786,12 @@ public class WindowsHelper
 
         _logger.LogInformation($"Windows reboot [{comment}]");
 
-        if (!NativeMethods.InitiateSystemShutdownEx(null, comment, delaySeconds, true, true, shutdownReason))
+        if (NativeMethods.InitiateSystemShutdownEx(null,
+                                                   comment,
+                                                   delaySeconds,
+                                                   true,
+                                                   true,
+                                                   shutdownReason) == false)
         {
             int lastError = Marshal.GetLastWin32Error();
 
@@ -1734,8 +1801,7 @@ public class WindowsHelper
             */
             if (lastError != 1115 && lastError != 1190)
             {
-                _logger.LogError("Failed to initiate reboot [InitiateSystemShutdownEx=" +
-                    Marshal.GetLastWin32Error().ToString() + "]");
+                _logger.LogError($"Failed to initiate reboot [InitiateSystemShutdownEx={Marshal.GetLastWin32Error()}]");
                 return false;
             }
             else if (lastError == 1115)
@@ -1801,7 +1867,7 @@ public class WindowsHelper
             }
 
             // Is this a space character, outside of quoted text?
-            if (argCrawler[i].Equals(' ') && !inQuote)
+            if (argCrawler[i].Equals(' ') && inQuote == false)
             {
                 argCrawler[i] = '\n';
             }
@@ -1822,7 +1888,7 @@ public class WindowsHelper
                     synthArgs[i] = synthArgs[i].Substring(1, synthArgs[i].Length - 2);
                 }
 
-                _logger.LogInformation("Argument [" + i.ToString() + "]: " + synthArgs[i]);
+                _logger.LogInformation($"Argument [{i}]: {synthArgs[i]}");
             }
         }
         else

@@ -162,7 +162,7 @@ public class PageFileHelper
 
             if (NativeMethods.OpenProcessToken(hProcess, NativeMethods.TOKEN_ALL_ACCESS, out IntPtr hToken) == false)
             {
-                _logger.LogError("Unable to open specified process token [OpenProcessToken=" + Marshal.GetLastWin32Error().ToString() + "]");
+                _logger.LogError($"Unable to open specified process token [OpenProcessToken={Marshal.GetLastWin32Error()}]");
             }
 
             _winHelper.EnablePrivilege(hToken, NativeMethods.SE_CREATE_PAGEFILE_NAME);
@@ -188,12 +188,12 @@ public class PageFileHelper
                     _logger.LogInformation("Current setting: ON");
                     _logger.LogInformation("No configuration changes required");
                 }
-                else if (!enable && m["AutomaticManagedPagefile"].ToString().ToUpper().Equals("FALSE"))
+                else if (enable == false && m["AutomaticManagedPagefile"].ToString().ToUpper().Equals("FALSE"))
                 {
                     _logger.LogInformation("Current setting: OFF");
                     _logger.LogInformation("No configuration changes required");
                 }
-                else if (!enable && m["AutomaticManagedPagefile"].ToString().ToUpper().Equals("TRUE"))
+                else if (enable == false && m["AutomaticManagedPagefile"].ToString().ToUpper().Equals("TRUE"))
                 {
                     _logger.LogInformation("Current setting: ON");
                     _logger.LogInformation("New setting: OFF");
@@ -223,7 +223,7 @@ public class PageFileHelper
             _logger.LogInformation("Ensure automatic page file management is OFF...");
             bool success = ConfigureAutomaticPageFile(false);
 
-            if (!success)
+            if (success == false)
             {
                 _logger.LogError("Failed to TURN OFF automatic page file management, further actions cancelled");
                 return false;
@@ -280,7 +280,7 @@ public class PageFileHelper
                 }
             }
 
-            if (queryCollection.Count == 0 || !matchFound)
+            if (queryCollection.Count == 0 || matchFound == false)
             {
                 _logger.LogInformation("Create new page file configuration...");
                 ManagementClass mc = new(@"\\.\root\cimv2", "Win32_PageFileSetting", null);
@@ -350,7 +350,7 @@ public class PageFileHelper
                 }
             }
 
-            if (queryCollection.Count == 0 || !matchFound)
+            if (queryCollection.Count == 0 || matchFound == false)
             {
                 _logger.LogError($"Removal failed, no page file is currently configured for {driveLetter}:\\");
                 return false;

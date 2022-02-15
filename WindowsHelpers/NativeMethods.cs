@@ -13,65 +13,59 @@ public static class NativeMethods
 
     [DllImport("advapi32.dll", CharSet = CharSet.Auto, SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
-    public static extern bool AdjustTokenPrivileges(
-        IntPtr TokenHandle,
-        [MarshalAs(UnmanagedType.Bool)] bool DisableAllPrivileges,
-        ref TOKEN_PRIVILEGES NewState,
-        UInt32 BufferLengthInBytes,
-        out TOKEN_PRIVILEGES PreviousState, // ref TOKEN_PRIVILEGES PreviousState
-        out UInt32 ReturnLengthInBytes);
+    public static extern bool AdjustTokenPrivileges(IntPtr TokenHandle,
+                                                    [MarshalAs(UnmanagedType.Bool)] bool DisableAllPrivileges,
+                                                    ref TOKEN_PRIVILEGES NewState,
+                                                    UInt32 BufferLengthInBytes,
+                                                    out TOKEN_PRIVILEGES PreviousState, // ref TOKEN_PRIVILEGES PreviousState
+                                                    out UInt32 ReturnLengthInBytes);
 
     [DllImportAttribute("advapi32.dll", EntryPoint = "AllocateAndInitializeSid")]
     [return: MarshalAsAttribute(UnmanagedType.Bool)]
-    public static extern bool AllocateAndInitializeSid(
-        [InAttribute] ref SID_IDENTIFIER_AUTHORITY pIdentifierAuthority,
-        byte nSubAuthorityCount,
-        uint nSubAuthority0,
-        uint nSubAuthority1,
-        uint nSubAuthority2,
-        uint nSubAuthority3,
-        uint nSubAuthority4,
-        uint nSubAuthority5,
-        uint nSubAuthority6,
-        uint nSubAuthority7,
-        ref IntPtr pSid);
+    public static extern bool AllocateAndInitializeSid([InAttribute] ref SID_IDENTIFIER_AUTHORITY pIdentifierAuthority,
+                                                       byte nSubAuthorityCount,
+                                                       uint nSubAuthority0,
+                                                       uint nSubAuthority1,
+                                                       uint nSubAuthority2,
+                                                       uint nSubAuthority3,
+                                                       uint nSubAuthority4,
+                                                       uint nSubAuthority5,
+                                                       uint nSubAuthority6,
+                                                       uint nSubAuthority7,
+                                                       ref IntPtr pSid);
 
     [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
     public static extern bool AttachConsole(int dwProcessId);
 
     [DllImport("advapi32.dll", SetLastError = true, CharSet = CharSet.Auto)]
-    public static extern void BuildExplicitAccessWithName(
-        ref EXPLICIT_ACCESS pExplicitAccess,
-        string pTrusteeName,
-        ACCESS_MASK AccessPermissions,
-        ACCESS_MODE AccessMode,
-        uint Inheritance);
+    public static extern void BuildExplicitAccessWithName(ref EXPLICIT_ACCESS pExplicitAccess,
+                                                          string pTrusteeName,
+                                                          ACCESS_MASK AccessPermissions,
+                                                          ACCESS_MODE AccessMode,
+                                                          uint Inheritance);
 
     [DllImport("advapi32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
-    public static extern Boolean ChangeServiceConfig(
-        IntPtr hService,
-        UInt32 nServiceType,
-        UInt32 nStartType,
-        UInt32 nErrorControl,
-        String lpBinaryPathName,
-        String lpLoadOrderGroup,
-        IntPtr lpdwTagId,
-        [In] char[] lpDependencies,
-        String lpServiceStartName,
-        String lpPassword,
-        String lpDisplayName);
+    public static extern Boolean ChangeServiceConfig(IntPtr hService,
+                                                     UInt32 nServiceType,
+                                                     UInt32 nStartType,
+                                                     UInt32 nErrorControl,
+                                                     String lpBinaryPathName,
+                                                     String lpLoadOrderGroup,
+                                                     IntPtr lpdwTagId,
+                                                     [In] char[] lpDependencies,
+                                                     String lpServiceStartName,
+                                                     String lpPassword,
+                                                     String lpDisplayName);
 
     [DllImport("advapi32.dll")]
-    public static extern bool ChangeServiceConfig2A(
-        IntPtr hService,
-        InfoLevel dwInfoLevel,
-        ref SERVICE_FAILURE_ACTIONS lpInfo);
+    public static extern bool ChangeServiceConfig2A(IntPtr hService,
+                                                    InfoLevel dwInfoLevel,
+                                                    ref SERVICE_FAILURE_ACTIONS lpInfo);
 
     [DllImport("advapi32.dll")]
-    public static extern bool ChangeServiceConfig2A(
-        IntPtr hService,
-        InfoLevel dwInfoLevel,
-        ref SERVICE_DESCRIPTION lpInfo);
+    public static extern bool ChangeServiceConfig2A(IntPtr hService,
+                                                    InfoLevel dwInfoLevel,
+                                                    ref SERVICE_DESCRIPTION lpInfo);
 
     [DllImport("User32.Dll")]
     public static extern bool ClientToScreen(IntPtr hWnd, ref POINT point);
@@ -96,85 +90,79 @@ public static class NativeMethods
     public static extern bool CreateEnvironmentBlock(out IntPtr lpEnvironment, IntPtr hToken, bool bInherit);
 
     [DllImport("kernel32.dll", SetLastError = true)]
-    public static extern IntPtr CreateFile(
-        string lpFileName,
-        EFileAccess dwDesiredAccess,
-        EFileShare dwShareMode,
-        IntPtr lpSecurityAttributes,
-        ECreationDisposition dwCreationDisposition,
-        EFileAttributes dwFlagsAndAttributes,
-        IntPtr hTemplateFile);
+    public static extern IntPtr CreateFile(string lpFileName,
+                                           EFileAccess dwDesiredAccess,
+                                           EFileShare dwShareMode,
+                                           IntPtr lpSecurityAttributes,
+                                           ECreationDisposition dwCreationDisposition,
+                                           EFileAttributes dwFlagsAndAttributes,
+                                           IntPtr hTemplateFile);
 
     [DllImport("advapi32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-    public static extern bool CreateProcessAsUser(
-        IntPtr hToken,
-        string lpApplicationName,
-        string lpCommandLine,
-        ref SECURITY_ATTRIBUTES lpProcessAttributes,
-        ref SECURITY_ATTRIBUTES lpThreadAttributes,
-        bool bInheritHandles,
-        uint dwCreationFlags,
-        IntPtr lpEnvironment,
-        string lpCurrentDirectory,
-        ref STARTUPINFO lpStartupInfo,
-        out PROCESS_INFORMATION lpProcessInformation);
+    public static extern bool CreateProcessAsUser(IntPtr hToken,
+                                                  string lpApplicationName,
+                                                  string lpCommandLine,
+                                                  ref SECURITY_ATTRIBUTES lpProcessAttributes,
+                                                  ref SECURITY_ATTRIBUTES lpThreadAttributes,
+                                                  bool bInheritHandles,
+                                                  uint dwCreationFlags,
+                                                  IntPtr lpEnvironment,
+                                                  string lpCurrentDirectory,
+                                                  ref STARTUPINFO lpStartupInfo,
+                                                  out PROCESS_INFORMATION lpProcessInformation);
 
     [DllImport("advapi32", SetLastError = true, CharSet = CharSet.Unicode)]
-    public static extern bool CreateProcessWithTokenW(
-        IntPtr hToken,
-        LogonFlags dwLogonFlags,
-        string lpApplicationName,
-        string lpCommandLine,
-        uint dwCreationFlags,
-        IntPtr lpEnvironment,
-        string lpCurrentDirectory,
-        [In] ref STARTUPINFO lpStartupInfo,
-        out PROCESS_INFORMATION lpProcessInformation);
+    public static extern bool CreateProcessWithTokenW(IntPtr hToken,
+                                                      LogonFlags dwLogonFlags,
+                                                      string lpApplicationName,
+                                                      string lpCommandLine,
+                                                      uint dwCreationFlags,
+                                                      IntPtr lpEnvironment,
+                                                      string lpCurrentDirectory,
+                                                      [In] ref STARTUPINFO lpStartupInfo,
+                                                      out PROCESS_INFORMATION lpProcessInformation);
 
     [DllImport("advapi32.dll", SetLastError = true, CharSet = CharSet.Auto)]
-    public static extern IntPtr CreateService(
-        IntPtr hSCManager,
-        string lpServiceName,
-        string lpDisplayName,
-        uint dwDesiredAccess,
-        uint dwServiceType,
-        uint dwStartType,
-        uint dwErrorControl,
-        string lpBinaryPathName,
-        string lpLoadOrderGroup,
-        IntPtr lpdwTagId,
-        string lpDependencies,
-        string lpServiceStartName,
-        string lpPassword);
+    public static extern IntPtr CreateService(IntPtr hSCManager,
+                                              string lpServiceName,
+                                              string lpDisplayName,
+                                              uint dwDesiredAccess,
+                                              uint dwServiceType,
+                                              uint dwStartType,
+                                              uint dwErrorControl,
+                                              string lpBinaryPathName,
+                                              string lpLoadOrderGroup,
+                                              IntPtr lpdwTagId,
+                                              string lpDependencies,
+                                              string lpServiceStartName,
+                                              string lpPassword);
 
     [DllImport("advapi32.dll", SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
     public static extern bool DeleteService(IntPtr hService);
 
     [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-    public static extern bool DeviceIoControl(
-        IntPtr hDevice,
-        uint dwIoControlCode,
-        IntPtr InBuffer,
-        int nInBufferSize,
-        IntPtr OutBuffer,
-        int nOutBufferSize,
-        out int pBytesReturned, IntPtr lpOverlapped);
+    public static extern bool DeviceIoControl(IntPtr hDevice,
+                                              uint dwIoControlCode,
+                                              IntPtr InBuffer,
+                                              int nInBufferSize,
+                                              IntPtr OutBuffer,
+                                              int nOutBufferSize,
+                                              out int pBytesReturned,
+                                              IntPtr lpOverlapped);
 
     [DllImport("advapi32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-    public extern static bool DuplicateToken(
-        IntPtr ExistingTokenHandle,
-        SECURITY_IMPERSONATION_LEVEL ImpersonationLevel,
-        out IntPtr DuplicateTokenHandle);
+    public extern static bool DuplicateToken(IntPtr ExistingTokenHandle,
+                                             SECURITY_IMPERSONATION_LEVEL ImpersonationLevel,
+                                             out IntPtr DuplicateTokenHandle);
 
     [DllImport("advapi32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-    public extern static bool DuplicateTokenEx(
-        IntPtr hExistingToken,
-        uint dwDesiredAccess,
-        ref SECURITY_ATTRIBUTES lpTokenAttributes,
-        SECURITY_IMPERSONATION_LEVEL ImpersonationLevel,
-        TOKEN_TYPE TokenType,
-        ref IntPtr phNewToken);
+    public extern static bool DuplicateTokenEx(IntPtr hExistingToken,
+                                               uint dwDesiredAccess,
+                                               ref SECURITY_ATTRIBUTES lpTokenAttributes,
+                                               SECURITY_IMPERSONATION_LEVEL ImpersonationLevel,
+                                               TOKEN_TYPE TokenType,
+                                               ref IntPtr phNewToken);
 
     [DllImport("user32.dll")]
     public static extern bool EnableMenuItem(IntPtr hMenu, uint uIDEnableItem, uint uEnable);
@@ -223,24 +211,22 @@ public static class NativeMethods
 
     [DllImport("advapi32.dll", CharSet = CharSet.Auto, SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
-    public static extern bool GetTokenInformation(
-        IntPtr hToken,
-        TOKEN_INFORMATION_CLASS tokenInfoClass,
-        IntPtr pTokenInfo,
-        Int32 tokenInfoLength,
-        out Int32 returnLength);
+    public static extern bool GetTokenInformation(IntPtr hToken,
+                                                  TOKEN_INFORMATION_CLASS tokenInfoClass,
+                                                  IntPtr pTokenInfo,
+                                                  Int32 tokenInfoLength,
+                                                  out Int32 returnLength);
 
     [DllImport("user32.dll", SetLastError = true)]
     public static extern int GetWindowLong(IntPtr hWnd, int nIndex);
 
     [DllImport("advapi32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-    public static extern bool InitiateSystemShutdownEx(
-        string lpMachineName,
-        string lpMessage,
-        uint dwTimeout,
-        bool bForceAppsClosed,
-        bool bRebootAfterShutdown,
-        ShutdownReason dwReason);
+    public static extern bool InitiateSystemShutdownEx(string lpMachineName,
+                                                       string lpMessage,
+                                                       uint dwTimeout,
+                                                       bool bForceAppsClosed,
+                                                       bool bRebootAfterShutdown,
+                                                       ShutdownReason dwReason);
 
     [DllImport("userenv.dll", SetLastError = true, CharSet = CharSet.Auto)]
     public static extern bool LoadUserProfile(IntPtr hToken, ref PROFILEINFO lpProfileInfo);
@@ -253,65 +239,58 @@ public static class NativeMethods
 
     [DllImport("advapi32.dll", SetLastError = true, CharSet = CharSet.Auto)]
     [return: MarshalAs(UnmanagedType.Bool)]
-    public static extern bool LogonUser(
-        string pszUserName,
-        string pszDomain,
-        string pszPassword,
-        int dwLogonType,
-        int dwLogonProvider,
-        ref IntPtr phToken);
+    public static extern bool LogonUser(string pszUserName,
+                                        string pszDomain,
+                                        string pszPassword,
+                                        int dwLogonType,
+                                        int dwLogonProvider,
+                                        ref IntPtr phToken);
 
     [DllImport("advapi32.dll")]
-    public static extern bool LookupPrivilegeValue(
-        string lpSystemName,
-        string lpName,
-        ref LUID lpLuid);
+    public static extern bool LookupPrivilegeValue(string lpSystemName,
+                                                   string lpName,
+                                                   ref LUID lpLuid);
 
     [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
-    public static extern bool MoveFileEx(
-    string lpExistingFileName,
-    string lpNewFileName,
-    MoveFileFlags dwFlags);
+    public static extern bool MoveFileEx(string lpExistingFileName,
+                                         string lpNewFileName,
+                                         MoveFileFlags dwFlags);
 
     [DllImport("netapi32.dll", EntryPoint = "NetApiBufferFree")]
     public static extern void NetApiBufferFree(IntPtr bufptr);
 
     [DllImport("netapi32.dll", EntryPoint = "NetLocalGroupGetMembers")]
-    public static extern uint NetLocalGroupGetMembers(
-        IntPtr ServerName,
-        IntPtr GrouprName,
-        uint level,
-        ref IntPtr siPtr,
-        uint prefmaxlen,
-        ref uint entriesread,
-        ref uint totalentries,
-        IntPtr resumeHandle);
+    public static extern uint NetLocalGroupGetMembers(IntPtr ServerName,
+                                                      IntPtr GrouprName,
+                                                      uint level,
+                                                      ref IntPtr siPtr,
+                                                      uint prefmaxlen,
+                                                      ref uint entriesread,
+                                                      ref uint totalentries,
+                                                      IntPtr resumeHandle);
 
     [DllImport("netapi32.dll", EntryPoint = "NetLocalGroupEnum")]
-    public static extern uint NetLocalGroupEnum(
-        IntPtr ServerName,
-        uint level,
-        ref IntPtr siPtr,
-        uint prefmaxlen,
-        ref uint entriesread,
-        ref uint totalentries,
-        IntPtr resumeHandle);
+    public static extern uint NetLocalGroupEnum(IntPtr ServerName,
+                                                uint level,
+                                                ref IntPtr siPtr,
+                                                uint prefmaxlen,
+                                                ref uint entriesread,
+                                                ref uint totalentries,
+                                                IntPtr resumeHandle);
 
     [DllImport("User32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
     public static extern IntPtr OpenDesktop(string name, Int32 flags, bool fInherit, long param);
 
     [DllImport("kernel32.dll", SetLastError = true)]
-    public static extern IntPtr OpenProcess(
-        uint processAccess,
-        bool bInheritHandle,
-        int processId);
+    public static extern IntPtr OpenProcess(uint processAccess,
+                                            bool bInheritHandle,
+                                            int processId);
 
     [DllImport("advapi32", CharSet = CharSet.Auto, SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
-    public static extern bool OpenProcessToken(
-        IntPtr hProcess,
-        UInt32 desiredAccess,
-        out IntPtr hToken);
+    public static extern bool OpenProcessToken(IntPtr hProcess,
+                                               UInt32 desiredAccess,
+                                               out IntPtr hToken);
 
     [DllImport("advapi32.dll", EntryPoint = "OpenSCManagerW", ExactSpelling = true, CharSet = CharSet.Unicode, SetLastError = true)]
     public static extern IntPtr OpenSCManager(string machineName, string databaseName, uint dwAccess);
@@ -354,24 +333,22 @@ public static class NativeMethods
     public static extern bool SetDynamicTimeZoneInformation([In] ref DYNAMIC_TIME_ZONE_INFORMATION lpTimeZoneInformation);
 
     [DllImport("Advapi32.dll", EntryPoint = "SetEntriesInAclA", CallingConvention = CallingConvention.Winapi, SetLastError = true, CharSet = CharSet.Ansi)]
-    public static extern int SetEntriesInAcl(
-        int CountofExplicitEntries,
-        ref EXPLICIT_ACCESS ea,
-        IntPtr OldAcl,
-        ref IntPtr NewAcl);
+    public static extern int SetEntriesInAcl(int CountofExplicitEntries,
+                                             ref EXPLICIT_ACCESS ea,
+                                             IntPtr OldAcl,
+                                             ref IntPtr NewAcl);
 
     [DllImport("user32.dll")]
     public static extern bool SetForegroundWindow(IntPtr hWnd);
 
     [DllImport("advapi32.dll", CharSet = CharSet.Auto)]
-    public static extern int SetNamedSecurityInfo(
-        string pObjectName,
-        SE_OBJECT_TYPE ObjectType,
-        SECURITY_INFORMATION SecurityInfo,
-        IntPtr psidOwner,
-        IntPtr psidGroup,
-        IntPtr pDacl,
-        IntPtr pSacl);
+    public static extern int SetNamedSecurityInfo(string pObjectName,
+                                                  SE_OBJECT_TYPE ObjectType,
+                                                  SECURITY_INFORMATION SecurityInfo,
+                                                  IntPtr psidOwner,
+                                                  IntPtr psidGroup,
+                                                  IntPtr pDacl,
+                                                  IntPtr pSacl);
 
     [DllImport("User32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
     public static extern bool SetProcessWindowStation(IntPtr hWinSta);
@@ -383,11 +360,10 @@ public static class NativeMethods
     public static extern EXECUTION_STATE SetThreadExecutionState(EXECUTION_STATE esFlags);
 
     [DllImport("advapi32.dll", SetLastError = true)]
-    public static extern Boolean SetTokenInformation(
-        IntPtr TokenHandle,
-        TOKEN_INFORMATION_CLASS TokenInformationClass,
-        ref UInt32 TokenInformation,
-        UInt32 TokenInformationLength);
+    public static extern Boolean SetTokenInformation(IntPtr TokenHandle,
+                                                     TOKEN_INFORMATION_CLASS TokenInformationClass,
+                                                     ref UInt32 TokenInformation,
+                                                     UInt32 TokenInformationLength);
 
     [DllImport("user32.dll")]
     public static extern int SetWindowLong(IntPtr hWnd, int nIndex, int dwNewLong);
@@ -409,12 +385,11 @@ public static class NativeMethods
     public static extern void WTSCloseServer(IntPtr hServer);
 
     [DllImport("wtsapi32.dll", SetLastError = true)]
-    public static extern bool WTSEnumerateSessions(
-        IntPtr hServer,
-        [MarshalAs(UnmanagedType.U4)] Int32 Reserved,
-        [MarshalAs(UnmanagedType.U4)] Int32 Version,
-        ref IntPtr ppSessionInfo,
-        [MarshalAs(UnmanagedType.U4)] out UInt32 pCount);
+    public static extern bool WTSEnumerateSessions(IntPtr hServer,
+                                                   [MarshalAs(UnmanagedType.U4)] Int32 Reserved,
+                                                   [MarshalAs(UnmanagedType.U4)] Int32 Version,
+                                                   ref IntPtr ppSessionInfo,
+                                                   [MarshalAs(UnmanagedType.U4)] out UInt32 pCount);
 
     [DllImport("wtsapi32.dll")]
     public static extern void WTSFreeMemory(IntPtr pMemory);
@@ -426,17 +401,15 @@ public static class NativeMethods
     public static extern IntPtr WTSOpenServer([MarshalAs(UnmanagedType.LPStr)] String pServerName);
 
     [DllImport("wtsapi32.dll", SetLastError = true)]
-    public static extern bool WTSQueryUserToken(
-        UInt32 sessionId,
-        out IntPtr Token);
+    public static extern bool WTSQueryUserToken(UInt32 sessionId,
+                                                out IntPtr Token);
 
     [DllImport("Wtsapi32.dll")]
-    public static extern bool WTSQuerySessionInformation(
-        IntPtr hServer,
-        int sessionId,
-        WTS_INFO_CLASS wtsInfoClass,
-        out IntPtr ppBuffer,
-        out uint pBytesReturned);
+    public static extern bool WTSQuerySessionInformation(IntPtr hServer,
+                                                         int sessionId,
+                                                         WTS_INFO_CLASS wtsInfoClass,
+                                                         out IntPtr ppBuffer,
+                                                         out uint pBytesReturned);
 
     // ******************************
     // Classes.
@@ -455,11 +428,10 @@ public static class NativeMethods
 
     public class GenericSecurity : NativeObjectSecurity
     {
-        public GenericSecurity(
-            bool isContainer,
-            ResourceType resType,
-            SafeHandle objectHandle,
-            AccessControlSections sectionsRequested)
+        public GenericSecurity(bool isContainer,
+                               ResourceType resType,
+                               SafeHandle objectHandle,
+                               AccessControlSections sectionsRequested)
             : base(isContainer, resType, objectHandle, sectionsRequested)
         {
 
@@ -480,13 +452,12 @@ public static class NativeMethods
             get { throw new NotImplementedException(); }
         }
 
-        public override AccessRule AccessRuleFactory(
-            IdentityReference identityReference,
-            int accessMask,
-            bool isInherited,
-            InheritanceFlags inheritanceFlags,
-            PropagationFlags propagationFlags,
-            AccessControlType type)
+        public override AccessRule AccessRuleFactory(IdentityReference identityReference,
+                                                     int accessMask,
+                                                     bool isInherited,
+                                                     InheritanceFlags inheritanceFlags,
+                                                     PropagationFlags propagationFlags,
+                                                     AccessControlType type)
         {
             throw new NotImplementedException();
         }
@@ -496,13 +467,12 @@ public static class NativeMethods
             get { return typeof(AccessRule); }
         }
 
-        public override AuditRule AuditRuleFactory(
-            IdentityReference identityReference,
-            int accessMask,
-            bool isInherited,
-            InheritanceFlags inheritanceFlags,
-            PropagationFlags propagationFlags,
-            AuditFlags flags)
+        public override AuditRule AuditRuleFactory(IdentityReference identityReference,
+                                                   int accessMask,
+                                                   bool isInherited,
+                                                   InheritanceFlags inheritanceFlags,
+                                                   PropagationFlags propagationFlags,
+                                                   AuditFlags flags)
         {
             throw new NotImplementedException();
         }
@@ -1002,8 +972,16 @@ public static class NativeMethods
         SERVICE_INTERROGATE = 0x00080,
         SERVICE_USER_DEFINED_CONTROL = 0x00100,
         SERVICE_ALL_ACCESS =
-            (STANDARD_RIGHTS_REQUIRED | SERVICE_QUERY_CONFIG | SERVICE_CHANGE_CONFIG | SERVICE_QUERY_STATUS | SERVICE_ENUMERATE_DEPENDENTS | SERVICE_START | SERVICE_STOP | SERVICE_PAUSE_CONTINUE
-                | SERVICE_INTERROGATE | SERVICE_USER_DEFINED_CONTROL)
+            (STANDARD_RIGHTS_REQUIRED 
+                | SERVICE_QUERY_CONFIG 
+                | SERVICE_CHANGE_CONFIG 
+                | SERVICE_QUERY_STATUS 
+                | SERVICE_ENUMERATE_DEPENDENTS 
+                | SERVICE_START 
+                | SERVICE_STOP 
+                | SERVICE_PAUSE_CONTINUE
+                | SERVICE_INTERROGATE 
+                | SERVICE_USER_DEFINED_CONTROL)
     }
 
     [Flags]

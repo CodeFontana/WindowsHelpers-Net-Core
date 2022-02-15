@@ -67,13 +67,12 @@ public class FileSystemHelper
             // Force permissions? (e.g. take ownership and try again)
             if (forcePermissions)
             {
-                if (!NativeMethods.OpenProcessToken(
+                if (NativeMethods.OpenProcessToken(
                     Process.GetCurrentProcess().Handle,
                     NativeMethods.TOKEN_ALL_ACCESS,
-                    out IntPtr hToken))
+                    out IntPtr hToken) == false)
                 {
-                    _logger.LogInformation("Unable to open specified process token [OpenProcessToken=" +
-                        Marshal.GetLastWin32Error().ToString() + "]");
+                    _logger.LogInformation($"Unable to open specified process token [OpenProcessToken={Marshal.GetLastWin32Error()}]");
                     return false;
                 }
 
@@ -133,7 +132,7 @@ public class FileSystemHelper
             }
             else
             {
-                _logger.LogError(e, "Failed to add filesystem permissions to [" + fileOrFolder + "]");
+                _logger.LogError(e, $"Failed to add filesystem permissions to [{fileOrFolder}]");
                 return false;
             }
         }
@@ -152,7 +151,10 @@ public class FileSystemHelper
             if (temp <= 0)
             {
                 // Return prior suffix value
-                return String.Format("{0,9}", String.Format("{0:0.00}", Math.Round((double)numBytes / Math.Pow(1024, i), 2)) + suffixes[i]);
+                return String.Format("{0,9}", 
+                    String.Format("{0:0.00}", 
+                        Math.Round((double)numBytes / Math.Pow(1024, i), 2)) 
+                    + suffixes[i]);
             }
         }
 
@@ -167,7 +169,7 @@ public class FileSystemHelper
         {
             if (d.DriveType.ToString().ToLower().Equals("fixed"))
             {
-                _logger.LogInformation("Check drive [read-only]: " + d.Name);
+                _logger.LogInformation($"Check drive [read-only]: {d.Name}");
 
                 Tuple<long, string> result = _processHelper.RunProcess(
                     "chkdsk.exe",
@@ -207,31 +209,31 @@ public class FileSystemHelper
                 var smart = drive["Status"];
                 var sizeInBytes = drive["Size"];
 
-                _logger.LogInformation("Found drive: " + model.ToString());
+                _logger.LogInformation($"Found drive: {model}");
 
                 if (serial != null)
                 {
-                    _logger.LogInformation("  Serial: " + serial.ToString());
+                    _logger.LogInformation($"  Serial: {serial}");
                 }
 
                 if (interfacetype != null)
                 {
-                    _logger.LogInformation("  Interface: " + interfacetype.ToString());
+                    _logger.LogInformation($"  Interface: {interfacetype}");
                 }
 
                 if (partitions != null)
                 {
-                    _logger.LogInformation("  Partitions: " + partitions.ToString());
+                    _logger.LogInformation($"  Partitions: {partitions}");
                 }
 
                 if (sizeInBytes != null)
                 {
-                    _logger.LogInformation("  Size: " + BytesToReadableValue(long.Parse(sizeInBytes.ToString().Trim())));
+                    _logger.LogInformation($"  Size: {BytesToReadableValue(long.Parse(sizeInBytes.ToString().Trim()))}");
                 }
 
                 if (smart != null)
                 {
-                    _logger.LogInformation("  SMART: " + smart.ToString());
+                    _logger.LogInformation($"  SMART: {smart}");
 
                     if (smart.ToString().ToLower().Equals("ok") == false)
                     {
@@ -242,7 +244,7 @@ public class FileSystemHelper
 
             wmiQuery.Dispose();
 
-            if (!smartOK)
+            if (smartOK == false)
             {
                 _logger.LogError("SMART status failure detected");
                 return false;
@@ -259,32 +261,31 @@ public class FileSystemHelper
         }
     }
 
-    public bool CopyFile(
-        string sourceFileName,
-        string destFileName,
-        bool overWrite = true,
-        bool handleInUseOnReboot = false)
+    public bool CopyFile(string sourceFileName,
+                         string destFileName,
+                         bool overWrite = true,
+                         bool handleInUseOnReboot = false)
     {
-        _logger.LogInformation("Copy file: " + sourceFileName);
-        _logger.LogInformation("       To: " + destFileName);
+        _logger.LogInformation($"Copy file: {sourceFileName}");
+        _logger.LogInformation($"       To: {destFileName}");
 
         try
         {
             try
             {
-                if (!File.Exists(sourceFileName))
+                if (File.Exists(sourceFileName) == false)
                 {
-                    _logger.LogError("Source file does not exist [" + sourceFileName + "]");
+                    _logger.LogError($"Source file does not exist [{sourceFileName}]");
                     return false;
                 }
 
                 if (sourceFileName.ToLower().Equals(destFileName.ToLower()))
                 {
-                    _logger.LogError("Source and destination files must be different [" + sourceFileName + "]");
+                    _logger.LogError($"Source and destination files must be different [{sourceFileName}]");
                     return false;
                 }
 
-                if (!Directory.Exists(Path.GetDirectoryName(destFileName)))
+                if (Directory.Exists(Path.GetDirectoryName(destFileName)) == false)
                 {
                     try
                     {
@@ -322,7 +323,7 @@ public class FileSystemHelper
                         {
                             if (File.Exists(incrementFilename))
                             {
-                                incrementFilename = destFileName + ".delete_on_reboot_" + (fileIncrement++).ToString();
+                                incrementFilename = $"{destFileName}.delete_on_reboot_{fileIncrement++}";
                             }
                             else
                             {
@@ -341,18 +342,18 @@ public class FileSystemHelper
                             null,
                             NativeMethods.MoveFileFlags.DelayUntilReboot);
 
-                        _logger.LogInformation("Delete after reboot: " + incrementFilename);
+                        _logger.LogInformation($"Delete after reboot: {incrementFilename}");
                     }
                     catch (Exception)
                     {
-                        string pendingFilename = destFileName + ".pending";
+                        string pendingFilename = $"{destFileName}.pending";
                         int fileIncrement = 0;
 
                         while (true)
                         {
                             if (File.Exists(pendingFilename))
                             {
-                                pendingFilename = destFileName + ".pending_" + fileIncrement.ToString();
+                                pendingFilename = $"{destFileName}.pending_{fileIncrement}";
                             }
                             else
                             {
@@ -371,7 +372,7 @@ public class FileSystemHelper
                                 destFileName,
                                 NativeMethods.MoveFileFlags.ReplaceExisting);
 
-                            if (!moveSuccess && handleInUseOnReboot)
+                            if (moveSuccess == false && handleInUseOnReboot)
                             {
                                 // Schedule deletion of original file.
                                 NativeMethods.MoveFileEx(
@@ -385,12 +386,12 @@ public class FileSystemHelper
                                     destFileName,
                                     NativeMethods.MoveFileFlags.DelayUntilReboot);
 
-                                _logger.LogInformation("Reboot required: " + destFileName);
+                                _logger.LogInformation($"Reboot required: {destFileName}");
                                 return true;
                             }
-                            else if (!moveSuccess && !handleInUseOnReboot)
+                            else if (moveSuccess == false && handleInUseOnReboot == false)
                             {
-                                _logger.LogError("Destination file is in-use [" + destFileName + "]");
+                                _logger.LogError($"Destination file is in-use [{destFileName}]");
                                 return false;
                             }
                             else
@@ -400,7 +401,7 @@ public class FileSystemHelper
                         }
                         catch (Exception e)
                         {
-                            _logger.LogError(e, "Unable to schedule file replacement for in-use file [" + destFileName + "]");
+                            _logger.LogError(e, $"Unable to schedule file replacement for in-use file [{destFileName}]");
                             return false;
                         }
                     }
@@ -412,29 +413,28 @@ public class FileSystemHelper
         }
         catch (Exception e)
         {
-            _logger.LogError(e, "Failed to copy file [" + Path.GetFileName(sourceFileName) + "] to destination");
+            _logger.LogError(e, $"Failed to copy file [{Path.GetFileName(sourceFileName)}] to destination");
         }
 
         return false;
     }
 
-    public bool CopyFolderContents(
-        string sourceFolder,
-        string targetFolder,
-        string[] reservedItems = null,
-        bool verboseOutput = true,
-        bool recursiveCopy = true,
-        bool handleInUseOnReboot = false)
+    public bool CopyFolderContents(string sourceFolder,
+                                   string targetFolder,
+                                   string[] reservedItems = null,
+                                   bool verboseOutput = true,
+                                   bool recursiveCopy = true,
+                                   bool handleInUseOnReboot = false)
     {
-        if (!Directory.Exists(sourceFolder))
+        if (Directory.Exists(sourceFolder) == false)
         {
-            _logger.LogError("Source folder does not exist [" + sourceFolder + "]");
+            _logger.LogError($"Source folder does not exist [{sourceFolder}]");
             return false;
         }
 
         if (sourceFolder.ToLower().Equals(targetFolder.ToLower()))
         {
-            _logger.LogError("Source and destination folders must be different [" + sourceFolder + "]");
+            _logger.LogError($"Source and destination folders must be different [{sourceFolder}]");
             return false;
         }
 
@@ -465,13 +465,13 @@ public class FileSystemHelper
                     {
                         if (sourceFile.ToLower().EndsWith(str.ToLower()))
                         {
-                            _logger.LogError("Reserved file: " + sourceFile);
+                            _logger.LogError($"Reserved file: {sourceFile}");
                             skipItem = true;
                         }
                     }
                 }
 
-                if (!skipItem)
+                if (skipItem == false)
                 {
                     string destinationFile = Path.Combine(targetFolder, sourceFile.Substring(sourceFile.LastIndexOf("\\") + 1));
                     CopyFile(sourceFile, destinationFile, true, handleInUseOnReboot);
@@ -496,7 +496,7 @@ public class FileSystemHelper
                             {
                                 if (verboseOutput)
                                 {
-                                    _logger.LogDebug("Reserved folder: " + sourceDir);
+                                    _logger.LogDebug($"Reserved folder: {sourceDir}");
                                 }
 
                                 skipItem = true;
@@ -509,7 +509,7 @@ public class FileSystemHelper
                     {
                         if (verboseOutput)
                         {
-                            _logger.LogDebug("Reserved folder: " + sourceDir);
+                            _logger.LogDebug($"Reserved folder: {sourceDir}");
                         }
 
                         skipItem = true;
@@ -520,7 +520,7 @@ public class FileSystemHelper
                     {
                         if (verboseOutput)
                         {
-                            _logger.LogDebug("Reserved folder: " + sourceDir);
+                            _logger.LogDebug($"Reserved folder: {sourceDir}");
                         }
 
                         skipItem = true;
@@ -532,20 +532,22 @@ public class FileSystemHelper
 
                         if (verboseOutput)
                         {
-                            _logger.LogInformation("Copy folder: " + sourceDir);
-                            _logger.LogInformation("         To: " + destinationPath);
+                            _logger.LogInformation($"Copy folder: {sourceDir}");
+                            _logger.LogInformation($"         To: {destinationPath}");
                         }
 
                         try
                         {
-                            CopyFolderContents(
-                                sourceDir, destinationPath,
-                                reservedItems, verboseOutput,
-                                recursiveCopy, handleInUseOnReboot);
+                            CopyFolderContents(sourceDir,
+                                               destinationPath,
+                                               reservedItems,
+                                               verboseOutput,
+                                               recursiveCopy,
+                                               handleInUseOnReboot);
                         }
                         catch (Exception e)
                         {
-                            _logger.LogError(e, "Failed to copy folder [" + sourceDir + "] to desintation");
+                            _logger.LogError(e, $"Failed to copy folder [{sourceDir}] to desintation");
                         }
                     }
 
@@ -562,10 +564,9 @@ public class FileSystemHelper
         return true;
     }
 
-    public bool DeleteFile(
-        string fileName,
-        bool raiseException = false,
-        bool handleInUseOnReboot = false)
+    public bool DeleteFile(string fileName,
+                           bool raiseException = false,
+                           bool handleInUseOnReboot = false)
     {
         bool fileDeleted = false;
 
@@ -577,26 +578,26 @@ public class FileSystemHelper
                 {
                     File.SetAttributes(fileName, FileAttributes.Normal);
                     File.Delete(fileName);
-                    _logger.LogInformation("Deleted file: " + fileName);
+                    _logger.LogInformation($"Deleted file: {fileName}");
                     fileDeleted = true;
                 }
                 catch (Exception)
                 {
                     // Is the specified file in-use?
-                    if (IsFileInUse(fileName) &&
-                        handleInUseOnReboot &&
-                        !fileName.ToLower().Contains(".delete_on_reboot")) // Avoid double-scheduling
+                    if (IsFileInUse(fileName) 
+                        && handleInUseOnReboot 
+                        && fileName.ToLower().Contains(".delete_on_reboot") == false) // Avoid double-scheduling
                     {
                         try
                         {
-                            string deleteFilename = fileName + ".delete_on_reboot";
+                            string deleteFilename = $"{fileName}.delete_on_reboot";
                             int fileIncrement = 0;
 
                             while (true)
                             {
                                 if (File.Exists(deleteFilename))
                                 {
-                                    deleteFilename = fileName + ".delete_on_reboot_" + (fileIncrement++).ToString();
+                                    deleteFilename = $"{fileName}.delete_on_reboot_{fileIncrement++}";
                                 }
                                 else
                                 {
@@ -610,33 +611,31 @@ public class FileSystemHelper
                             File.Move(fileName, deleteFilename);
 
                             // Schedule deletion on next reboot.
-                            bool scheduleDeleteion = NativeMethods.MoveFileEx(
-                                deleteFilename,
-                                null,
-                                NativeMethods.MoveFileFlags.DelayUntilReboot);
+                            bool scheduleDeleteion = NativeMethods.MoveFileEx(deleteFilename,
+                                                                              null,
+                                                                              NativeMethods.MoveFileFlags.DelayUntilReboot);
 
-                            _logger.LogInformation("Delete after reboot: " + deleteFilename);
+                            _logger.LogInformation($"Delete after reboot: {deleteFilename}");
                         }
                         catch (Exception)
                         {
                             // Schedule in-place deletion on next reboot.
-                            NativeMethods.MoveFileEx(
-                                fileName,
-                                null,
-                                NativeMethods.MoveFileFlags.DelayUntilReboot);
+                            NativeMethods.MoveFileEx(fileName,
+                                                     null,
+                                                     NativeMethods.MoveFileFlags.DelayUntilReboot);
 
-                            _logger.LogInformation("Delete after reboot: " + fileName);
+                            _logger.LogInformation($"Delete after reboot: {fileName}");
                         }
                     }
                     else if (fileName.ToLower().Contains(".delete_on_reboot"))
                     {
                         fileDeleted = false;
-                        _logger.LogDebug("Deleted after reboot: " + fileName);
+                        _logger.LogDebug($"Deleted after reboot: {fileName}");
                     }
                     else
                     {
                         File.Delete(fileName);
-                        _logger.LogInformation("Deleted file: " + fileName);
+                        _logger.LogInformation($"Deleted file: {fileName}");
                         fileDeleted = true;
                     }
                 }
@@ -731,8 +730,7 @@ public class FileSystemHelper
         return fileDeleted;
     }
 
-    public bool DeleteFolder(
-        string folderName, bool raiseException = false)
+    public bool DeleteFolder(string folderName, bool raiseException = false)
     {
         bool folderDeleted = false;
 
@@ -740,7 +738,7 @@ public class FileSystemHelper
         {
             try
             {
-                _logger.LogInformation("Delete folder: " + folderName);
+                _logger.LogInformation($"Delete folder: {folderName}");
                 DeleteFolderContents(folderName, null, true);
                 Directory.Delete(folderName, true);
                 folderDeleted = true;
@@ -763,13 +761,12 @@ public class FileSystemHelper
         return folderDeleted;
     }
 
-    public void DeleteFolderContents(
-        string targetFolder,
-        string[] reservedItems,
-        bool verboseOutput = true,
-        bool recurseReservedItems = true)
+    public void DeleteFolderContents(string targetFolder,
+                                     string[] reservedItems,
+                                     bool verboseOutput = true,
+                                     bool recurseReservedItems = true)
     {
-        if (!Directory.Exists(targetFolder))
+        if (Directory.Exists(targetFolder) == false)
         {
             return;
         }
@@ -785,10 +782,10 @@ public class FileSystemHelper
             targetFolderACL.AddAccessRule(
                 new FileSystemAccessRule(
                     new SecurityIdentifier(WellKnownSidType.BuiltinAdministratorsSid, null),
-                    FileSystemRights.FullControl,
-                    InheritanceFlags.ContainerInherit,
-                    PropagationFlags.InheritOnly,
-                    AccessControlType.Allow));
+                FileSystemRights.FullControl,
+                InheritanceFlags.ContainerInherit,
+                PropagationFlags.InheritOnly,
+                AccessControlType.Allow));
             targetFolderInfo.SetAccessControl(targetFolderACL);
         }
         catch (Exception ex)
@@ -810,13 +807,13 @@ public class FileSystemHelper
                         {
                             if (folderList[n].ToString().ToLower().EndsWith(str.ToLower()))
                             {
-                                _logger.LogDebug("Reserved folder: " + folderList[n].ToString());
+                                _logger.LogDebug($"Reserved folder: {folderList[n]}");
                                 skipItem = true;
                             }
                         }
                     }
 
-                    if (!skipItem)
+                    if (skipItem == false)
                     {
                         DirectoryInfo folderInfo = new(folderList[n].ToString());
 
@@ -824,12 +821,12 @@ public class FileSystemHelper
                         {
                             try
                             {
-                                _logger.LogInformation("Remove junction: " + folderList[n].ToString());
+                                _logger.LogInformation($"Remove junction: {folderList[n]}");
                                 RemoveJunction(folderList[n].ToString());
                             }
                             catch (Exception ex)
                             {
-                                _logger.LogError(ex, "Exception caught removing NTFS junction: " + folderList[n].ToString());
+                                _logger.LogError(ex, $"Exception caught removing NTFS junction: {folderList[n]}");
                             }
                         }
                         else
@@ -846,7 +843,7 @@ public class FileSystemHelper
 
                         if (verboseOutput)
                         {
-                            _logger.LogInformation("Delete folder: " + folderList[n].ToString());
+                            _logger.LogInformation($"Delete folder: {folderList[n]}");
                         }
 
                         Directory.Delete(folderList[n]);
@@ -856,7 +853,7 @@ public class FileSystemHelper
                 }
                 catch (Exception ex2)
                 {
-                    _logger.LogError(ex2, "Exception caught deleting folder: " + folderList[n].ToString());
+                    _logger.LogError(ex2, $"Exception caught deleting folder: {folderList[n]}");
                 }
             }
         }
@@ -873,17 +870,17 @@ public class FileSystemHelper
                         {
                             if (fileList[n].ToString().ToLower().EndsWith(str.ToLower()))
                             {
-                                _logger.LogDebug("Reserved file: " + fileList[n].ToString());
+                                _logger.LogDebug($"Reserved file: {fileList[n]}");
                                 skipItem = true;
                             }
                         }
                     }
 
-                    if (!skipItem)
+                    if (skipItem == false)
                     {
                         if (verboseOutput)
                         {
-                            _logger.LogInformation("Delete file: " + fileList[n].ToString());
+                            _logger.LogInformation($"Delete file: {fileList[n]}");
                         }
 
                         File.SetAttributes(fileList[n], FileAttributes.Normal);
@@ -894,7 +891,7 @@ public class FileSystemHelper
                 }
                 catch (Exception ex2)
                 {
-                    _logger.LogError(ex2, "Exception caught deleting file: " + fileList[n].ToString());
+                    _logger.LogError(ex2, $"Exception caught deleting file: {fileList[n]}");
                 }
             }
         }
@@ -938,7 +935,7 @@ public class FileSystemHelper
 
         try
         {
-            if (!Directory.Exists(folderPath))
+            if (Directory.Exists(folderPath) == false)
             {
                 return "Specified folder was not found [" + folderPath + "]";
             }
@@ -976,7 +973,7 @@ public class FileSystemHelper
         }
         catch (Exception e)
         {
-            _logger.LogError(e, "Failed to iterate file(s) or folder(s) for [" + folderPath + "]");
+            _logger.LogError(e, $"Failed to iterate file(s) or folder(s) for [{folderPath}]");
         }
 
         string paddedTable = "";
@@ -1002,13 +999,12 @@ public class FileSystemHelper
         return paddedTable;
     }
 
-    public bool MoveFile(
-        string sourceFileName,
-        string destFileName,
-        bool overWrite = true)
+    public bool MoveFile(string sourceFileName,
+                         string destFileName,
+                         bool overWrite = true)
     {
-        _logger.LogInformation("Move file: " + sourceFileName);
-        _logger.LogInformation("       To: " + destFileName);
+        _logger.LogInformation($"Move file: {sourceFileName}");
+        _logger.LogInformation($"       To: {destFileName}");
 
         try
         {
@@ -1022,7 +1018,7 @@ public class FileSystemHelper
         }
         catch (Exception e)
         {
-            _logger.LogError(e, "Failed to move file [" + Path.GetFileName(sourceFileName) + "] to destination");
+            _logger.LogError(e, $"Failed to move file [{Path.GetFileName(sourceFileName)}] to destination");
         }
 
         return false;
@@ -1033,12 +1029,12 @@ public class FileSystemHelper
         // Open handle to reparse point.
         SafeFileHandle reparsePointHandle = new(
             NativeMethods.CreateFile(reparsePoint,
-                accessMode,
-                NativeMethods.EFileShare.Read | NativeMethods.EFileShare.Write | NativeMethods.EFileShare.Delete,
-                IntPtr.Zero,
-                NativeMethods.ECreationDisposition.OpenExisting,
-                NativeMethods.EFileAttributes.BackupSemantics | NativeMethods.EFileAttributes.OpenReparsePoint,
-                IntPtr.Zero),
+                                     accessMode,
+                                     NativeMethods.EFileShare.Read | NativeMethods.EFileShare.Write | NativeMethods.EFileShare.Delete,
+                                     IntPtr.Zero,
+                                     NativeMethods.ECreationDisposition.OpenExisting,
+                                     NativeMethods.EFileAttributes.BackupSemantics | NativeMethods.EFileAttributes.OpenReparsePoint,
+                                     IntPtr.Zero),
             true);
 
         // Reparse point opened OK?
@@ -1050,11 +1046,10 @@ public class FileSystemHelper
         return reparsePointHandle;
     }
 
-    public bool RemoveDirectorySecurity(
-        string folderName,
-        string userAccount,
-        FileSystemRights revokedRights,
-        AccessControlType controlType)
+    public bool RemoveDirectorySecurity(string folderName,
+                                        string userAccount,
+                                        FileSystemRights revokedRights,
+                                        AccessControlType controlType)
     {
         try
         {
@@ -1077,7 +1072,7 @@ public class FileSystemHelper
         }
         catch (Exception e)
         {
-            _logger.LogError(e, "Failed to revoke folder permissions from [" + folderName + "]");
+            _logger.LogError(e, $"Failed to revoke folder permissions from [{folderName}]");
             return false;
         }
     }
@@ -1127,10 +1122,9 @@ public class FileSystemHelper
         }
     }
 
-    public void ReplaceFileIn(
-        string baseFolder,
-        string replaceFile,
-        string[] additionalFiles = null)
+    public void ReplaceFileIn(string baseFolder,
+                              string replaceFile,
+                              string[] additionalFiles = null)
     {
         try
         {
@@ -1148,7 +1142,7 @@ public class FileSystemHelper
             {
                 if (Path.GetFileName(someFile).ToLower().Equals(Path.GetFileName(replaceFile).ToLower()))
                 {
-                    _logger.LogInformation("Replace file: " + someFile);
+                    _logger.LogInformation($"Replace file: {someFile}");
                     CopyFile(replaceFile, someFile, true);
 
                     if (additionalFiles != null)

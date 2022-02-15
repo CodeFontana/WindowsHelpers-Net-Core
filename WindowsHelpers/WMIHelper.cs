@@ -147,10 +147,9 @@ public class WmiHelper
     /// <param name="wmiClassName">The WMI class for obtaining the properties list.</param>
     /// <param name="columns">The list of columns to retrieve, the default is null/* for all columns.</param>
     /// <returns>A list representing each row of data from the WMI class.</returns>
-    public List<string[]> GetWMIData(
-        string namespaceName,
-        string wmiClassName,
-        List<string> columns = null)
+    public List<string[]> GetWMIData(string namespaceName,
+                                     string wmiClassName,
+                                     List<string> columns = null)
     {
         List<string[]> output = new();
 
@@ -222,11 +221,10 @@ public class WmiHelper
     /// <param name="columns">The list of columns to retrieve, the default is null/* for all columns.</param>
     /// <param name="columnPadding">Padding (number of spaces) to add between columns of data in the return string.</param>
     /// <returns></returns>
-    public string GetFormattedWMIData(
-        string namespaceName,
-        string wmiClassName,
-        List<string> columns = null,
-        int columnPadding = 1)
+    public string GetFormattedWMIData(string namespaceName,
+                                      string wmiClassName,
+                                      List<string> columns = null,
+                                      int columnPadding = 1)
     {
         List<string[]> output = new();
 

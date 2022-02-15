@@ -60,7 +60,7 @@ public static class DotNetHelper
     {
         foreach (char c in s)
         {
-            if (!IsHexChar(c))
+            if (IsHexChar(c) == false)
             {
                 return false;
             }
@@ -69,10 +69,9 @@ public static class DotNetHelper
         return true;
     }
 
-    public static bool IsListStringEqual(
-        List<string> list1,
-        List<string> list2,
-        List<string> matchExceptions = null)
+    public static bool IsListStringEqual(List<string> list1,
+                                         List<string> list2,
+                                         List<string> matchExceptions = null)
     {
         // Unequal number of elements?
         if (list1.Count != list2.Count)
@@ -89,8 +88,10 @@ public static class DotNetHelper
             {
                 foreach (string s in matchExceptions)
                 {
-                    if (list1[i].ToLower().Contains(s.ToLower()) || list1[i].ToLower().Contains(s.ToLower()) ||
-                        list2[i].ToLower().Contains(s.ToLower()) || list2[i].ToLower().Contains(s.ToLower()))
+                    if (list1[i].ToLower().Contains(s.ToLower()) 
+                        || list1[i].ToLower().Contains(s.ToLower()) 
+                        || list2[i].ToLower().Contains(s.ToLower()) 
+                        || list2[i].ToLower().Contains(s.ToLower()))
                     {
                         skipFlag = true;
                         break;
@@ -104,7 +105,7 @@ public static class DotNetHelper
                 continue;
             }
 
-            if (!list1[i].Equals(list2[i]))
+            if (list1[i].Equals(list2[i]) == false)
             {
                 return false;
             }
@@ -113,10 +114,9 @@ public static class DotNetHelper
         return true;
     }
 
-    public static bool IsListStringTupleEqual(
-        List<Tuple<string, string>> list1,
-        List<Tuple<string, string>> list2,
-        List<string> matchExceptions = null)
+    public static bool IsListStringTupleEqual(List<Tuple<string, string>> list1,
+                                              List<Tuple<string, string>> list2,
+                                              List<string> matchExceptions = null)
     {
         // Unequal number of elements?
         if (list1.Count != list2.Count)
@@ -150,8 +150,8 @@ public static class DotNetHelper
                 continue;
             }
 
-            if (!list1[i].Item1.Equals(list2[i].Item1) ||
-                !list1[i].Item2.Equals(list2[i].Item2))
+            if (list1[i].Item1.Equals(list2[i].Item1) == false 
+                || list1[i].Item2.Equals(list2[i].Item2) == false)
             {
                 return false;
             }
@@ -173,7 +173,7 @@ public static class DotNetHelper
                 "Consectetur", "occaecat", "fatback", "quis", "fugiat", "biltong", "t-bone",
                 "kielbasa", "flank", "voluptate", "pastrami", "ut", "in", "commodo", "adipisicing",
                 "proident", "bresaola", "non", "leberkas", "turducken", "enim", "meatball", "laborum",
-                "nostrud", "strip steak", "officia", "short ribs", "nulla", "ham", "incididunt" +
+                "nostrud", "strip steak", "officia", "short ribs", "nulla", "ham", "incididunt",
                 "velit", "do", "ex", "dolore", "sunt", "nostrud", "mollit", "bacon", "est",
                 "reprehenderit", "landjaeger", "frankfurter", "shoulder", "ground", "round",
                 "swine", "pariatur", "susage tri-tip", "aute", "chicken tenderloin", "consequat",
@@ -269,7 +269,7 @@ public static class DotNetHelper
         // Iterate list elements (each string array)
         foreach (var line in inputList)
         {
-            if (!isFirst)
+            if (isFirst == false)
             {
                 outputString.AppendLine();
             }

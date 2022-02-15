@@ -39,14 +39,7 @@ public class ProcessInfo
 
     public override string ToString()
     {
-        return ProcessName + "|" +
-            PID.ToString() + "|" +
-            UserName + "|" +
-            CPUTime + "|" +
-            NumBytes.ToString() + "|" +
-            HandleCount.ToString() + "|" +
-            ThreadCount.ToString() + "|" +
-            CommandLineArgs;
+        return $"{ProcessName}|{PID}|{UserName}|{CPUTime}|{NumBytes}|{HandleCount}|{ThreadCount}|{CommandLineArgs}";
     }
 
     public string[] ToStringArray()
@@ -59,12 +52,12 @@ public class ProcessInfo
                 BytesToReadableValue(NumBytes),
                 HandleCount.ToString(),
                 ThreadCount.ToString(),
-                ProcessName + " " + CommandLineArgs };
+                $"{ProcessName} {CommandLineArgs}"};
     }
 
     public static string GetProcessCLIArgsWMI(int processId)
     {
-        using (ManagementObjectSearcher searcher = new("SELECT CommandLine FROM Win32_Process WHERE ProcessId = " + processId.ToString()))
+        using (ManagementObjectSearcher searcher = new($"SELECT CommandLine FROM Win32_Process WHERE ProcessId = {processId}"))
         {
             using (ManagementObjectCollection objects = searcher.Get())
             {
@@ -73,12 +66,12 @@ public class ProcessInfo
         }
     }
 
-    public static string GetProcessOwnerWMI(int processID)
+    public static string GetProcessOwnerWMI(int processId)
     {
         // NOTE: This was replaced by GetProcessOwner(IntPtr hProcess), since native
         //       P/Invoke is significantly faster than WMI.
 
-        string wmiQuery = "Select * From Win32_Process Where ProcessID = " + processID;
+        string wmiQuery = $"Select * From Win32_Process Where ProcessID = {processId}";
         ManagementObjectSearcher wmiSearcher = new(wmiQuery);
         ManagementObjectCollection processList = wmiSearcher.Get();
 

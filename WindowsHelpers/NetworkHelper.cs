@@ -76,12 +76,12 @@ public class NetworkHelper
         try
         {
             return NetworkInterface.GetAllNetworkInterfaces()
-            .First(i => i.GetIPProperties().UnicastAddresses
-                .Any(x => x.Address.Equals(inputAddress)))
-            .GetIPProperties()
-            .GatewayAddresses
-            .FirstOrDefault()?
-            .Address;
+                .First(i => i.GetIPProperties().UnicastAddresses
+                    .Any(x => x.Address.Equals(inputAddress)))
+                .GetIPProperties()
+                .GatewayAddresses
+                .FirstOrDefault()?
+                .Address;
         }
         catch (Exception e)
         {
@@ -219,7 +219,7 @@ public class NetworkHelper
 
     public bool TestURL(string url, TimeSpan timeout)
     {
-        _logger.LogInformation("Test URL: " + url + " [Timeout=" + timeout.TotalSeconds + "s]");
+        _logger.LogInformation($"Test URL: {url} [Timeout={timeout.TotalSeconds}s]");
 
         try
         {
@@ -229,7 +229,7 @@ public class NetworkHelper
 
             if (result.Status == TaskStatus.RanToCompletion)
             {
-                _logger.LogInformation("HTTP Response: " + result.Result.StatusCode.ToString());
+                _logger.LogInformation($"HTTP Response: {result.Result.StatusCode}");
 
                 if (result.Result.StatusCode == HttpStatusCode.OK)
                 {
@@ -242,13 +242,13 @@ public class NetworkHelper
             }
             else
             {
-                _logger.LogInformation("HTTP Response: TIMEOUT ERROR [" + result.Status.ToString() + "]");
+                _logger.LogInformation($"HTTP Response: TIMEOUT ERROR [{result.Status}]");
                 return false;
             }
         }
         catch (Exception e)
         {
-            _logger.LogError(e, "Test connection failed to [" + url + "]");
+            _logger.LogError(e, $"Test connection failed to [{url}]");
             return false;
         }
     }

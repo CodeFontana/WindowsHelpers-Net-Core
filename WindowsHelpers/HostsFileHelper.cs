@@ -213,9 +213,10 @@ public class HostsFileHelper
             {
                 HostsFileEntry entry = ParseEntry(contents[i]);
 
-                if (entry != null && (
-                    entry.Address.Equals(addressOrHost) ||
-                    entry.Hosts.Any(e => e.ToLower().Equals(addressOrHost.ToLower()))))
+                if (entry != null 
+                    && (
+                        entry.Address.Equals(addressOrHost) 
+                        || entry.Hosts.Any(e => e.ToLower().Equals(addressOrHost.ToLower()))))
                 {
                     contents.RemoveAt(i);
                     break;

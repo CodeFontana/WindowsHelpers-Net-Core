@@ -15,7 +15,7 @@ public class ServiceHelper
     private readonly ProcessHelper _psHelper;
 
     public ServiceHelper(ILogger<ServiceHelper> logger,
-        ProcessHelper psHelper)
+                         ProcessHelper psHelper)
     {
         _logger = logger;
         _psHelper = psHelper;
@@ -57,27 +57,25 @@ public class ServiceHelper
 
             if (serviceHandle == IntPtr.Zero)
             {
-                _logger.LogError("Unable to open specified service [" + serviceName + "]");
+                _logger.LogError($"Unable to open specified service [{serviceName}]");
                 return false;
             }
 
-            var configSuccess = NativeMethods.ChangeServiceConfig(
-                serviceHandle,
-                NativeMethods.SERVICE_NO_CHANGE,
-                NativeMethods.SERVICE_NO_CHANGE,
-                NativeMethods.SERVICE_NO_CHANGE,
-                null,
-                null,
-                IntPtr.Zero,
-                null,
-                logonUser,
-                logonPassword,
-                null);
+            var configSuccess = NativeMethods.ChangeServiceConfig(serviceHandle,
+                                                                  NativeMethods.SERVICE_NO_CHANGE,
+                                                                  NativeMethods.SERVICE_NO_CHANGE,
+                                                                  NativeMethods.SERVICE_NO_CHANGE,
+                                                                  null,
+                                                                  null,
+                                                                  IntPtr.Zero,
+                                                                  null,
+                                                                  logonUser,
+                                                                  logonPassword,
+                                                                  null);
 
-            if (!configSuccess)
+            if (configSuccess == false)
             {
-                _logger.LogError("Unable to configure service logon user [ChangeServiceConfig=" +
-                    Marshal.GetLastWin32Error().ToString() + "]");
+                _logger.LogError($"Unable to configure service logon user [ChangeServiceConfig={Marshal.GetLastWin32Error()}]");
                 return false;
             }
         }
@@ -118,27 +116,25 @@ public class ServiceHelper
 
             if (serviceHandle == IntPtr.Zero)
             {
-                _logger.LogError("Unable to open specified service [" + serviceName + "]");
+                _logger.LogError($"Unable to open specified service [{serviceName}]");
                 return false;
             }
 
-            var configSuccess = NativeMethods.ChangeServiceConfig(
-                serviceHandle,
-                NativeMethods.SERVICE_NO_CHANGE,
-                (uint)startMode,
-                NativeMethods.SERVICE_NO_CHANGE,
-                null,
-                null,
-                IntPtr.Zero,
-                null,
-                null,
-                null,
-                null);
+            var configSuccess = NativeMethods.ChangeServiceConfig(serviceHandle,
+                                                                  NativeMethods.SERVICE_NO_CHANGE,
+                                                                  (uint)startMode,
+                                                                  NativeMethods.SERVICE_NO_CHANGE,
+                                                                  null,
+                                                                  null,
+                                                                  IntPtr.Zero,
+                                                                  null,
+                                                                  null,
+                                                                  null,
+                                                                  null);
 
-            if (!configSuccess)
+            if (configSuccess == false)
             {
-                _logger.LogError("Unable to configure service startup mode [ChangeServiceConfig=" +
-                    Marshal.GetLastWin32Error().ToString() + "]");
+                _logger.LogError($"Unable to configure service startup mode [ChangeServiceConfig={Marshal.GetLastWin32Error().ToString()}]");
                 return false;
             }
         }
@@ -149,9 +145,14 @@ public class ServiceHelper
         finally
         {
             if (serviceHandle != IntPtr.Zero)
+            {
                 NativeMethods.CloseServiceHandle(serviceHandle);
+            }
+
             if (scManagerHandle != IntPtr.Zero)
+            {
                 NativeMethods.CloseServiceHandle(scManagerHandle);
+            }
         }
 
         return true;
@@ -189,29 +190,26 @@ public class ServiceHelper
                 return false;
             }
 
-            serviceHandle = NativeMethods.OpenServiceA(
-                scManagerHandle,
-                serviceName,
-                NativeMethods.ACCESS_TYPE.SERVICE_ALL_ACCESS);
+            serviceHandle = NativeMethods.OpenServiceA(scManagerHandle,
+                                                       serviceName,
+                                                       NativeMethods.ACCESS_TYPE.SERVICE_ALL_ACCESS);
 
             if (serviceHandle == IntPtr.Zero)
             {
-                _logger.LogError("Unable to open specified service [" + serviceName + "]");
+                _logger.LogError($"Unable to open specified service [{serviceName}]");
                 return false;
             }
 
             NativeMethods.SERVICE_DESCRIPTION serviceDesc;
             serviceDesc.lpDescription = description;
 
-            bool configSuccess = NativeMethods.ChangeServiceConfig2A(
-                serviceHandle,
-                NativeMethods.InfoLevel.SERVICE_CONFIG_DESCRIPTION,
-                ref serviceDesc);
+            bool configSuccess = NativeMethods.ChangeServiceConfig2A(serviceHandle,
+                                                                     NativeMethods.InfoLevel.SERVICE_CONFIG_DESCRIPTION,
+                                                                     ref serviceDesc);
 
             if (configSuccess == false)
             {
-                _logger.LogError("Unable to configure service failure actions [ChangeServiceConfig2A=" +
-                    Marshal.GetLastWin32Error().ToString() + "]");
+                _logger.LogError($"Unable to configure service failure actions [ChangeServiceConfig2A={Marshal.GetLastWin32Error()}]");
                 return false;
             }
         }
@@ -250,9 +248,9 @@ public class ServiceHelper
                 return false;
             }
 
-            scManagerHandle = NativeMethods.OpenSCManagerA(
-                null, null,
-                NativeMethods.ServiceControlManagerType.SC_MANAGER_ALL_ACCESS);
+            scManagerHandle = NativeMethods.OpenSCManagerA(null,
+                                                           null,
+                                                           NativeMethods.ServiceControlManagerType.SC_MANAGER_ALL_ACCESS);
 
             if (scManagerHandle == IntPtr.Zero)
             {
@@ -268,14 +266,13 @@ public class ServiceHelper
                 return false;
             }
 
-            serviceHandle = NativeMethods.OpenServiceA(
-                scManagerHandle,
-                serviceName,
-                NativeMethods.ACCESS_TYPE.SERVICE_ALL_ACCESS);
+            serviceHandle = NativeMethods.OpenServiceA(scManagerHandle,
+                                                       serviceName,
+                                                       NativeMethods.ACCESS_TYPE.SERVICE_ALL_ACCESS);
 
             if (serviceHandle == IntPtr.Zero)
             {
-                _logger.LogError("Unable to open specified service [" + serviceName + "]");
+                _logger.LogError($"Unable to open specified service [{serviceName}]");
                 return false;
             }
 
@@ -298,15 +295,13 @@ public class ServiceHelper
 
             IntPtr lpInfo = Marshal.AllocHGlobal(Marshal.SizeOf(serviceFailureActions));
 
-            bool configSuccess = NativeMethods.ChangeServiceConfig2A(
-                serviceHandle,
-                NativeMethods.InfoLevel.SERVICE_CONFIG_FAILURE_ACTIONS,
-                ref serviceFailureActions);
+            bool configSuccess = NativeMethods.ChangeServiceConfig2A(serviceHandle,
+                                                                     NativeMethods.InfoLevel.SERVICE_CONFIG_FAILURE_ACTIONS,
+                                                                     ref serviceFailureActions);
 
             if (configSuccess == false)
             {
-                _logger.LogError("Unable to configure service failure actions [ChangeServiceConfig2A=" +
-                    Marshal.GetLastWin32Error().ToString() + "]");
+                _logger.LogError($"Unable to configure service failure actions [ChangeServiceConfig2A={Marshal.GetLastWin32Error()}]");
                 return false;
             }
         }
@@ -354,24 +349,22 @@ public class ServiceHelper
             uint dwBytesNeeded;
 
             // Call once to figure the size of the output buffer.
-            NativeMethods.QueryServiceStatusEx(
-                sc.ServiceHandle,
-                NativeMethods.SC_STATUS_PROCESS_INFO,
-                buffer,
-                0,
-                out dwBytesNeeded);
+            NativeMethods.QueryServiceStatusEx(sc.ServiceHandle,
+                                               NativeMethods.SC_STATUS_PROCESS_INFO,
+                                               buffer,
+                                               0,
+                                               out dwBytesNeeded);
 
             if (Marshal.GetLastWin32Error() == NativeMethods.ERROR_INSUFFICIENT_BUFFER)
             {
                 // Allocate required buffer and call again.
                 buffer = Marshal.AllocHGlobal((int)dwBytesNeeded);
 
-                if (NativeMethods.QueryServiceStatusEx(
-                    sc.ServiceHandle,
-                    NativeMethods.SC_STATUS_PROCESS_INFO,
-                    buffer,
-                    dwBytesNeeded,
-                    out dwBytesNeeded))
+                if (NativeMethods.QueryServiceStatusEx(sc.ServiceHandle,
+                                                       NativeMethods.SC_STATUS_PROCESS_INFO,
+                                                       buffer,
+                                                       dwBytesNeeded,
+                                                       out dwBytesNeeded))
                 {
                     NativeMethods.SERVICE_STATUS_PROCESS ssp = new();
                     Marshal.PtrToStructure(buffer, ssp);
@@ -390,11 +383,10 @@ public class ServiceHelper
         return -1;
     }
 
-    public bool InstallService(
-        string serviceName,
-        string serviceFileName,
-        string displayName,
-        NativeMethods.SERVICE_START_TYPES startType)
+    public bool InstallService(string serviceName,
+                               string serviceFileName,
+                               string displayName,
+                               NativeMethods.SERVICE_START_TYPES startType)
     {
         IntPtr hServiceManager = IntPtr.Zero;
         IntPtr scManagerLockHandle = IntPtr.Zero;
@@ -402,10 +394,9 @@ public class ServiceHelper
 
         try
         {
-            hServiceManager = NativeMethods.OpenSCManager(
-                null,
-                null,
-                NativeMethods.SC_MANAGER_ALL_ACCESS);
+            hServiceManager = NativeMethods.OpenSCManager(null,
+                                                          null,
+                                                          NativeMethods.SC_MANAGER_ALL_ACCESS);
 
             if (hServiceManager == IntPtr.Zero)
             {
@@ -421,20 +412,20 @@ public class ServiceHelper
                 return false;
             }
 
-            hNewService = NativeMethods.CreateService(
-                hServiceManager,
-                serviceName,
-                displayName,
-                NativeMethods.SC_MANAGER_ALL_ACCESS,
-                (uint)NativeMethods.SERVICE_TYPES.SERVICE_WIN32_OWN_PROCESS | (uint)NativeMethods.SERVICE_TYPES.SERVICE_INTERACTIVE_PROCESS,
-                (uint)startType,
-                (uint)NativeMethods.SERVICE_ERROR_CONTROL.SERVICE_ERROR_NORMAL,
-                serviceFileName,
-                null,
-                IntPtr.Zero,
-                null,
-                null,
-                null);
+            hNewService = NativeMethods.CreateService(hServiceManager,
+                                                      serviceName,
+                                                      displayName,
+                                                      NativeMethods.SC_MANAGER_ALL_ACCESS,
+                                                      (uint)NativeMethods.SERVICE_TYPES.SERVICE_WIN32_OWN_PROCESS 
+                                                        | (uint)NativeMethods.SERVICE_TYPES.SERVICE_INTERACTIVE_PROCESS,
+                                                      (uint)startType,
+                                                      (uint)NativeMethods.SERVICE_ERROR_CONTROL.SERVICE_ERROR_NORMAL,
+                                                      serviceFileName,
+                                                      null,
+                                                      IntPtr.Zero,
+                                                      null,
+                                                      null,
+                                                      null);
 
             if (hNewService == IntPtr.Zero)
             {
@@ -559,10 +550,9 @@ public class ServiceHelper
         {
             StopService(serviceName);
 
-            hServiceManager = NativeMethods.OpenSCManager(
-                null,
-                null,
-                NativeMethods.SC_MANAGER_ALL_ACCESS);
+            hServiceManager = NativeMethods.OpenSCManager(null,
+                                                          null,
+                                                          NativeMethods.SC_MANAGER_ALL_ACCESS);
 
             if (hServiceManager == IntPtr.Zero)
             {
@@ -578,10 +568,9 @@ public class ServiceHelper
                 return false;
             }
 
-            hServiceHandle = NativeMethods.OpenService(
-                hServiceManager,
-                serviceName,
-                NativeMethods.DELETE);
+            hServiceHandle = NativeMethods.OpenService(hServiceManager,
+                                                       serviceName,
+                                                       NativeMethods.DELETE);
 
             if (hServiceHandle == IntPtr.Zero)
             {
@@ -611,9 +600,9 @@ public class ServiceHelper
         }
     }
 
-    public bool IsService(uint pID)
+    public bool IsService(uint pid)
     {
-        using (ManagementObjectSearcher Searcher = new ManagementObjectSearcher("SELECT * FROM Win32_Service WHERE ProcessId =" + "\"" + pID + "\""))
+        using (ManagementObjectSearcher Searcher = new ManagementObjectSearcher($"SELECT * FROM Win32_Service WHERE ProcessId = '{pid}'"))
         {
             foreach (ManagementObject service in Searcher.Get())
             {
