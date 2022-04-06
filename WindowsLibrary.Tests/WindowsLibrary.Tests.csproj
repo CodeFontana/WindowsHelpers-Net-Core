@@ -28,7 +28,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\LoggerLibrary\LoggerLibrary.csproj" />
     <ProjectReference Include="..\WindowsHelpers\WindowsLibrary.csproj" />
   </ItemGroup>
 

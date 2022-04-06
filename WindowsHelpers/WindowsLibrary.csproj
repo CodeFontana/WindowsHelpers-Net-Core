@@ -2,12 +2,19 @@
 
   <PropertyGroup>
     <TargetFramework>net6.0-windows</TargetFramework>
-    <Authors>Brian Fontana</Authors>
+    <Authors>CodeFoxtrot</Authors>
     <Company>Codefoxtrot</Company>
-    <Product />
-    <AssemblyVersion>1.6.0.0</AssemblyVersion>
-    <FileVersion>1.6.0.0</FileVersion>
+    <Product>WindowsHelpers</Product>
+    <AssemblyVersion>1.6.5.0</AssemblyVersion>
+    <FileVersion>1.6.5.0</FileVersion>
     <Nullable>disable</Nullable>
+    <PackageId>CodeFoxtrot.WindowsHelpers</PackageId>
+    <Description>Useful set of helper methods for C# in the Microsoft Windows environment.</Description>
+    <Copyright>2022</Copyright>
+    <PackageProjectUrl>https://github.com/CodeFontana/WindowsHelpers-Net-Core</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/CodeFontana/WindowsHelpers-Net-Core</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -19,16 +26,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="CodeFoxtrot.FileLogger" Version="1.0.0" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="6.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="6.0.1" />
     <PackageReference Include="Microsoft.Win32.Registry" Version="5.0.0" />
     <PackageReference Include="System.DirectoryServices.AccountManagement" Version="6.0.0" />
     <PackageReference Include="System.IO.FileSystem.AccessControl" Version="5.0.0" />
     <PackageReference Include="System.Management" Version="6.0.0" />
     <PackageReference Include="System.ServiceProcess.ServiceController" Version="6.0.0" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\LoggerLibrary\LoggerLibrary.csproj" />
   </ItemGroup>
 
 </Project>

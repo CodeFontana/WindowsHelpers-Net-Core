@@ -1,4 +1,4 @@
-﻿using LoggerLibrary;
+﻿using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -85,14 +85,13 @@ namespace WindowsLibrary.Tests
         public void ReadHostsFileEntries()
         {
             // Arrange.
-            var logger = new FileLoggerProvider("HostsFileHelperTests");
             var hostsFile = new HostsFileHelper();
 
             // Act.
             foreach (HostsFileEntry entry in hostsFile.ReadHostsFile())
             {
                 // Write debug.
-                logger.Log(entry.ToString());
+                Console.WriteLine(entry.ToString());
             }
 
             // Assert.

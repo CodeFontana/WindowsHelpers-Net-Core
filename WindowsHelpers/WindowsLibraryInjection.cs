@@ -6,17 +6,17 @@ public static class WindowsLibraryInjection
 {
     public static IServiceCollection AddWindowsHelpers(this IServiceCollection services)
     {
-        services.AddSingleton<FileSystemHelper>();
-        services.AddSingleton<HostsFileHelper>();
-        services.AddSingleton<NetworkAdapterHelper>();
-        services.AddSingleton<NetworkHelper>();
-        services.AddSingleton<NumericComparer>();
-        services.AddSingleton<PageFileHelper>();
-        services.AddSingleton<ProcessHelper>();
-        services.AddSingleton<RegistryHelper>();
-        services.AddSingleton<ServiceHelper>();
-        services.AddSingleton<WindowsHelper>();
-        services.AddSingleton<WmiHelper>();
+        services.AddTransient<FileSystemHelper>();
+        services.AddTransient<HostsFileHelper>();
+        services.AddTransient<NetworkAdapterHelper>();
+        services.AddTransient<NetworkHelper>();
+        services.AddTransient<NumericComparer>();
+        services.AddTransient<PageFileHelper>();
+        services.AddTransient<ProcessHelper>();
+        services.AddTransient<RegistryHelper>();
+        services.AddTransient<ServiceHelper>();
+        services.AddTransient<WindowsHelper>();
+        services.AddTransient<WmiHelper>();
         return services;
     }
 }

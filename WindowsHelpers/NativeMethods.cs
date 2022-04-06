@@ -7,10 +7,6 @@ namespace WindowsLibrary;
 
 public static class NativeMethods
 {
-    // ******************************
-    // External Windows Functions.
-    // ******************************
-
     [DllImport("advapi32.dll", CharSet = CharSet.Auto, SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
     public static extern bool AdjustTokenPrivileges(IntPtr TokenHandle,
@@ -501,10 +497,6 @@ public static class NativeMethods
         }
     }
 
-    // ******************************
-    // Structures.
-    // ******************************
-
     [StructLayout(LayoutKind.Sequential, Pack = 4)]
     public struct LUID_AND_ATTRIBUTES
     {
@@ -831,10 +823,6 @@ public static class NativeMethods
         [MarshalAs(UnmanagedType.U4)]
         public uint dwServiceFlags;
     }
-
-    // ******************************
-    // Enums.
-    // ******************************
 
     public enum COMPUTER_NAME_FORMAT
     {
@@ -1607,11 +1595,6 @@ public static class NativeMethods
         SERVICE_CONFIG_PRESHUTDOWN_INFO = 7
     }
 
-    // ******************************
-    // Constants.
-    // ******************************
-
-    // Access masks
     public const UInt32 DELETE = 0x00010000;
     public const UInt32 READ_CONTROL = 0x00020000;
     public const UInt32 WRITE_DAC = 0x00040000;
@@ -1659,7 +1642,6 @@ public static class NativeMethods
 
     public const UInt32 WINSTA_ALL_ACCESS = 0x0000037F;
 
-    // Token rights
     public const UInt32 TOKEN_ASSIGN_PRIMARY = 0x00000001;
     public const UInt32 TOKEN_DUPLICATE = 0x00000002;
     public const UInt32 TOKEN_IMPERSONATE = 0x00000004;
@@ -1678,7 +1660,6 @@ public static class NativeMethods
     public const int GENERIC_ALL_ACCESS = 0x10000000;
     public const int TOKEN_MAXIMUM_ALLOWED = 0x2000000;
 
-    // Privileges
     public const int SE_PRIVILEGE_ENABLED = 0x00000002;
     public const string SE_ASSIGNPRIMARYTOKEN_NAME = "SeAssignPrimaryTokenPrivilege";
     public const string SE_INCREASE_QUOTA_NAME = "SeIncreaseQuotaPrivilege";
@@ -1728,7 +1709,6 @@ public static class NativeMethods
     public const int LOGON32_PROVIDER_DEFAULT = 0;
     public const int LOGON32_LOGON_INTERACTIVE = 2; // LogonUser will create primary token
 
-    // UI stuff
     public const int GWL_STYLE = -16;
     public const int WS_SYSMENU = 0x80000;
     public const int SC_MOVE = 0xF010;
@@ -1737,7 +1717,6 @@ public static class NativeMethods
     public const uint MF_ENABLED = 0x00000000;
     public const uint SC_CLOSE = 0xF060;
 
-    // UI stuff
     public const UInt32 WM_ACTIVATE = 0x0006;
     public const UInt32 WM_ACTIVATEAPP = 0x001C;
     public const UInt32 WM_AFXFIRST = 0x0360;
@@ -1966,10 +1945,6 @@ public static class NativeMethods
 
     public const int ERROR_INSUFFICIENT_BUFFER = 0x7a;
     public const int SC_STATUS_PROCESS_INFO = 0;
-
-    // ******************************
-    // Definitations.
-    // ******************************
 
     // Instantiate SIDs. (Reference: https://docs.microsoft.com/en-us/windows/security/identity-protection/access-control/security-identifiers#:~:text=The%20SECURITY_NT_AUTHORITY%20%28S-1-5%29%20predefined%20identifier%20authority%20produces%20SIDs,topic.%20The%20following%20table%20lists%20the%20well-known%20SIDs.000)
 
