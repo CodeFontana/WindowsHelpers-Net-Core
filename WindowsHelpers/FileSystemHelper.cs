@@ -10,6 +10,7 @@ using System.Text;
 using System.Security.AccessControl;
 using System.Security.Principal;
 using Microsoft.Extensions.Logging;
+using System.Threading.Tasks;
 
 namespace WindowsLibrary;
 
@@ -161,7 +162,7 @@ public class FileSystemHelper
         return numBytes.ToString();
     }
 
-    public bool CheckDiskStatus()
+    public async Task<bool> CheckFileSystemHealth()
     {
         DriveInfo[] allDrives = DriveInfo.GetDrives();
 
@@ -169,21 +170,38 @@ public class FileSystemHelper
         {
             if (d.DriveType.ToString().ToLower().Equals("fixed"))
             {
-                _logger.LogInformation($"Check drive [read-only]: {d.Name}");
+                bool fsHealthy = false;
 
-                Tuple<long, string> result = _processHelper.RunProcess(
-                    "chkdsk.exe",
-                    d.Name.Substring(0, 2),
-                    Environment.GetEnvironmentVariable("windir") + "\\System32",
-                    1200, true, false, false);
-
-                if (result.Item2.ToLower().Contains("windows has scanned the file system and found no problems"))
+                // As read-only Chkdsk is prone to reporting spurious errors,
+                // we will make up to (3) attempts for a positive result.
+                for (int i = 0; i < 3; i++)
                 {
-                    _logger.LogInformation("CHKDSK result: OK");
+                    _logger.LogInformation($"Check drive [read-only]: {d.Name}");
+
+                    Tuple<long, string> result = _processHelper.RunProcess(
+                        "chkdsk.exe",
+                        d.Name.Substring(0, 2),
+                        $@"{Environment.GetEnvironmentVariable("windir")}\System32",
+                        1200, true, true, false);
+
+                    if (result.Item2.ToLower().Contains("windows has scanned the file system and found no problems"))
+                    {
+                        _logger.LogInformation("CHKDSK result: OK");
+                        fsHealthy |= true;
+                        break;
+                    }
+                    else
+                    {
+                        _logger.LogDebug(result.Item2);
+                        _logger.LogInformation("CHKDSK result: FAIL");
+                        fsHealthy |= false;
+                    }
+
+                    await Task.Delay(10000);
                 }
-                else
+
+                if (fsHealthy == false)
                 {
-                    _logger.LogInformation("CHKDSK result: FAIL");
                     return false;
                 }
             }

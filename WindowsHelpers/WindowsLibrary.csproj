@@ -5,8 +5,8 @@
     <Authors>CodeFoxtrot</Authors>
     <Company>Codefoxtrot</Company>
     <Product>WindowsHelpers</Product>
-    <AssemblyVersion>1.6.5.0</AssemblyVersion>
-    <FileVersion>1.6.5.0</FileVersion>
+    <AssemblyVersion>1.6.5.1</AssemblyVersion>
+    <FileVersion>1.6.5.1</FileVersion>
     <Nullable>disable</Nullable>
     <PackageId>CodeFoxtrot.WindowsHelpers</PackageId>
     <Description>Useful set of helper methods for C# in the Microsoft Windows environment.</Description>
@@ -17,6 +17,7 @@
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <PackageTags>CodeFoxtrot WindowsHelpers Native PInvoke</PackageTags>
+    <Version>1.0.2</Version>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -28,7 +29,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CodeFoxtrot.FileLogger" Version="1.0.0" />
+    <PackageReference Include="CodeFoxtrot.FileLogger" Version="1.0.2" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="6.0.0" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="6.0.1" />
     <PackageReference Include="Microsoft.Win32.Registry" Version="5.0.0" />
