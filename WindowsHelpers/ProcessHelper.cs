@@ -742,16 +742,8 @@ public class ProcessHelper
             }
             else
             {
-                if (appFileName.ToLower().EndsWith(".bat") || appFileName.ToLower().EndsWith(".cmd"))
-                {
-                    // Signal task cancellation for STDOUT/STDERR streams.
-                    // Note: This is because batch files, if nested, automatically inherit STDOUT/STDERR
-                    //       handles. Thus if the immediate child batch file has terminated, we need to
-                    //       signal the STDOUT/ERR threads to abort, so RunProcess() can continue.
-                    cts.Cancel();
-                }
-
-                // Wait for async threads to stop.
+                // Signal task cancellation for reading STDOUT/STDERR streams and wait for Tasks to stop
+                cts.Cancel();
                 try { if (consumeStdOut != null) { consumeStdOut.Wait(cts.Token); } } catch (OperationCanceledException) { }
                 try { if (consumeStdErr != null) { consumeStdErr.Wait(cts.Token); } } catch (OperationCanceledException) { }
             }
