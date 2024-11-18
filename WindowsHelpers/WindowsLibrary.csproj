@@ -1,23 +1,23 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net7.0-windows</TargetFramework>
+    <TargetFramework>net8.0-windows7.0</TargetFramework>
     <Authors>CodeFoxtrot</Authors>
     <Company>Codefoxtrot</Company>
     <Product>WindowsHelpers</Product>
-    <AssemblyVersion>1.6.5.3</AssemblyVersion>
-    <FileVersion>1.6.5.3</FileVersion>
+    <AssemblyVersion>1.7.0.0</AssemblyVersion>
+    <FileVersion>1.7.0.0</FileVersion>
     <Nullable>disable</Nullable>
     <PackageId>CodeFoxtrot.WindowsHelpers</PackageId>
     <Description>Useful set of helper methods for C# in the Microsoft Windows environment.</Description>
-    <Copyright>2022</Copyright>
+    <Copyright>2024</Copyright>
     <PackageProjectUrl>https://github.com/CodeFontana/WindowsHelpers-Net-Core</PackageProjectUrl>
     <RepositoryUrl>https://github.com/CodeFontana/WindowsHelpers-Net-Core</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <PackageTags>CodeFoxtrot WindowsHelpers Native PInvoke</PackageTags>
-    <Version>1.0.4</Version>
+    <Version>1.0.5</Version>
 	<UseWindowsForms>true</UseWindowsForms>
   </PropertyGroup>
 
@@ -30,14 +30,14 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CodeFoxtrot.FileLogger" Version="1.0.6" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="7.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="7.0.0" />
+    <PackageReference Include="CodeFoxtrot.FileLogger" Version="1.0.8" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.0" />
     <PackageReference Include="Microsoft.Win32.Registry" Version="5.0.0" />
-    <PackageReference Include="System.DirectoryServices.AccountManagement" Version="7.0.0" />
+    <PackageReference Include="System.DirectoryServices.AccountManagement" Version="9.0.0" />
     <PackageReference Include="System.IO.FileSystem.AccessControl" Version="5.0.0" />
-    <PackageReference Include="System.Management" Version="7.0.0" />
-    <PackageReference Include="System.ServiceProcess.ServiceController" Version="7.0.0" />
+    <PackageReference Include="System.Management" Version="9.0.0" />
+    <PackageReference Include="System.ServiceProcess.ServiceController" Version="9.0.0" />
   </ItemGroup>
 
 </Project>
