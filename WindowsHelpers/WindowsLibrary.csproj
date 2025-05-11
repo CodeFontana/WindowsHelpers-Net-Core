@@ -10,14 +10,14 @@
     <Nullable>disable</Nullable>
     <PackageId>CodeFoxtrot.WindowsHelpers</PackageId>
     <Description>Useful set of helper methods for C# in the Microsoft Windows environment.</Description>
-    <Copyright>2024</Copyright>
+    <Copyright>2025</Copyright>
     <PackageProjectUrl>https://github.com/CodeFontana/WindowsHelpers-Net-Core</PackageProjectUrl>
     <RepositoryUrl>https://github.com/CodeFontana/WindowsHelpers-Net-Core</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <PackageTags>CodeFoxtrot WindowsHelpers Native PInvoke</PackageTags>
-    <Version>1.0.5</Version>
+    <Version>1.0.6</Version>
 	<UseWindowsForms>true</UseWindowsForms>
   </PropertyGroup>
 
