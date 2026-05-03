@@ -2,9 +2,9 @@
 
 public class PageFile
 {
-    public string Name { get; set; }
-    public string DriveLetter { get; set; }
-    public string Comment { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string DriveLetter { get; set; } = string.Empty;
+    public string Comment { get; set; } = string.Empty;
     public bool AutomaticManagement { get; set; }
     public int InitialSize { get; set; }
     public int MaximumSize { get; set; }

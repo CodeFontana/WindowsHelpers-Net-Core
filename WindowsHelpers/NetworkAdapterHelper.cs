@@ -16,15 +16,15 @@ public class NetworkAdapterHelper
         QueryNetworkAdapters();
     }
 
-    public Tuple<bool, NetworkAdapter> In(List<NetworkAdapter> adapterList)
+    public Tuple<bool, NetworkAdapter?> In(List<NetworkAdapter> adapterList)
     {
-        Tuple<bool, NetworkAdapter> returnTuple = new(false, null);
+        Tuple<bool, NetworkAdapter?> returnTuple = new(false, null);
 
         foreach (NetworkAdapter nic in adapterList)
         {
             if (Equals(nic))
             {
-                returnTuple = new Tuple<bool, NetworkAdapter>(true, nic);
+                returnTuple = new Tuple<bool, NetworkAdapter?>(true, nic);
                 break;
             }
         }
@@ -43,10 +43,10 @@ public class NetworkAdapterHelper
 
             if (netConnectionId != null && netConnectionId.ToString().Equals("") == false)
             {
-                int adapterIndex = int.Parse(adapterResult["Index"].ToString());
-                string adapterName = adapterResult["Name"].ToString();
-                bool adapterEnabled = bool.Parse(adapterResult["NetEnabled"].ToString());
-                int adapterStatus = int.Parse(adapterResult["NetConnectionStatus"].ToString());
+                int adapterIndex = int.Parse(adapterResult["Index"]?.ToString() ?? "0");
+                string adapterName = adapterResult["Name"]?.ToString() ?? string.Empty;
+                bool adapterEnabled = bool.Parse(adapterResult["NetEnabled"]?.ToString() ?? "False");
+                int adapterStatus = int.Parse(adapterResult["NetConnectionStatus"]?.ToString() ?? "0");
                 NetworkAdapter newAdapter = new(adapterIndex, adapterName, adapterEnabled, adapterStatus);
                 ManagementObjectSearcher configQuery = new(
                     $"SELECT DHCPEnabled,IPAddress,IPSubnet,DefaultIPGateway FROM Win32_NetworkAdapterConfiguration WHERE Index = {newAdapter.AdapterIndex}");

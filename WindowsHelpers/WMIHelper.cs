@@ -67,7 +67,7 @@ public class WmiHelper
             _logger.LogError(e, "Failed to query list of WMI namespaces");
         }
 
-        return namespaces?.OrderBy(s => s).ToList() ?? namespaces;
+        return namespaces.OrderBy(s => s).ToList();
     }
 
     /// <summary>
@@ -98,7 +98,7 @@ public class WmiHelper
             _logger.LogError(e, $"Failed to query class name list for namespace '{wmiNamespaceName}'");
         }
 
-        return classes?.OrderBy(s => s).ToList() ?? classes;
+        return classes.OrderBy(s => s).ToList();
     }
 
     /// <summary>
@@ -148,8 +148,8 @@ public class WmiHelper
     /// <param name="columns">The list of columns to retrieve, the default is null/* for all columns.</param>
     /// <returns>A list representing each row of data from the WMI class.</returns>
     public List<string[]> GetWMIData(string namespaceName,
-                                     string wmiClassName,
-                                     List<string> columns = null)
+                                      string wmiClassName,
+                                      List<string>? columns = null)
     {
         List<string[]> output = new();
 
@@ -191,13 +191,13 @@ public class WmiHelper
 
                 foreach (PropertyData p in props)
                 {
-                    if (p.Value == null || string.IsNullOrWhiteSpace(p.Value.ToString()))
+                    if (p.Value == null || string.IsNullOrWhiteSpace(p.Value!.ToString()))
                     {
                         row.Add("");
                     }
                     else
                     {
-                        row.Add(p.Value.ToString());
+                        row.Add(p.Value!.ToString());
                     }
                 }
 
@@ -222,9 +222,9 @@ public class WmiHelper
     /// <param name="columnPadding">Padding (number of spaces) to add between columns of data in the return string.</param>
     /// <returns></returns>
     public string GetFormattedWMIData(string namespaceName,
-                                      string wmiClassName,
-                                      List<string> columns = null,
-                                      int columnPadding = 1)
+                                       string wmiClassName,
+                                       List<string>? columns = null,
+                                       int columnPadding = 1)
     {
         List<string[]> output = new();
 
@@ -266,13 +266,13 @@ public class WmiHelper
 
                 foreach (PropertyData p in props)
                 {
-                    if (p.Value == null || string.IsNullOrWhiteSpace(p.Value.ToString()))
+                    if (p.Value == null || string.IsNullOrWhiteSpace(p.Value!.ToString()))
                     {
                         row.Add("");
                     }
                     else
                     {
-                        row.Add(p.Value.ToString());
+                        row.Add(p.Value!.ToString());
                     }
                 }
 

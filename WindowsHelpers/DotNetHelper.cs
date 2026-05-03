@@ -70,8 +70,8 @@ public static class DotNetHelper
     }
 
     public static bool IsListStringEqual(List<string> list1,
-                                         List<string> list2,
-                                         List<string> matchExceptions = null)
+                                          List<string> list2,
+                                          List<string>? matchExceptions = null)
     {
         // Unequal number of elements?
         if (list1.Count != list2.Count)
@@ -115,8 +115,8 @@ public static class DotNetHelper
     }
 
     public static bool IsListStringTupleEqual(List<Tuple<string, string>> list1,
-                                              List<Tuple<string, string>> list2,
-                                              List<string> matchExceptions = null)
+                                               List<Tuple<string, string>> list2,
+                                               List<string>? matchExceptions = null)
     {
         // Unequal number of elements?
         if (list1.Count != list2.Count)

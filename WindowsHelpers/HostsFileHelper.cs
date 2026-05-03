@@ -12,7 +12,7 @@ public class HostsFileHelper
 
     public HostsFileHelper()
     {
-        string? systemPath = Environment.GetEnvironmentVariable("SystemRoot");
+        string systemPath = Environment.GetEnvironmentVariable("SystemRoot") ?? "C:\\Windows";
         _hostsFile = Path.Combine(systemPath, @"system32\drivers\etc\hosts");
 
         if (File.Exists(_hostsFile) == false)
@@ -155,7 +155,7 @@ public class HostsFileHelper
                     break;
                 }
 
-                List<string> splitValues = null;
+                List<string> splitValues = new();
 
                 if (hostsEntry.Contains(","))
                 {

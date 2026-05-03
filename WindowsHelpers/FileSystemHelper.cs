@@ -303,12 +303,12 @@ public class FileSystemHelper
                     return false;
                 }
 
-                if (Directory.Exists(Path.GetDirectoryName(destFileName)) == false)
-                {
-                    try
+                if (Directory.Exists(Path.GetDirectoryName(destFileName)!) == false)
                     {
-                        Directory.CreateDirectory(Path.GetDirectoryName(destFileName));
-                    }
+                        try
+                        {
+                            Directory.CreateDirectory(Path.GetDirectoryName(destFileName)!);
+                        }
                     catch (Exception e)
                     {
                         _logger.LogError(e, "Failed to create target directory");
@@ -318,13 +318,13 @@ public class FileSystemHelper
 
                 File.Copy(sourceFileName, destFileName, overWrite);
 
-                foreach (string file in Directory.GetFiles(Path.GetDirectoryName(destFileName)))
-                {
-                    if (file.ToLower().Contains(".delete_on_reboot"))
+                foreach (string file in Directory.GetFiles(Path.GetDirectoryName(destFileName)!))
                     {
-                        DeleteFile(file, false, true);
+                        if (file.ToLower().Contains(".delete_on_reboot"))
+                        {
+                            DeleteFile(file, false, true);
+                        }
                     }
-                }
 
                 return true;
             }
@@ -439,7 +439,7 @@ public class FileSystemHelper
 
     public bool CopyFolderContents(string sourceFolder,
                                    string targetFolder,
-                                   string[] reservedItems = null,
+                                   string[]? reservedItems = null,
                                    bool verboseOutput = true,
                                    bool recursiveCopy = true,
                                    bool handleInUseOnReboot = false)
@@ -1142,7 +1142,7 @@ public class FileSystemHelper
 
     public void ReplaceFileIn(string baseFolder,
                               string replaceFile,
-                              string[] additionalFiles = null)
+                              string[]? additionalFiles = null)
     {
         try
         {

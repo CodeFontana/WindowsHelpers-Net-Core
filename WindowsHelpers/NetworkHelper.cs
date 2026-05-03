@@ -19,7 +19,7 @@ public class NetworkHelper
         _logger = logger;
     }
 
-    public IPAddress GetCurrentIpAddress()
+    public IPAddress? GetCurrentIpAddress()
     {
         try
         {
@@ -41,7 +41,7 @@ public class NetworkHelper
         }
     }
 
-    public IPAddress GetSubnetMask(IPAddress inputAddress)
+    public IPAddress? GetSubnetMask(IPAddress inputAddress)
     {
         if (inputAddress == null)
         {
@@ -66,7 +66,7 @@ public class NetworkHelper
         }
     }
 
-    public IPAddress GetDefaultGateway(IPAddress inputAddress)
+    public IPAddress? GetDefaultGateway(IPAddress inputAddress)
     {
         if (inputAddress == null)
         {
@@ -90,7 +90,7 @@ public class NetworkHelper
         }
     }
 
-    public Tuple<bool, List<string>> ResolveHostToIP(string hostAddress, bool hideOutput = false)
+    public Tuple<bool, List<string>?> ResolveHostToIP(string hostAddress, bool hideOutput = false)
     {
         try
         {
@@ -135,7 +135,7 @@ public class NetworkHelper
                 _logger.LogInformation("Unable to resolve: " + hostAddress);
             }
 
-            return new Tuple<bool, List<string>>(false, null);
+            return new Tuple<bool, List<string>?>(false, null);
         }
         catch (Exception e)
         {
@@ -144,11 +144,11 @@ public class NetworkHelper
                 _logger.LogError(e, "Address resolution failure");
             }
 
-            return new Tuple<bool, List<string>>(false, null);
+            return new Tuple<bool, List<string>?>(false, null);
         }
     }
 
-    public string ResolveIPtoHost(string inputAddress, bool hideOutput = false)
+    public string? ResolveIPtoHost(string inputAddress, bool hideOutput = false)
     {
         try
         {

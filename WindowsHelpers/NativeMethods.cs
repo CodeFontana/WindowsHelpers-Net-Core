@@ -42,16 +42,16 @@ public static class NativeMethods
 
     [DllImport("advapi32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
     public static extern Boolean ChangeServiceConfig(IntPtr hService,
-                                                     UInt32 nServiceType,
-                                                     UInt32 nStartType,
-                                                     UInt32 nErrorControl,
-                                                     String lpBinaryPathName,
-                                                     String lpLoadOrderGroup,
-                                                     IntPtr lpdwTagId,
-                                                     [In] char[] lpDependencies,
-                                                     String lpServiceStartName,
-                                                     String lpPassword,
-                                                     String lpDisplayName);
+                                                      UInt32 nServiceType,
+                                                      UInt32 nStartType,
+                                                      UInt32 nErrorControl,
+                                                      string? lpBinaryPathName,
+                                                      string? lpLoadOrderGroup,
+                                                      IntPtr lpdwTagId,
+                                                      char[]? lpDependencies,
+                                                      string? lpServiceStartName,
+                                                      string? lpPassword,
+                                                      string? lpDisplayName);
 
     [DllImport("advapi32.dll")]
     public static extern bool ChangeServiceConfig2A(IntPtr hService,
@@ -289,10 +289,10 @@ public static class NativeMethods
                                                out IntPtr hToken);
 
     [DllImport("advapi32.dll", EntryPoint = "OpenSCManagerW", ExactSpelling = true, CharSet = CharSet.Unicode, SetLastError = true)]
-    public static extern IntPtr OpenSCManager(string machineName, string databaseName, uint dwAccess);
+    public static extern IntPtr OpenSCManager(string? machineName, string? databaseName, uint dwAccess);
 
     [DllImport("advapi32.dll")]
-    public static extern IntPtr OpenSCManagerA(string lpMachineName, string lpDatabaseName, ServiceControlManagerType dwDesiredAccess);
+    public static extern IntPtr OpenSCManagerA(string? lpMachineName, string? lpDatabaseName, ServiceControlManagerType dwDesiredAccess);
 
     [DllImport("advapi32.dll", SetLastError = true, CharSet = CharSet.Auto)]
     public static extern IntPtr OpenService(IntPtr hSCManager, string lpServiceName, uint dwDesiredAccess);

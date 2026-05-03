@@ -58,7 +58,7 @@ public class WindowsHelper
             }
 
             bool existsOnPath = false;
-            string? pathVariable = Environment.GetEnvironmentVariable("PATH", EnvironmentVariableTarget.Machine);
+            string pathVariable = Environment.GetEnvironmentVariable("PATH", EnvironmentVariableTarget.Machine) ?? string.Empty;
 
             foreach (string path in pathVariable.Split(';'))
             {
@@ -86,7 +86,7 @@ public class WindowsHelper
         return true;
     }
 
-    public List<Tuple<string, Bitmap>> CaptureScreen()
+    public List<Tuple<string, Bitmap>>? CaptureScreen()
     {
         try
         {
@@ -643,7 +643,7 @@ public class WindowsHelper
         return DateTime.Now.ToString("yyyy-MM-dd--HH.mm.ss");
     }
 
-    public string GetUninstallReg(string displayName)
+    public string? GetUninstallReg(string displayName)
     {
         if (Environment.Is64BitOperatingSystem)
         {
@@ -1100,7 +1100,7 @@ public class WindowsHelper
                 _logger.LogInformation("  DisableCAD: <Not Available>");
             }
 
-            if (autoAdminLogon == 1 && logonUser.Equals("") == false)
+            if (autoAdminLogon == 1 && !string.IsNullOrEmpty(logonUser))
             {
                 _logger.LogInformation("Automatic logon: CONFIGURED");
                 return true;
@@ -1515,7 +1515,7 @@ public class WindowsHelper
                                                                                             typeof(NativeMethods.LOCALGROUP_INFO_1));
                     }
 
-                    string currentGroupName = Marshal.PtrToStringAuto(groupInfo.lpszGroupName);
+                    string currentGroupName = Marshal.PtrToStringAuto(groupInfo.lpszGroupName)!;
 
                     _logger.LogDebug($"Group: {currentGroupName}");
 
@@ -1541,16 +1541,16 @@ public class WindowsHelper
                             {
                                 newOffset1_64 = userInfoPtr.ToInt64() + LOCALGROUP_MEMBERS_INFO_1_SIZE * j;
                                 memberInfo = (NativeMethods.LOCALGROUP_MEMBERS_INFO_1)Marshal.PtrToStructure(new IntPtr(newOffset1_64),
-                                                                                                             typeof(NativeMethods.LOCALGROUP_MEMBERS_INFO_1));
+                                                                                                              typeof(NativeMethods.LOCALGROUP_MEMBERS_INFO_1));
                             }
                             else
                             {
                                 newOffset1 = userInfoPtr.ToInt32() + LOCALGROUP_MEMBERS_INFO_1_SIZE * j;
                                 memberInfo = (NativeMethods.LOCALGROUP_MEMBERS_INFO_1)Marshal.PtrToStructure(new IntPtr(newOffset1),
-                                                                                                             typeof(NativeMethods.LOCALGROUP_MEMBERS_INFO_1));
+                                                                                                              typeof(NativeMethods.LOCALGROUP_MEMBERS_INFO_1));
                             }
 
-                            string currentUserName = Marshal.PtrToStringAuto(memberInfo.lgrmi1_name);
+                            string currentUserName = Marshal.PtrToStringAuto(memberInfo.lgrmi1_name) ?? string.Empty;
 
                             _logger.LogDebug($"  Member: {currentUserName}");
 
@@ -1623,7 +1623,7 @@ public class WindowsHelper
                                                                                             typeof(NativeMethods.LOCALGROUP_INFO_1));
                     }
 
-                    string currentGroupName = Marshal.PtrToStringAuto(groupInfo.lpszGroupName);
+                    string currentGroupName = Marshal.PtrToStringAuto(groupInfo.lpszGroupName)!;
 
                     _logger.LogDebug($"Group: {currentGroupName}");
 
@@ -1649,16 +1649,16 @@ public class WindowsHelper
                             {
                                 newOffset1_64 = userInfoPtr.ToInt64() + LOCALGROUP_MEMBERS_INFO_1_SIZE * j;
                                 memberInfo = (NativeMethods.LOCALGROUP_MEMBERS_INFO_1)Marshal.PtrToStructure(new IntPtr(newOffset1_64),
-                                                                                                             typeof(NativeMethods.LOCALGROUP_MEMBERS_INFO_1));
+                                                                                                              typeof(NativeMethods.LOCALGROUP_MEMBERS_INFO_1));
                             }
                             else
                             {
                                 newOffset1 = userInfoPtr.ToInt32() + LOCALGROUP_MEMBERS_INFO_1_SIZE * j;
                                 memberInfo = (NativeMethods.LOCALGROUP_MEMBERS_INFO_1)Marshal.PtrToStructure(new IntPtr(newOffset1),
-                                                                                                             typeof(NativeMethods.LOCALGROUP_MEMBERS_INFO_1));
+                                                                                                              typeof(NativeMethods.LOCALGROUP_MEMBERS_INFO_1));
                             }
 
-                            string currentUserName = Marshal.PtrToStringAuto(memberInfo.lgrmi1_name);
+                            string currentUserName = Marshal.PtrToStringAuto(memberInfo.lgrmi1_name) ?? string.Empty;
 
                             _logger.LogDebug($"  Member: {currentUserName}");
 

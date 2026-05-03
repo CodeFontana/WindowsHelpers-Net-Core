@@ -20,21 +20,26 @@ public class HostsFileEntry
             hostEntry.Count == 0 ||
             hostEntry.Any(e => e == null || string.IsNullOrWhiteSpace(e)))
         {
-            throw new ArgumentException($"Invalid host entry [{ string.Join(",", hostEntry ?? new List<string> { "null" }) }]");
+            throw new ArgumentException($"Invalid host entry [{string.Join(",", hostEntry ?? new List<string> { "null" })}]");
         }
 
         Address = address;
         Hosts = hostEntry;
     }
 
-    public override bool Equals(object obj)
+    public override bool Equals(object? obj)
     {
         if (obj == null)
         {
             return false;
         }
 
-        var item = obj as HostsFileEntry;
+        HostsFileEntry? item = obj as HostsFileEntry;
+
+        if (item == null)
+        {
+            return false;
+        }
 
         if (Address.Equals(item.Address) == false)
         {

@@ -68,9 +68,9 @@ namespace WindowsLibrary.Tests
             // Assert -- Failures due to bad input.
             Assert.Throws<ArgumentException>(() => hostsFile.CreateEntry("38.38.38.38.38", "fqdn.example.com"));
             Assert.Throws<ArgumentException>(() => hostsFile.CreateEntry("38.38.38.40", ""));
-            Assert.Throws<ArgumentException>(() => hostsFile.CreateEntry("38.38.38.42", null));
-            Assert.Throws<ArgumentException>(() => hostsFile.CreateEntry(null, null));
-            Assert.Throws<ArgumentException>(() => hostsFile.CreateEntry(null, "fqdn.example.com"));
+            Assert.Throws<ArgumentException>(() => hostsFile.CreateEntry("38.38.38.42", null!));
+            Assert.Throws<ArgumentException>(() => hostsFile.CreateEntry(null!, null!));
+            Assert.Throws<ArgumentException>(() => hostsFile.CreateEntry(null!, "fqdn.example.com"));
 
             // Assert -- Failures due to address or host already defined.
             Assert.Throws<ArgumentException>(() => hostsFile.CreateEntry("38.38.38.38", "fqdn.different.com"));
@@ -222,9 +222,9 @@ namespace WindowsLibrary.Tests
             // Assert -- Failures due to bad input.
             Assert.Throws<ArgumentException>(() => hostsFile.UpdateEntry("38.38.38.38.38", "fqdn.example.com"));
             Assert.Throws<ArgumentException>(() => hostsFile.UpdateEntry("38.38.38.40", ""));
-            Assert.Throws<ArgumentException>(() => hostsFile.UpdateEntry("38.38.38.42", null));
-            Assert.Throws<ArgumentException>(() => hostsFile.UpdateEntry(null, null));
-            Assert.Throws<ArgumentException>(() => hostsFile.UpdateEntry(null, "fqdn.example.com"));
+            Assert.Throws<ArgumentException>(() => hostsFile.UpdateEntry("38.38.38.42", null!));
+            Assert.Throws<ArgumentException>(() => hostsFile.UpdateEntry(null!, null!));
+            Assert.Throws<ArgumentException>(() => hostsFile.UpdateEntry(null!, "fqdn.example.com"));
 
             // Assert -- Failures due to address or host NOT defined.
             Assert.Throws<ArgumentException>(() => hostsFile.UpdateEntry("38.38.38.40", "fqdn.different.com"));

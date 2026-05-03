@@ -40,6 +40,10 @@ public class NetworkAdapter
         AdapterName = name;
         AdapterEnabled = enabled;
         AdapterStatusCode = status;
+        AdapterStatusPhrase = string.Empty;
+        IPAddress = string.Empty;
+        SubnetMask = string.Empty;
+        DefaultGateway = string.Empty;
         FillAdapterStatusPhrase();
     }
 
