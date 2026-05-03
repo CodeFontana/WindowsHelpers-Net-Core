@@ -1,7 +1,7 @@
-﻿using Microsoft.Extensions.Logging;
-using Microsoft.Win32;
-using System;
+﻿using System;
 using System.Linq;
+using Microsoft.Extensions.Logging;
+using Microsoft.Win32;
 
 namespace WindowsLibrary;
 
@@ -20,8 +20,8 @@ public class RegistryHelper
         {
             foreach (string regValue in sourceKey.GetValueNames())
             {
-                destKey.SetValue(regValue, 
-                    sourceKey.GetValue(regValue, regValue, RegistryValueOptions.DoNotExpandEnvironmentNames), 
+                destKey.SetValue(regValue,
+                    sourceKey.GetValue(regValue, regValue, RegistryValueOptions.DoNotExpandEnvironmentNames),
                     sourceKey.GetValueKind(regValue));
             }
         }
@@ -72,7 +72,7 @@ public class RegistryHelper
         try
         {
             RegistryKey baseKey32 = RegistryKey.OpenBaseKey(regHive, RegistryView.Registry32);
-            RegistryKey baseKey64 = null;
+            RegistryKey? baseKey64 = null;
 
             if (Environment.Is64BitOperatingSystem)
             {
@@ -144,7 +144,7 @@ public class RegistryHelper
         try
         {
             RegistryKey baseKey32 = RegistryKey.OpenBaseKey(regHive, RegistryView.Registry32);
-            RegistryKey baseKey64 = null;
+            RegistryKey? baseKey64 = null;
             bool isFound = false;
 
             if (Environment.Is64BitOperatingSystem)
@@ -194,8 +194,8 @@ public class RegistryHelper
         try
         {
             RegistryKey baseKey32 = RegistryKey.OpenBaseKey(regHive, RegistryView.Registry32);
-            RegistryKey baseKey64 = null;
-            RegistryKey regTest = null;
+            RegistryKey? baseKey64 = null;
+            RegistryKey? regTest = null;
 
             if (Environment.Is64BitOperatingSystem)
             {
@@ -276,7 +276,7 @@ public class RegistryHelper
             if (Environment.Is64BitOperatingSystem)
             {
                 RegistryKey baseKey64 = RegistryKey.OpenBaseKey(regHive, RegistryView.Registry64);
-                RegistryKey testKey = baseKey64.OpenSubKey(regKey, false);
+                RegistryKey? testKey = baseKey64.OpenSubKey(regKey, false);
 
                 if (testKey != null)
                 {
@@ -325,8 +325,8 @@ public class RegistryHelper
         {
             foreach (string regValue in sourceKey.GetValueNames())
             {
-                destKey.SetValue(regValue, 
-                    sourceKey.GetValue(regValue, regValue, RegistryValueOptions.DoNotExpandEnvironmentNames), 
+                destKey.SetValue(regValue,
+                    sourceKey.GetValue(regValue, regValue, RegistryValueOptions.DoNotExpandEnvironmentNames),
                     sourceKey.GetValueKind(regValue));
                 sourceKey.DeleteValue(regValue, false);
             }
@@ -381,7 +381,7 @@ public class RegistryHelper
         }
     }
 
-    public RegistryKey OpenKey(string regKey,
+    public RegistryKey? OpenKey(string regKey,
                                bool writable = false,
                                RegistryHive regTree = RegistryHive.LocalMachine,
                                RegistryView regView = RegistryView.Default)
@@ -396,7 +396,7 @@ public class RegistryHelper
         }
         else
         {
-            RegistryKey output = OpenKey64(regKey, writable, regTree);
+            RegistryKey? output = OpenKey64(regKey, writable, regTree);
 
             if (output == null)
             {
@@ -409,14 +409,14 @@ public class RegistryHelper
         }
     }
 
-    public RegistryKey OpenKey32(string regKey,
+    public RegistryKey? OpenKey32(string regKey,
                                  bool writable = false,
                                  RegistryHive regTree = RegistryHive.LocalMachine)
     {
         try
         {
             RegistryKey baseKey32 = RegistryKey.OpenBaseKey(regTree, RegistryView.Registry32);
-            RegistryKey regTest = baseKey32.OpenSubKey(regKey, writable);
+            RegistryKey? regTest = baseKey32.OpenSubKey(regKey, writable);
             baseKey32.Dispose();
 
             if (regTest != null)
@@ -432,15 +432,15 @@ public class RegistryHelper
         }
     }
 
-    public RegistryKey OpenKey64(string regKey,
+    public RegistryKey? OpenKey64(string regKey,
                                  bool writable = false,
                                  RegistryHive regTree = RegistryHive.LocalMachine)
     {
-        RegistryKey baseKey64 = null;
+        RegistryKey? baseKey64 = null;
 
         try
         {
-            RegistryKey regTest = null;
+            RegistryKey? regTest = null;
 
             if (Environment.Is64BitOperatingSystem)
             {
@@ -471,7 +471,7 @@ public class RegistryHelper
             if (Environment.Is64BitOperatingSystem)
             {
                 RegistryKey baseKey64 = RegistryKey.OpenBaseKey(regHive, RegistryView.Registry64);
-                RegistryKey testKey = baseKey64.OpenSubKey(regKey, false);
+                RegistryKey? testKey = baseKey64.OpenSubKey(regKey, false);
 
                 if (testKey != null && testKey.GetValue(regValueName) != null)
                 {
@@ -504,7 +504,7 @@ public class RegistryHelper
             }
             else
             {
-                RegistryKey testKey = baseKey32.OpenSubKey(regKey, false);
+                RegistryKey? testKey = baseKey32.OpenSubKey(regKey, false);
 
                 if (testKey != null && testKey.GetValue(regValueName) != null)
                 {

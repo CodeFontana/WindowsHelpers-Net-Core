@@ -1,21 +1,21 @@
-﻿using Microsoft.Win32;
-using System;
-using System.Diagnostics;
-using System.IO;
-using System.Runtime.InteropServices;
-using System.Security.Principal;
+﻿using System;
 using System.Collections.Generic;
-using System.Security.AccessControl;
-using System.Text;
-using System.Security.Cryptography.X509Certificates;
+using System.Diagnostics;
 using System.DirectoryServices.AccountManagement;
-using System.Linq;
-using System.Management;
-using static System.Management.ManagementObjectCollection;
-using Microsoft.Extensions.Logging;
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.IO;
+using System.Linq;
+using System.Management;
+using System.Runtime.InteropServices;
+using System.Security.AccessControl;
+using System.Security.Cryptography.X509Certificates;
+using System.Security.Principal;
+using System.Text;
 using System.Windows.Forms;
+using Microsoft.Extensions.Logging;
+using Microsoft.Win32;
+using static System.Management.ManagementObjectCollection;
 
 namespace WindowsLibrary;
 
@@ -58,7 +58,7 @@ public class WindowsHelper
             }
 
             bool existsOnPath = false;
-            string pathVariable = Environment.GetEnvironmentVariable("PATH", EnvironmentVariableTarget.Machine);
+            string? pathVariable = Environment.GetEnvironmentVariable("PATH", EnvironmentVariableTarget.Machine);
 
             foreach (string path in pathVariable.Split(';'))
             {
@@ -141,11 +141,11 @@ public class WindowsHelper
         return false;
     }
 
-    public void CreateShortcut(string shortcutFileName,
-                               string targetFileName,
-                               string targetArguments = "",
-                               string shortcutDescription = "",
-                               int iconNumber = 2)
+    public static void CreateShortcut(string shortcutFileName,
+                                      string targetFileName,
+                                      string targetArguments = "",
+                                      string shortcutDescription = "",
+                                      int iconNumber = 2)
     {
         // Icon index numbers can be referenced at this link:
         //   https://help4windows.com/windows_7_shell32_dll.shtml
@@ -213,8 +213,14 @@ public class WindowsHelper
         }
     }
 
-    public DateTime ConvertBinaryDateTime(Byte[] bytes)
+    public DateTime ConvertBinaryDateTime(Byte[]? bytes)
     {
+        ArgumentNullException.ThrowIfNull(bytes);
+        if (bytes.Length < 8)
+        {
+            throw new ArgumentException("Byte array must contain at least 8 bytes for FILETIME conversion.");
+        }
+
         long filedate = (((((((
         (long)bytes[7] * 256 +
         (long)bytes[6]) * 256 +
@@ -641,27 +647,52 @@ public class WindowsHelper
     {
         if (Environment.Is64BitOperatingSystem)
         {
-            RegistryKey localMachine64 = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64);
-            RegistryKey uninstallKey64 = localMachine64.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall", false);
+            using RegistryKey? localMachine64 = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64);
+            using RegistryKey? uninstallKey64 = localMachine64.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall", false);
 
-            foreach (string subKeyName in uninstallKey64.GetSubKeyNames())
+            if (uninstallKey64 is not null)
             {
-                try
+                foreach (string subKeyName in uninstallKey64.GetSubKeyNames())
                 {
-                    RegistryKey productKey = uninstallKey64.OpenSubKey(subKeyName, false);
-                    var displayNameValue = productKey.GetValue("DisplayName");
-
-                    if (displayNameValue != null)
+                    try
                     {
-                        if (displayNameValue.ToString().ToLower().Equals(displayName.ToLower()))
+                        using RegistryKey? productKey = uninstallKey64.OpenSubKey(subKeyName, false);
+                        if (productKey is null) continue;
+
+                        object? displayNameValue = productKey.GetValue("DisplayName");
+
+                        if (displayNameValue is string displayNameStr && displayNameStr.ToLower().Equals(displayName.ToLower()))
                         {
-                            uninstallKey64.Dispose();
-                            localMachine64.Dispose();
                             return $@"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{subKeyName}";
                         }
                     }
+                    catch (Exception e)
+                    {
+                        _logger.LogError(e, $"Failed to open product key [{subKeyName}]");
+                        continue;
+                    }
+                }
+            }
+        }
 
-                    productKey.Dispose();
+        using RegistryKey? localMachine32 = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry32);
+        using RegistryKey? uninstallKey32 = localMachine32.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall", false);
+
+        if (uninstallKey32 is not null)
+        {
+            foreach (string subKeyName in uninstallKey32.GetSubKeyNames())
+            {
+                try
+                {
+                    using RegistryKey? productKey = uninstallKey32.OpenSubKey(subKeyName, false);
+                    if (productKey is null) continue;
+
+                    object? displayNameValue = productKey.GetValue("DisplayName");
+
+                    if (displayNameValue is not null && displayNameValue.ToString().ToLower().Equals(displayName.ToLower()))
+                    {
+                        return @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\" + subKeyName;
+                    }
                 }
                 catch (Exception e)
                 {
@@ -669,89 +700,52 @@ public class WindowsHelper
                     continue;
                 }
             }
-
-            uninstallKey64.Dispose();
-            localMachine64.Dispose();
         }
 
-        RegistryKey localMachine32 = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry32);
-        RegistryKey uninstallKey32 = localMachine32.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall", false);
-
-        foreach (string subKeyName in uninstallKey32.GetSubKeyNames())
-        {
-            try
-            {
-                RegistryKey productKey = uninstallKey32.OpenSubKey(subKeyName, false);
-                var displayNameValue = productKey.GetValue("DisplayName");
-
-                if (displayNameValue != null)
-                {
-                    if (displayNameValue.ToString().ToLower().Equals(displayName.ToLower()))
-                    {
-                        uninstallKey32.Dispose();
-                        localMachine32.Dispose();
-                        return @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\" + subKeyName;
-                    }
-                }
-
-                productKey.Dispose();
-            }
-            catch (Exception e)
-            {
-                _logger.LogError(e, $"Failed to open product key [{subKeyName}]");
-                continue;
-            }
-        }
-
-        uninstallKey32.Dispose();
-        localMachine32.Dispose();
         return null;
     }
 
-    public string GetUninstallString(string displayName)
+    public string? GetUninstallString(string displayName)
     {
         bool foundApp = false;
-        string returnString = null;
+        string? returnString = null;
 
         if (Environment.Is64BitOperatingSystem)
         {
-            RegistryKey localMachine64 = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64);
-            RegistryKey uninstallKey64 = localMachine64.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall", false);
+            using RegistryKey? localMachine64 = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64);
+            using RegistryKey? uninstallKey64 = localMachine64.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall", false);
 
-            foreach (string subKeyName in uninstallKey64.GetSubKeyNames())
+            if (uninstallKey64 is not null)
             {
-                try
+                foreach (string subKeyName in uninstallKey64.GetSubKeyNames())
                 {
-                    RegistryKey productKey = uninstallKey64.OpenSubKey(subKeyName, false);
-                    var displayNameValue = productKey.GetValue("DisplayName");
-
-                    if (displayNameValue != null)
+                    try
                     {
-                        if (displayNameValue.ToString().ToLower().Equals(displayName.ToLower()))
+                        using RegistryKey? productKey = uninstallKey64.OpenSubKey(subKeyName, false);
+                        if (productKey is null) continue;
+
+                        object? displayNameValue = productKey.GetValue("DisplayName");
+
+                        if (displayNameValue is string displayNameStr && displayNameStr.ToLower().Equals(displayName.ToLower()))
                         {
                             foundApp = true;
-                            var uninstStringValue = productKey.GetValue("UninstallString");
+                            object? uninstStringValue = productKey.GetValue("UninstallString");
 
-                            if (uninstStringValue != null)
+                            if (uninstStringValue is string uninstStr)
                             {
-                                returnString = uninstStringValue.ToString();
+                                returnString = uninstStr;
                             }
 
                             break;
                         }
                     }
-
-                    productKey.Dispose();
-                }
-                catch (Exception e)
-                {
-                    _logger.LogError(e, $"Failed to open product key [{subKeyName}]");
-                    continue;
+                    catch (Exception e)
+                    {
+                        _logger.LogError(e, $"Failed to open product key [{subKeyName}]");
+                        continue;
+                    }
                 }
             }
-
-            uninstallKey64.Dispose();
-            localMachine64.Dispose();
 
             if (foundApp)
             {
@@ -759,24 +753,26 @@ public class WindowsHelper
             }
         }
 
-        RegistryKey localMachine32 = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry32);
-        RegistryKey uninstallKey32 = localMachine32.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall", false);
+        using RegistryKey? localMachine32 = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry32);
+        using RegistryKey? uninstallKey32 = localMachine32.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall", false);
 
-        foreach (string subKeyName in uninstallKey32.GetSubKeyNames())
+        if (uninstallKey32 is not null)
         {
-            try
+            foreach (string subKeyName in uninstallKey32.GetSubKeyNames())
             {
-                RegistryKey productKey = uninstallKey32.OpenSubKey(subKeyName, false);
-                var displayNameValue = productKey.GetValue("DisplayName");
-
-                if (displayNameValue != null)
+                try
                 {
-                    if (displayNameValue.ToString().ToLower().Equals(displayName.ToLower()))
+                    using RegistryKey? productKey = uninstallKey32.OpenSubKey(subKeyName, false);
+                    if (productKey is null) continue;
+
+                    object? displayNameValue = productKey.GetValue("DisplayName");
+
+                    if (displayNameValue is not null && displayNameValue.ToString().ToLower().Equals(displayName.ToLower()))
                     {
                         foundApp = true;
-                        var uninstStringValue = productKey.GetValue("UninstallString");
+                        object? uninstStringValue = productKey.GetValue("UninstallString");
 
-                        if (uninstStringValue != null)
+                        if (uninstStringValue is not null)
                         {
                             returnString = uninstStringValue.ToString();
                         }
@@ -784,27 +780,15 @@ public class WindowsHelper
                         break;
                     }
                 }
-
-                productKey.Dispose();
-            }
-            catch (Exception e)
-            {
-                _logger.LogError(e, "Failed to open product key [" + subKeyName + "]");
-                continue;
+                catch (Exception e)
+                {
+                    _logger.LogError(e, "Failed to open product key [" + subKeyName + "]");
+                    continue;
+                }
             }
         }
 
-        uninstallKey32.Dispose();
-        localMachine32.Dispose();
-
-        if (foundApp)
-        {
-            return returnString;
-        }
-        else
-        {
-            return returnString;
-        }
+        return returnString;
     }
 
     private static void GrantAccess(string username, IntPtr handle, int accessMask)
@@ -844,21 +828,20 @@ public class WindowsHelper
                 return false;
             }
 
-            X509Certificate2 importCert = null;
-
-            if (certPassword != "")
+            X509Certificate2 importCert;
+            if (!string.IsNullOrEmpty(certPassword))
             {
-                importCert = new(certFilename, certPassword);
+                importCert = X509CertificateLoader.LoadPkcs12FromFile(certFilename, certPassword);
             }
             else
             {
-                importCert = new(certFilename);
+                importCert = X509CertificateLoader.LoadCertificateFromFile(certFilename);
             }
 
             X509Store store = new(certStore, certLocation);
             store.Open(OpenFlags.ReadWrite);
 
-            if (store.Certificates.Contains(importCert) == false)
+            if (!store.Certificates.Contains(importCert))
             {
                 _logger.LogInformation("Import certificate...");
                 store.Add(importCert);
@@ -969,36 +952,33 @@ public class WindowsHelper
 
         if (Environment.Is64BitOperatingSystem)
         {
-            RegistryKey localMachine64 = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64);
-            RegistryKey uninstallKey64 = localMachine64.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall", false);
+            using RegistryKey? localMachine64 = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64);
+            using RegistryKey? uninstallKey64 = localMachine64.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall", false);
 
-            foreach (string subKeyName in uninstallKey64.GetSubKeyNames())
+            if (uninstallKey64 is not null)
             {
-                try
+                foreach (string subKeyName in uninstallKey64.GetSubKeyNames())
                 {
-                    RegistryKey productKey = uninstallKey64.OpenSubKey(subKeyName, false);
-                    var displayNameValue = productKey.GetValue("DisplayName");
-
-                    if (displayNameValue != null)
+                    try
                     {
-                        if (displayNameValue.ToString().ToLower().Equals(displayName.ToLower()))
+                        using RegistryKey? productKey = uninstallKey64.OpenSubKey(subKeyName, false);
+                        if (productKey is null) continue;
+
+                        object? displayNameValue = productKey.GetValue("DisplayName");
+
+                        if (displayNameValue is string displayNameStr && displayNameStr.ToLower().Equals(displayName.ToLower()))
                         {
                             foundApp = true;
                             break;
                         }
                     }
-
-                    productKey.Dispose();
-                }
-                catch (Exception e)
-                {
-                    _logger.LogError(e, $"Failed to open product key [{subKeyName}]");
-                    continue;
+                    catch (Exception e)
+                    {
+                        _logger.LogError(e, $"Failed to open product key [{subKeyName}]");
+                        continue;
+                    }
                 }
             }
-
-            uninstallKey64.Dispose();
-            localMachine64.Dispose();
 
             if (foundApp)
             {
@@ -1006,48 +986,38 @@ public class WindowsHelper
             }
         }
 
-        RegistryKey localMachine32 = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry32);
-        RegistryKey uninstallKey32 = localMachine32.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall", false);
+        using RegistryKey? localMachine32 = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry32);
+        using RegistryKey? uninstallKey32 = localMachine32.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall", false);
 
-        foreach (string subKeyName in uninstallKey32.GetSubKeyNames())
+        if (uninstallKey32 is not null)
         {
-            try
+            foreach (string subKeyName in uninstallKey32.GetSubKeyNames())
             {
-                RegistryKey productKey = uninstallKey32.OpenSubKey(subKeyName, false);
-                var displayNameValue = productKey.GetValue("DisplayName");
-
-                if (displayNameValue != null)
+                try
                 {
-                    if (displayNameValue.ToString().ToLower().Equals(displayName.ToLower()))
+                    using RegistryKey? productKey = uninstallKey32.OpenSubKey(subKeyName, false);
+                    if (productKey is null) continue;
+
+                    object? displayNameValue = productKey.GetValue("DisplayName");
+
+                    if (displayNameValue is not null && displayNameValue.ToString().ToLower().Equals(displayName.ToLower()))
                     {
                         foundApp = true;
                         break;
                     }
                 }
-
-                productKey.Dispose();
-            }
-            catch (Exception e)
-            {
-                _logger.LogError(e, $"Failed to open product key [{subKeyName}]");
-                continue;
+                catch (Exception e)
+                {
+                    _logger.LogError(e, $"Failed to open product key [{subKeyName}]");
+                    continue;
+                }
             }
         }
 
-        uninstallKey32.Dispose();
-        localMachine32.Dispose();
-
-        if (foundApp)
-        {
-            return true;
-        }
-        else
-        {
-            return false;
-        }
+        return foundApp;
     }
 
-    public bool IsAutoLogonConfigred(out string logonUser, out string logonPwd)
+    public bool IsAutoLogonConfigred(out string? logonUser, out string? logonPwd)
     {
         int autoAdminLogon = -1;
         logonUser = null;
@@ -1056,13 +1026,17 @@ public class WindowsHelper
         try
         {
             _logger.LogInformation("Read logon configuration...");
-            RegistryKey winLogonKey = _registryHelper
+            RegistryKey? winLogonKey = _registryHelper
                 .OpenKey(@"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon", true, RegistryHive.LocalMachine);
-            var curAutoAdminLogon = winLogonKey.GetValue("AutoAdminLogon");
-            var curAutoLogonCount = winLogonKey.GetValue("AutoLogonCount");
-            var curDefaultUserName = winLogonKey.GetValue("DefaultUserName");
-            var curDefaultPassword = winLogonKey.GetValue("DefaultPassword");
-            var curDisableCAD = winLogonKey.GetValue("DisableCAD");
+            if (winLogonKey is null)
+            {
+                return false;
+            }
+            object? curAutoAdminLogon = winLogonKey.GetValue("AutoAdminLogon");
+            object? curAutoLogonCount = winLogonKey.GetValue("AutoLogonCount");
+            object? curDefaultUserName = winLogonKey.GetValue("DefaultUserName");
+            object? curDefaultPassword = winLogonKey.GetValue("DefaultPassword");
+            object? curDisableCAD = winLogonKey.GetValue("DisableCAD");
 
             if (curAutoAdminLogon != null)
             {
@@ -1286,49 +1260,49 @@ public class WindowsHelper
         {
             if (Environment.Is64BitOperatingSystem)
             {
-                RegistryKey localMachine64 = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64);
-                RegistryKey systemPolicies = localMachine64.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System");
+                using RegistryKey? localMachine64 = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64);
+                using RegistryKey? systemPolicies = localMachine64.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System");
 
-                if (systemPolicies != null)
+                if (systemPolicies is not null)
                 {
-                    int enableLua = int.Parse(systemPolicies.GetValue("EnableLUA").ToString());
-
-                    if (enableLua == 1)
+                    object? enableLuaValue = systemPolicies.GetValue("EnableLUA");
+                    if (enableLuaValue is not null && int.TryParse(enableLuaValue.ToString(), out int enableLua))
                     {
-                        _logger.LogInformation("User account control (UAC): Enabled");
-                        isUserAccountControlEnabled = true;
-                    }
-                    else
-                    {
-                        _logger.LogInformation("User account control (UAC): Disabled");
-                        isUserAccountControlEnabled = false;
+                        if (enableLua == 1)
+                        {
+                            _logger.LogInformation("User account control (UAC): Enabled");
+                            isUserAccountControlEnabled = true;
+                        }
+                        else
+                        {
+                            _logger.LogInformation("User account control (UAC): Disabled");
+                            isUserAccountControlEnabled = false;
+                        }
                     }
                 }
-
-                localMachine64.Dispose();
             }
             else
             {
-                RegistryKey localMachine32 = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry32);
-                RegistryKey systemPolicies = localMachine32.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System");
+                using RegistryKey? localMachine32 = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry32);
+                using RegistryKey? systemPolicies = localMachine32.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System");
 
-                if (systemPolicies != null)
+                if (systemPolicies is not null)
                 {
-                    int enableLua = int.Parse(systemPolicies.GetValue("EnableLUA").ToString());
-
-                    if (enableLua == 1)
+                    object? enableLuaValue = systemPolicies.GetValue("EnableLUA");
+                    if (enableLuaValue is not null && int.TryParse(enableLuaValue.ToString(), out int enableLua))
                     {
-                        _logger.LogInformation("User account control (UAC): Enabled");
-                        isUserAccountControlEnabled = true;
-                    }
-                    else
-                    {
-                        _logger.LogInformation("User account control (UAC): Disabled");
-                        isUserAccountControlEnabled = false;
+                        if (enableLua == 1)
+                        {
+                            _logger.LogInformation("User account control (UAC): Enabled");
+                            isUserAccountControlEnabled = true;
+                        }
+                        else
+                        {
+                            _logger.LogInformation("User account control (UAC): Disabled");
+                            isUserAccountControlEnabled = false;
+                        }
                     }
                 }
-
-                localMachine32.Dispose();
             }
         }
         catch (Exception e)
@@ -1580,8 +1554,8 @@ public class WindowsHelper
 
                             _logger.LogDebug($"  Member: {currentUserName}");
 
-                            if (currentUserName.ToLower().Equals(userToCheck.Name.ToLower()) 
-                                || (userToCheck.Name.Contains("\\") 
+                            if (currentUserName.ToLower().Equals(userToCheck.Name.ToLower())
+                                || (userToCheck.Name.Contains("\\")
                                     && currentUserName.ToLower().Equals(
                                         userToCheck.Name.ToLower().Substring(
                                             userToCheck.Name.IndexOf("\\") + 1))))
@@ -1688,8 +1662,8 @@ public class WindowsHelper
 
                             _logger.LogDebug($"  Member: {currentUserName}");
 
-                            if (currentUserName.ToLower().Equals(userName.ToLower()) 
-                                || (userName.Contains("\\") 
+                            if (currentUserName.ToLower().Equals(userName.ToLower())
+                                || (userName.Contains("\\")
                                     && currentUserName.ToLower().Equals(
                                         userName.ToLower().Substring(
                                             userName.IndexOf("\\") + 1))))
@@ -1750,9 +1724,9 @@ public class WindowsHelper
     }
 
     public bool RebootSystem(uint delaySeconds = 10,
-                             string comment = null,
+                             string? comment = null,
                              NativeMethods.ShutdownReason shutdownReason =
-                                NativeMethods.ShutdownReason.MajorOther 
+                                NativeMethods.ShutdownReason.MajorOther
                                 | NativeMethods.ShutdownReason.MinorOther)
     {
         IntPtr hProcess = Process.GetCurrentProcess().Handle;

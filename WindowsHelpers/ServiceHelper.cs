@@ -1,11 +1,11 @@
-﻿using Microsoft.Extensions.Logging;
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Management;
 using System.Runtime.InteropServices;
 using System.ServiceProcess;
+using Microsoft.Extensions.Logging;
 
 namespace WindowsLibrary;
 
@@ -416,7 +416,7 @@ public class ServiceHelper
                                                       serviceName,
                                                       displayName,
                                                       NativeMethods.SC_MANAGER_ALL_ACCESS,
-                                                      (uint)NativeMethods.SERVICE_TYPES.SERVICE_WIN32_OWN_PROCESS 
+                                                      (uint)NativeMethods.SERVICE_TYPES.SERVICE_WIN32_OWN_PROCESS
                                                         | (uint)NativeMethods.SERVICE_TYPES.SERVICE_INTERACTIVE_PROCESS,
                                                       (uint)startType,
                                                       (uint)NativeMethods.SERVICE_ERROR_CONTROL.SERVICE_ERROR_NORMAL,

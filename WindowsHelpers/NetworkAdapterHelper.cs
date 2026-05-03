@@ -1,14 +1,14 @@
-﻿using Microsoft.Extensions.Logging;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Management;
+using Microsoft.Extensions.Logging;
 
 namespace WindowsLibrary;
 
 public class NetworkAdapterHelper
 {
     private readonly ILogger<NetworkAdapterHelper> _logger;
-    public List<NetworkAdapter> adapterList;
+    public List<NetworkAdapter> adapterList = new();
 
     public NetworkAdapterHelper(ILogger<NetworkAdapterHelper> logger)
     {
@@ -98,7 +98,7 @@ public class NetworkAdapterHelper
                     }
                     catch (Exception e)
                     {
-                        _logger.LogError(e, $"Failed to query adapter current configuration for [{ newAdapter.AdapterName }]");
+                        _logger.LogError(e, $"Failed to query adapter current configuration for [{newAdapter.AdapterName}]");
                     }
                 }
 

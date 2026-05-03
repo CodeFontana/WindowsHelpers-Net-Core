@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -9,6 +8,7 @@ using System.Runtime.InteropServices;
 using System.Security.Principal;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using static System.Management.ManagementObjectCollection;
 
 namespace WindowsLibrary;
@@ -558,7 +558,8 @@ public class ProcessHelper
         // Resolve Explicit Path of App to Run.
         // ******************************
 
-        string processName = Process.GetCurrentProcess().MainModule.FileName;
+        // MainModule is guaranteed non-null for the current process.
+        string processName = Process.GetCurrentProcess().MainModule!.FileName;
         string processPath = processName.Substring(0, processName.LastIndexOf("\\"));
 
         try
@@ -575,7 +576,7 @@ public class ProcessHelper
                     appFileName = processPath + "\\" + appFileName;
                 }
             }
-            else if (appFileName.Contains("\\") == false 
+            else if (appFileName.Contains("\\") == false
                 && appFileName.Contains(":\\") == false)
             {
                 appFileName = processPath + "\\" + appFileName;
@@ -583,7 +584,7 @@ public class ProcessHelper
 
             // Application executable doesn't exists?
             // Note: File.Exists() accepts relative paths via current working directory.
-            if (File.Exists(appFileName) == false 
+            if (File.Exists(appFileName) == false
                 && File.Exists(appFileName.TrimStart('\\')) == false)
             {
                 // Take a copy of the original string.
@@ -595,7 +596,7 @@ public class ProcessHelper
                     appFileName = appFileName.Substring(appFileName.LastIndexOf("\\") + 1);
                 }
 
-                var pathValues = Environment.GetEnvironmentVariable("PATH", EnvironmentVariableTarget.Machine);
+                string pathValues = Environment.GetEnvironmentVariable("PATH", EnvironmentVariableTarget.Machine) ?? string.Empty;
 
                 // Is this application available on the system PATH?
                 foreach (var path in pathValues.Split(';'))
@@ -610,7 +611,7 @@ public class ProcessHelper
                 }
 
                 // Last chance.
-                if (File.Exists(appFileName) == false 
+                if (File.Exists(appFileName) == false
                     && File.Exists(appFileName.TrimStart('\\')) == false)
                 {
                     _logger.LogError("Application not found [" + origAppToExecute + "]");
@@ -781,11 +782,12 @@ public class ProcessHelper
                                    bool hideWindow = false,
                                    bool hideExecution = false)
     {
-        string processName = Process.GetCurrentProcess().MainModule.FileName;
+        // MainModule is guaranteed non-null for the current process.
+        string processName = Process.GetCurrentProcess().MainModule!.FileName;
         string processPath = processName.Substring(0, processName.LastIndexOf("\\"));
 
         // Prepend relative path with current process path.
-        if (appFileName.Contains("\\") 
+        if (appFileName.Contains("\\")
             && appFileName.Contains(":\\") == false)
         {
             if (appFileName.StartsWith("\\"))
@@ -797,7 +799,7 @@ public class ProcessHelper
                 appFileName = processPath + "\\" + appFileName;
             }
         }
-        else if (appFileName.Contains("\\") == false 
+        else if (appFileName.Contains("\\") == false
             && appFileName.Contains(":\\") == false)
         {
             appFileName = processPath + "\\" + appFileName;
@@ -805,7 +807,7 @@ public class ProcessHelper
 
         // Application executable doesn't exists?
         // Note: File.Exists() accepts relative paths via current working directory.
-        if (File.Exists(appFileName) == false 
+        if (File.Exists(appFileName) == false
             && File.Exists(appFileName.TrimStart('\\')) == false)
         {
             // Take a copy of the original string.

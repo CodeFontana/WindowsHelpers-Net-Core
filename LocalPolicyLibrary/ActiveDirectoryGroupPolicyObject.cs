@@ -13,10 +13,10 @@ public class ActiveDirectoryGroupPolicyObject : GroupPolicyObject
     /// If the path specifies a domain controller, the GPO is created on that DC. 
     /// Otherwise, the system will select a DC on the caller's behalf.
     /// </param>
-    public ActiveDirectoryGroupPolicyObject(string activeDirectoryPath, GroupPolicyObjectSettings settings = null)
+    public ActiveDirectoryGroupPolicyObject(string activeDirectoryPath, GroupPolicyObjectSettings? settings = null)
     {
         settings = new GroupPolicyObjectSettings();
-        trycatch(() => instance.OpenDSGPO(activeDirectoryPath, settings.Flag),
+        trycatch(() => instance!.OpenDSGPO(activeDirectoryPath, settings.Flag),
             "Unable to open GPO at ActiveDirectory path '{0}'", activeDirectoryPath);
     }
     private ActiveDirectoryGroupPolicyObject(COM.IGroupPolicyObject instance)
@@ -35,11 +35,11 @@ public class ActiveDirectoryGroupPolicyObject : GroupPolicyObject
     /// </param>
     /// <param name="displayName">Specifies the display name of the object to create.</param>
     public static ActiveDirectoryGroupPolicyObject Create(string activeDirectoryPath, string displayName,
-        GroupPolicyObjectSettings settings = null)
+        GroupPolicyObjectSettings? settings = null)
     {
         settings = new GroupPolicyObjectSettings();
         var instance = getInstance();
-        trycatch(() => instance.New(activeDirectoryPath, displayName, settings.Flag),
+        trycatch(() => instance!.New(activeDirectoryPath, displayName, settings.Flag),
             "Unable to create new GPO instance with path '{0}' and display name '{1}'",
             activeDirectoryPath, displayName);
         return new ActiveDirectoryGroupPolicyObject(instance);
@@ -59,7 +59,7 @@ public class ActiveDirectoryGroupPolicyObject : GroupPolicyObject
     public override string GetPathTo(GroupPolicySection section)
     {
         StringBuilder sb = new StringBuilder(maxLength);
-        trycatch(() => instance.GetDSPath((uint)section, sb, maxLength),
+        trycatch(() => instance!.GetDSPath((uint)section, sb, maxLength),
             "Unable to retrieve path to section '{0}'",
             Enum.GetName(typeof(GroupPolicySection), section));
         return sb.ToString();

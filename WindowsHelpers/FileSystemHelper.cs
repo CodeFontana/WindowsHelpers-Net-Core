@@ -1,16 +1,16 @@
-﻿using Microsoft.Win32.SafeHandles;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Management;
 using System.Runtime.InteropServices;
-using System.Text;
 using System.Security.AccessControl;
 using System.Security.Principal;
-using Microsoft.Extensions.Logging;
+using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using Microsoft.Win32.SafeHandles;
 
 namespace WindowsLibrary;
 
@@ -152,9 +152,9 @@ public class FileSystemHelper
             if (temp <= 0)
             {
                 // Return prior suffix value
-                return String.Format("{0,9}", 
-                    String.Format("{0:0.00}", 
-                        Math.Round((double)numBytes / Math.Pow(1024, i), 2)) 
+                return String.Format("{0,9}",
+                    String.Format("{0:0.00}",
+                        Math.Round((double)numBytes / Math.Pow(1024, i), 2))
                     + suffixes[i]);
             }
         }
@@ -602,8 +602,8 @@ public class FileSystemHelper
                 catch (Exception)
                 {
                     // Is the specified file in-use?
-                    if (IsFileInUse(fileName) 
-                        && handleInUseOnReboot 
+                    if (IsFileInUse(fileName)
+                        && handleInUseOnReboot
                         && fileName.ToLower().Contains(".delete_on_reboot") == false) // Avoid double-scheduling
                     {
                         try
@@ -780,7 +780,7 @@ public class FileSystemHelper
     }
 
     public void DeleteFolderContents(string targetFolder,
-                                     string[] reservedItems,
+                                     string[]? reservedItems,
                                      bool verboseOutput = true,
                                      bool recurseReservedItems = true)
     {

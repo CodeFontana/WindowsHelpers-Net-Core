@@ -18,7 +18,7 @@ internal class AssemblyInfoHelper
     {
         object[] attributes = assembly.GetCustomAttributes(typeof(T), true);
         if (attributes == null || attributes.Length == 0)
-            return null;
+            throw new InvalidOperationException($"No {typeof(T).Name} attribute found on assembly {assembly.FullName}.");
 
         return (T)attributes.First();
     }

@@ -217,8 +217,8 @@ public static class NativeMethods
     public static extern int GetWindowLong(IntPtr hWnd, int nIndex);
 
     [DllImport("advapi32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-    public static extern bool InitiateSystemShutdownEx(string lpMachineName,
-                                                       string lpMessage,
+    public static extern bool InitiateSystemShutdownEx(string? lpMachineName,
+                                                       string? lpMessage,
                                                        uint dwTimeout,
                                                        bool bForceAppsClosed,
                                                        bool bRebootAfterShutdown,

@@ -20,7 +20,7 @@ public abstract class GroupPolicyObject
     /// </summary>
     private static readonly Guid LocalGuid = new Guid(AssemblyInfoHelper.GetAssemblyAttribute<GuidAttribute>().Value);
 
-    protected LocalPolicyLibrary.COM.IGroupPolicyObject instance = null;
+    protected LocalPolicyLibrary.COM.IGroupPolicyObject? instance;  // Nullable to support Delete() which sets it to null; callers should not use the object after Delete() per class docs.
 
     internal GroupPolicyObject()
     {
@@ -33,9 +33,9 @@ public abstract class GroupPolicyObject
     /// </summary>
     public void Save()
     {
-        trycatch(() => instance.Save(true, true, RegistryExtension, LocalGuid),
+        trycatch(() => instance!.Save(true, true, RegistryExtension, LocalGuid),
             "Error saving machine settings");
-        trycatch(() => instance.Save(false, true, RegistryExtension, LocalGuid),
+        trycatch(() => instance!.Save(false, true, RegistryExtension, LocalGuid),
             "Error saving user settings");
     }
     /// <summary>
@@ -43,7 +43,7 @@ public abstract class GroupPolicyObject
     /// </summary>
     public void Delete()
     {
-        trycatch(() => instance.Delete(),
+        trycatch(() => instance!.Delete(),
             "Error deleting the GPO");
         instance = null;
     }
@@ -58,7 +58,8 @@ public abstract class GroupPolicyObject
     {
         get
         {
-            return getString(instance.GetName, "Unable to retrieve name");
+            // instance! is safe here: set in ctor; Delete() should not be called before use (per docs). Avoids repetitive null checks in every property/method.
+            return getString(instance!.GetName, "Unable to retrieve name");
         }
     }
     /// <summary>
@@ -68,11 +69,11 @@ public abstract class GroupPolicyObject
     {
         get
         {
-            return getString(instance.GetDisplayName, "Unable to retrieve display name");
+            return getString(instance!.GetDisplayName, "Unable to retrieve display name");
         }
         set
         {
-            trycatch(() => instance.SetDisplayName(value),
+            trycatch(() => instance!.SetDisplayName(value),
                 "Unable set display name to {0}", value);
         }
     }
@@ -85,7 +86,7 @@ public abstract class GroupPolicyObject
     {
         get
         {
-            return getString(instance.GetPath, "Unable to retrieve path");
+            return getString(instance!.GetPath, "Unable to retrieve path");
         }
     }
 
@@ -95,7 +96,7 @@ public abstract class GroupPolicyObject
     public RegistryKey GetRootRegistryKey(GroupPolicySection section)
     {
         IntPtr key = default(IntPtr);
-        trycatch(() => instance.GetRegistryKey((uint)section, out key),
+        trycatch(() => instance!.GetRegistryKey((uint)section, out key),
             "Unable to get section '{0}'", Enum.GetName(typeof(GroupPolicySection), section));
         var safeHandle = new SafeRegistryHandle(key, true);
         return RegistryKey.FromHandle(safeHandle);
@@ -108,13 +109,13 @@ public abstract class GroupPolicyObject
         get
         {
             uint flag = default(uint);
-            trycatch(() => instance.GetOptions(out flag),
+            trycatch(() => instance!.GetOptions(out flag),
                 "Unable to retrieve options");
             return new GroupPolicyObjectOptions(flag);
         }
         set
         {
-            trycatch(() => instance.SetOptions(value.Flag, value.Mask),
+            trycatch(() => instance!.SetOptions(value.Flag, value.Mask),
                 "Unable to set options");
         }
     }
@@ -148,7 +149,7 @@ public abstract class GroupPolicyObject
         }
     }
 
-    protected static void trycatch(Func<uint> operation, string messageTemplate, params object[] messageArgs)
+    protected static void trycatch(Func<uint> operation, string messageTemplate, params object?[] messageArgs)
     {
         uint result = operation();
         if (result != S_OK)

@@ -12,7 +12,7 @@ public class HostsFileHelper
 
     public HostsFileHelper()
     {
-        string systemPath = Environment.GetEnvironmentVariable("SystemRoot");
+        string? systemPath = Environment.GetEnvironmentVariable("SystemRoot");
         _hostsFile = Path.Combine(systemPath, @"system32\drivers\etc\hosts");
 
         if (File.Exists(_hostsFile) == false)
@@ -105,7 +105,7 @@ public class HostsFileHelper
         {
             if (IsEntry(line))
             {
-                HostsFileEntry entry = ParseEntry(line);
+                HostsFileEntry? entry = ParseEntry(line);
 
                 if (entry != null)
                 {
@@ -142,7 +142,7 @@ public class HostsFileHelper
         {
             if (IsEntry(contents[i]))
             {
-                HostsFileEntry entry = ParseEntry(contents[i]);
+                HostsFileEntry? entry = ParseEntry(contents[i]);
 
                 if (entry == null)
                 {
@@ -211,11 +211,11 @@ public class HostsFileHelper
         {
             if (IsEntry(contents[i]))
             {
-                HostsFileEntry entry = ParseEntry(contents[i]);
+                HostsFileEntry? entry = ParseEntry(contents[i]);
 
-                if (entry != null 
+                if (entry != null
                     && (
-                        entry.Address.Equals(addressOrHost) 
+                        entry.Address.Equals(addressOrHost)
                         || entry.Hosts.Any(e => e.ToLower().Equals(addressOrHost.ToLower()))))
                 {
                     contents.RemoveAt(i);
@@ -227,7 +227,7 @@ public class HostsFileHelper
         File.WriteAllLines(_hostsFile, contents, encoding);
     }
 
-    public bool ExistsEntry(string addressOrHost, out HostsFileEntry hostsEntry)
+    public bool ExistsEntry(string addressOrHost, out HostsFileEntry? hostsEntry)
     {
         hostsEntry = null;
         List<string> contents = File.ReadAllLines(_hostsFile).ToList();
@@ -236,7 +236,7 @@ public class HostsFileHelper
         {
             if (IsEntry(contents[i]))
             {
-                HostsFileEntry entry = ParseEntry(contents[i]);
+                HostsFileEntry? entry = ParseEntry(contents[i]);
 
                 if (entry != null && (
                     entry.Address.Equals(addressOrHost) ||
@@ -267,7 +267,7 @@ public class HostsFileHelper
         }
     }
 
-    private HostsFileEntry ParseEntry(string line)
+    private HostsFileEntry? ParseEntry(string line)
     {
         List<string> splitValues = line.Split().ToList();
 

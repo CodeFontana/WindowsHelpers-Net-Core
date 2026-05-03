@@ -8,10 +8,10 @@ public class ComputerGroupPolicyObject : GroupPolicyObject
     /// <summary>
     /// Opens the default GPO for the local computer 
     /// </summary>
-    public ComputerGroupPolicyObject(GroupPolicyObjectSettings options = null)
+    public ComputerGroupPolicyObject(GroupPolicyObjectSettings? options = null)
     {
         options = options ?? new GroupPolicyObjectSettings();
-        trycatch(() => instance.OpenLocalMachineGPO(options.Flag),
+        trycatch(() => instance!.OpenLocalMachineGPO(options.Flag),
             "Unable to open local machine GPO");
         IsLocal = true;
     }
@@ -19,10 +19,10 @@ public class ComputerGroupPolicyObject : GroupPolicyObject
     /// Opens the default GPO for the specified remote computer
     /// </summary>
     /// <param name="computerName">Name of the remote computer in the format "\\ComputerName"</param>
-    public ComputerGroupPolicyObject(string computerName, GroupPolicyObjectSettings options = null)
+    public ComputerGroupPolicyObject(string computerName, GroupPolicyObjectSettings? options = null)
     {
         options = options ?? new GroupPolicyObjectSettings();
-        trycatch(() => instance.OpenRemoteMachineGPO(computerName, options.Flag),
+        trycatch(() => instance!.OpenRemoteMachineGPO(computerName, options.Flag),
             "Unable to open GPO on remote machine '{0}'", computerName);
         IsLocal = false;
     }
@@ -57,7 +57,7 @@ public class ComputerGroupPolicyObject : GroupPolicyObject
     public override string GetPathTo(GroupPolicySection section)
     {
         StringBuilder sb = new StringBuilder(maxLength);
-        trycatch(() => instance.GetFileSysPath((uint)section, sb, maxLength),
+        trycatch(() => instance!.GetFileSysPath((uint)section, sb, maxLength),
             "Unable to retrieve path to section '{0}'",
             Enum.GetName(typeof(GroupPolicySection), section));
         return sb.ToString();

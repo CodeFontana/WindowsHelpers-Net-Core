@@ -9,7 +9,7 @@ public class HostsFileEntry
     public string Address { get; set; }
     public List<string> Hosts { get; set; }
 
-    public HostsFileEntry(string address, List<string> hostEntry)
+    public HostsFileEntry(string? address, List<string>? hostEntry)
     {
         if (address == null || ValidateIPv4(address) == false)
         {

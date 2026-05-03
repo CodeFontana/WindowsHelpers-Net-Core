@@ -383,8 +383,8 @@ namespace WindowsLibrary.Tests
             hostsFile.CreateEntry("10.113.24.17", "ncrvidyoreplay.lab.example.com");
 
             // Act.
-            hostsFile.ExistsEntry("10.35.148.26", out HostsFileEntry ipv4Entry);
-            hostsFile.ExistsEntry("DEV4-EFT.EXAMPLE.NET", out HostsFileEntry fqdnEntry);
+            hostsFile.ExistsEntry("10.35.148.26", out HostsFileEntry? ipv4Entry);
+            hostsFile.ExistsEntry("DEV4-EFT.EXAMPLE.NET", out HostsFileEntry? fqdnEntry);
 
             if (ipv4Entry == null
                 || fqdnEntry == null

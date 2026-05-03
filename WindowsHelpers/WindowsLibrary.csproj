@@ -32,7 +32,6 @@
   <ItemGroup>
     <!-- Common packages (compatible across all TFMs) -->
     <PackageReference Include="CodeFoxtrot.FileLogger" Version="1.1.0" />
-    <PackageReference Include="Microsoft.Win32.Registry" Version="5.0.0" />
     <PackageReference Include="System.IO.FileSystem.AccessControl" Version="5.0.0" />
   </ItemGroup>
 
