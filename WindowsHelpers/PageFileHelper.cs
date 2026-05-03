@@ -62,16 +62,16 @@ public class PageFileHelper
 
             foreach (ManagementBaseObject obj in searcher.Get())
             {
-                string driveLetter = obj["Name"].ToString().ToUpper().Substring(0, 3);
+                string driveLetter = (obj["Name"]?.ToString() ?? string.Empty).ToUpper().Substring(0, 3);
 
                 foreach (PageFile pf in PageFiles)
                 {
                     if (pf.DriveLetter.ToUpper().Equals(driveLetter.ToUpper()))
                     {
-                        pf.Name = obj["Name"].ToString();
-                        pf.AllocatedBaseSize = int.Parse(obj["AllocatedBaseSize"].ToString());
-                        pf.CurrentUsage = int.Parse(obj["CurrentUsage"].ToString());
-                        pf.PeakUsage = int.Parse(obj["PeakUsage"].ToString());
+                        pf.Name = obj["Name"]?.ToString() ?? string.Empty;
+                        pf.AllocatedBaseSize = int.Parse(obj["AllocatedBaseSize"]?.ToString() ?? "0");
+                        pf.CurrentUsage = int.Parse(obj["CurrentUsage"]?.ToString() ?? "0");
+                        pf.PeakUsage = int.Parse(obj["PeakUsage"]?.ToString() ?? "0");
 
                         // ******************************
                         // Query PageFile Settings by Drive.
@@ -83,10 +83,10 @@ public class PageFileHelper
 
                         foreach (ManagementObject m in queryCollection)
                         {
-                            if (m["Name"].ToString().ToUpper().Equals(pf.Name.ToUpper()))
+                            if ((m["Name"]?.ToString() ?? string.Empty).ToUpper().Equals(pf.Name.ToUpper()))
                             {
-                                pf.InitialSize = int.Parse(m["InitialSize"].ToString());
-                                pf.MaximumSize = int.Parse(m["MaximumSize"].ToString());
+                                pf.InitialSize = int.Parse(m["InitialSize"]?.ToString() ?? "0");
+                                pf.MaximumSize = int.Parse(m["MaximumSize"]?.ToString() ?? "0");
 
                                 if (pf.MaximumSize == 0 && pf.InitialSize == pf.MaximumSize)
                                 {
@@ -120,7 +120,7 @@ public class PageFileHelper
 
             foreach (ManagementObject m in searcher.Get())
             {
-                if (m["AutomaticManagedPagefile"].ToString().ToUpper().Equals("TRUE"))
+                if ((m["AutomaticManagedPagefile"]?.ToString() ?? string.Empty).ToUpper().Equals("TRUE"))
                 {
                     foreach (PageFile p in PageFiles)
                     {
@@ -175,7 +175,7 @@ public class PageFileHelper
 
             foreach (ManagementObject m in searcher.Get())
             {
-                if (enable && m["AutomaticManagedPagefile"].ToString().ToUpper().Equals("FALSE"))
+                if (enable && (m["AutomaticManagedPagefile"]?.ToString() ?? string.Empty).ToUpper().Equals("FALSE"))
                 {
                     _logger.LogInformation("Current setting: OFF");
                     _logger.LogInformation("New setting: ON");
@@ -183,17 +183,17 @@ public class PageFileHelper
                     m.Put();
                     _logger.LogInformation("Configuration successful");
                 }
-                else if (enable && m["AutomaticManagedPagefile"].ToString().ToUpper().Equals("TRUE"))
+                else if (enable && (m["AutomaticManagedPagefile"]?.ToString() ?? string.Empty).ToUpper().Equals("TRUE"))
                 {
                     _logger.LogInformation("Current setting: ON");
                     _logger.LogInformation("No configuration changes required");
                 }
-                else if (enable == false && m["AutomaticManagedPagefile"].ToString().ToUpper().Equals("FALSE"))
+                else if (enable == false && (m["AutomaticManagedPagefile"]?.ToString() ?? string.Empty).ToUpper().Equals("FALSE"))
                 {
                     _logger.LogInformation("Current setting: OFF");
                     _logger.LogInformation("No configuration changes required");
                 }
-                else if (enable == false && m["AutomaticManagedPagefile"].ToString().ToUpper().Equals("TRUE"))
+                else if (enable == false && (m["AutomaticManagedPagefile"]?.ToString() ?? string.Empty).ToUpper().Equals("TRUE"))
                 {
                     _logger.LogInformation("Current setting: ON");
                     _logger.LogInformation("New setting: OFF");
@@ -269,7 +269,7 @@ public class PageFileHelper
 
             foreach (ManagementObject m in queryCollection)
             {
-                if (m["Name"].ToString().ToUpper().StartsWith(driveLetter.ToUpper()))
+                if ((m["Name"]?.ToString() ?? string.Empty).ToUpper().StartsWith(driveLetter.ToUpper()))
                 {
                     _logger.LogInformation("Update existing page file configuration...");
                     matchFound = true;
@@ -341,7 +341,7 @@ public class PageFileHelper
 
             foreach (ManagementObject m in queryCollection)
             {
-                if (m["Name"].ToString().ToUpper().StartsWith(driveLetter.ToUpper()))
+                if ((m["Name"]?.ToString() ?? string.Empty).ToUpper().StartsWith(driveLetter.ToUpper()))
                 {
                     _logger.LogInformation("Found page file configuration, removing...");
                     matchFound = true;

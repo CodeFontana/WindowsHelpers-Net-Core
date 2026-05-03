@@ -96,16 +96,16 @@ public static class NativeMethods
 
     [DllImport("advapi32.dll", CharSet = CharSet.Auto, SetLastError = true)]
     public static extern bool CreateProcessAsUser(IntPtr hToken,
-                                                  string lpApplicationName,
-                                                  string lpCommandLine,
-                                                  ref SECURITY_ATTRIBUTES lpProcessAttributes,
-                                                  ref SECURITY_ATTRIBUTES lpThreadAttributes,
-                                                  bool bInheritHandles,
-                                                  uint dwCreationFlags,
-                                                  IntPtr lpEnvironment,
-                                                  string lpCurrentDirectory,
-                                                  ref STARTUPINFO lpStartupInfo,
-                                                  out PROCESS_INFORMATION lpProcessInformation);
+                                                   string? lpApplicationName,
+                                                   string lpCommandLine,
+                                                   ref SECURITY_ATTRIBUTES lpProcessAttributes,
+                                                   ref SECURITY_ATTRIBUTES lpThreadAttributes,
+                                                   bool bInheritHandles,
+                                                   uint dwCreationFlags,
+                                                   IntPtr lpEnvironment,
+                                                   string? lpCurrentDirectory,
+                                                   ref STARTUPINFO lpStartupInfo,
+                                                   out PROCESS_INFORMATION lpProcessInformation);
 
     [DllImport("advapi32", SetLastError = true, CharSet = CharSet.Unicode)]
     public static extern bool CreateProcessWithTokenW(IntPtr hToken,
@@ -249,7 +249,7 @@ public static class NativeMethods
 
     [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
     public static extern bool MoveFileEx(string lpExistingFileName,
-                                         string lpNewFileName,
+                                         string? lpNewFileName,
                                          MoveFileFlags dwFlags);
 
     [DllImport("netapi32.dll", EntryPoint = "NetApiBufferFree")]

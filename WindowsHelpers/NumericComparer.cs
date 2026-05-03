@@ -10,7 +10,7 @@ public class NumericComparer : IComparer
 
     }
 
-    public int Compare(object x, object y)
+    public int Compare(object? x, object? y)
     {
         if ((x is string) && (y is string))
         {

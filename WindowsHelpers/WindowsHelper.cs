@@ -163,7 +163,7 @@ public class WindowsHelper
                 shortcutFileName += ".lnk";
             }
 
-            var lnk = wshShellInstance.CreateShortcut(shortcutFileName);
+            dynamic lnk = wshShellInstance.CreateShortcut(shortcutFileName);
 
             try
             {
@@ -1126,7 +1126,7 @@ public class WindowsHelper
         {
             using (PrincipalContext domainContext = new(ContextType.Domain, domainName))
             {
-                using (var foundUser = UserPrincipal.FindByIdentity(domainContext, IdentityType.SamAccountName, userName))
+                using (UserPrincipal foundUser = UserPrincipal.FindByIdentity(domainContext, IdentityType.SamAccountName, userName))
                 {
                     if (foundUser != null)
                     {
@@ -1151,7 +1151,7 @@ public class WindowsHelper
         {
             using (PrincipalContext localContext = new(ContextType.Machine))
             {
-                using (var foundUser = UserPrincipal.FindByIdentity(localContext, IdentityType.SamAccountName, userName))
+                using (UserPrincipal foundUser = UserPrincipal.FindByIdentity(localContext, IdentityType.SamAccountName, userName))
                 {
                     if (foundUser != null)
                     {
@@ -1515,7 +1515,7 @@ public class WindowsHelper
                                                                                             typeof(NativeMethods.LOCALGROUP_INFO_1));
                     }
 
-                    string currentGroupName = Marshal.PtrToStringAuto(groupInfo.lpszGroupName)!;
+                    string currentGroupName = Marshal.PtrToStringAuto(groupInfo.lpszGroupName)!; // Justified: NetLocalGroupEnum guarantees non-null lpszGroupName for enumerated groups
 
                     _logger.LogDebug($"Group: {currentGroupName}");
 
@@ -1623,7 +1623,7 @@ public class WindowsHelper
                                                                                             typeof(NativeMethods.LOCALGROUP_INFO_1));
                     }
 
-                    string currentGroupName = Marshal.PtrToStringAuto(groupInfo.lpszGroupName)!;
+                    string currentGroupName = Marshal.PtrToStringAuto(groupInfo.lpszGroupName)!; // Justified: NetLocalGroupEnum guarantees non-null lpszGroupName for enumerated groups
 
                     _logger.LogDebug($"Group: {currentGroupName}");
 
@@ -1697,9 +1697,9 @@ public class WindowsHelper
             RegistryKey pathKey = Registry.LocalMachine.OpenSubKey(@"SYSTEM\CurrentControlSet\Control\Session Manager\Environment\", true);
             string cleanPath = "";
 
-            foreach (string strPath in pathKey.GetValue("PATH",
+            foreach (string strPath in (pathKey.GetValue("PATH",
                                                         null,
-                                                        RegistryValueOptions.DoNotExpandEnvironmentNames).ToString().Split(';'))
+                                                        RegistryValueOptions.DoNotExpandEnvironmentNames)?.ToString() ?? string.Empty).Split(';'))
             {
                 if (strPath.ToLower().Equals(folder.ToLower()))
                 {
@@ -1753,7 +1753,7 @@ public class WindowsHelper
 
         if (comment == null || comment == "")
         {
-            string processName = Process.GetCurrentProcess().MainModule.FileName;
+            string processName = Process.GetCurrentProcess().MainModule?.FileName ?? string.Empty;
             string shortName = processName.Substring(processName.LastIndexOf("\\") + 1);
             string friendlyName = shortName.Substring(0, shortName.LastIndexOf("."));
             comment = friendlyName + " initiated a reboot of the system";

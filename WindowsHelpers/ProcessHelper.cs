@@ -76,7 +76,7 @@ public class ProcessHelper
             else
             {
                 _logger.LogInformation($"Created new process: {pi.dwProcessId}/{appFileName} {appArgs}");
-                var newProcess = Process.GetProcessById(pi.dwProcessId);
+                Process newProcess = Process.GetProcessById(pi.dwProcessId);
 
                 try
                 {
@@ -150,7 +150,7 @@ public class ProcessHelper
                 _logger.LogWarning($"Unable to create environment block [CreateEnvironmentBlock={Marshal.GetLastWin32Error()}]");
             }
 
-            if (NativeMethods.CreateProcessAsUser(
+                if (NativeMethods.CreateProcessAsUser(
                 hDuplicateToken,
                 null,
                 appFileName + " " + appArgs,
@@ -161,7 +161,7 @@ public class ProcessHelper
                 (uint)NativeMethods.CreateProcessFlags.CREATE_UNICODE_ENVIRONMENT |
                 (uint)NativeMethods.CreateProcessFlags.CREATE_NEW_CONSOLE,
                 hEnvironment,
-                Path.GetDirectoryName(appFileName),
+                Path.GetDirectoryName(appFileName) ?? ".",
                 ref si,
                 out pi) == false)
             {
@@ -171,7 +171,7 @@ public class ProcessHelper
             else
             {
                 _logger.LogInformation($"Created new process: {pi.dwProcessId}/{appFileName} {appArgs}");
-                var newProcess = Process.GetProcessById(pi.dwProcessId);
+                Process newProcess = Process.GetProcessById(pi.dwProcessId);
 
                 try
                 {
@@ -239,8 +239,8 @@ public class ProcessHelper
                             ManagementObjectSearcher wmiQuery = new($"SELECT ParentProcessId FROM Win32_Process WHERE ProcessId={currentID}");
                             ManagementObjectEnumerator wmiResult = wmiQuery.Get().GetEnumerator();
                             wmiResult.MoveNext();
-                            var queryObj = wmiResult.Current;
-                            var parentId = (uint)queryObj["ParentProcessId"]; // Query PPID
+                            ManagementBaseObject queryObj = wmiResult.Current;
+                            uint parentId = (uint)queryObj["ParentProcessId"]; // Query PPID
 
                             wmiQuery.Dispose();
                             wmiResult.Dispose();
@@ -819,12 +819,12 @@ public class ProcessHelper
                 appFileName = appFileName.Substring(appFileName.LastIndexOf("\\") + 1);
             }
 
-            var pathValues = Environment.GetEnvironmentVariable("PATH", EnvironmentVariableTarget.Machine);
+            string? pathValues = Environment.GetEnvironmentVariable("PATH", EnvironmentVariableTarget.Machine);
 
             // Is this application available on the system PATH?
-            foreach (var path in pathValues.Split(';'))
+            foreach (string path in (pathValues ?? string.Empty).Split(';'))
             {
-                var pathFilename = Path.Combine(path, appFileName);
+                string pathFilename = Path.Combine(path, appFileName);
 
                 if (File.Exists(pathFilename))
                 {

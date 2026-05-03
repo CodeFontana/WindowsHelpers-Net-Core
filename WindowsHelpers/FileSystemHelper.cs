@@ -41,16 +41,16 @@ public class FileSystemHelper
         {
             if (File.Exists(fileOrFolder))
             {
-                var fInfo = new FileInfo(fileOrFolder);
-                var fSecurity = fInfo.GetAccessControl();
+                FileInfo fInfo = new FileInfo(fileOrFolder);
+                DirectorySecurity fSecurity = fInfo.GetAccessControl();
                 fSecurity.SetAccessRuleProtection(false, true);
                 fSecurity.AddAccessRule(new FileSystemAccessRule(userAccount, requestedRights, controlType));
                 fInfo.SetAccessControl(fSecurity);
             }
             else if (Directory.Exists(fileOrFolder))
             {
-                var dInfo = new DirectoryInfo(fileOrFolder);
-                var dSecurity = dInfo.GetAccessControl();
+                DirectoryInfo dInfo = new DirectoryInfo(fileOrFolder);
+                DirectorySecurity dSecurity = dInfo.GetAccessControl();
                 //dSecurity.SetAccessRuleProtection(false, true); // This option appears to flip the enable/disable inheritance option.
                 dSecurity.AddAccessRule(new FileSystemAccessRule(userAccount, requestedRights, inheritFlag, propFlag, controlType));
                 dInfo.SetAccessControl(dSecurity);
@@ -141,7 +141,7 @@ public class FileSystemHelper
 
     public string BytesToReadableValue(long numBytes)
     {
-        var suffixes = new List<string> { " B ", " KB", " MB", " GB", " TB", " PB" };
+        List<string> suffixes = new List<string> { " B ", " KB", " MB", " GB", " TB", " PB" };
 
         for (int i = 0; i < suffixes.Count; i++)
         {
@@ -220,12 +220,12 @@ public class FileSystemHelper
 
             foreach (ManagementObject drive in wmiQuery.Get())
             {
-                var model = drive["Model"];
-                var serial = drive["SerialNumber"];
-                var interfacetype = drive["InterfaceType"];
-                var partitions = drive["Partitions"];
-                var smart = drive["Status"];
-                var sizeInBytes = drive["Size"];
+                object? model = drive["Model"];
+                object? serial = drive["SerialNumber"];
+                object? interfacetype = drive["InterfaceType"];
+                object? partitions = drive["Partitions"];
+                object? smart = drive["Status"];
+                object? sizeInBytes = drive["Size"];
 
                 _logger.LogInformation($"Found drive: {model}");
 
@@ -246,14 +246,14 @@ public class FileSystemHelper
 
                 if (sizeInBytes != null)
                 {
-                    _logger.LogInformation($"  Size: {BytesToReadableValue(long.Parse(sizeInBytes.ToString().Trim()))}");
+                    _logger.LogInformation($"  Size: {BytesToReadableValue(long.Parse((sizeInBytes.ToString() ?? string.Empty).Trim()))}");
                 }
 
                 if (smart != null)
                 {
                     _logger.LogInformation($"  SMART: {smart}");
 
-                    if (smart.ToString().ToLower().Equals("ok") == false)
+                    if ((smart.ToString() ?? string.Empty).ToLower().Equals("ok") == false)
                     {
                         smartOK = false;
                     }
@@ -498,7 +498,7 @@ public class FileSystemHelper
                 skipItem = false;
             }
 
-            string[] folderList = null;
+            string[] folderList = Array.Empty<string>();
 
             if (recursiveCopy)
             {
@@ -1071,8 +1071,8 @@ public class FileSystemHelper
     {
         try
         {
-            var dInfo = new DirectoryInfo(folderName);
-            var dSecurity = dInfo.GetAccessControl();
+            DirectoryInfo dInfo = new DirectoryInfo(folderName);
+            DirectorySecurity dSecurity = dInfo.GetAccessControl();
 
             foreach (FileSystemAccessRule ace in dSecurity.GetAccessRules(true, true, typeof(NTAccount)))
             {
@@ -1225,8 +1225,8 @@ public class FileSystemHelper
         {
             if (File.Exists(fileName))
             {
-                var fileInfo = new FileInfo(fileName);
-                var ac = fileInfo.GetAccessControl();
+                FileInfo fileInfo = new FileInfo(fileName);
+                DirectorySecurity ac = fileInfo.GetAccessControl();
                 FileStream fileStream = fileInfo.Open(FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite);
                 fileStream.Dispose();
             }

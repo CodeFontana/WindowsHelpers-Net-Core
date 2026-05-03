@@ -101,7 +101,7 @@ public class NetworkHelper
                     _logger.LogInformation(hostAddress + " resolved to: " + hostAddress);
                 }
 
-                return new Tuple<bool, List<string>>(true, new List<string> { hostAddress });
+                return new Tuple<bool, List<string>?>(true, new List<string> { hostAddress });
             }
 
             bool successFlag = false;
@@ -126,7 +126,7 @@ public class NetworkHelper
                 }
             }
 
-            return new Tuple<bool, List<string>>(successFlag, addresses);
+            return new Tuple<bool, List<string>?>(successFlag, addresses);
         }
         catch (SocketException)
         {
