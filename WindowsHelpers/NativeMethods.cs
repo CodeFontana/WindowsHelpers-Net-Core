@@ -243,7 +243,7 @@ public static class NativeMethods
                                         ref IntPtr phToken);
 
     [DllImport("advapi32.dll")]
-    public static extern bool LookupPrivilegeValue(string lpSystemName,
+    public static extern bool LookupPrivilegeValue(string? lpSystemName,
                                                    string lpName,
                                                    ref LUID lpLuid);
 
@@ -795,8 +795,8 @@ public static class NativeMethods
     public struct SERVICE_FAILURE_ACTIONS
     {
         public int dwResetPeriod;
-        public string lpRebootMsg;
-        public string lpCommand;
+        public string? lpRebootMsg;
+        public string? lpCommand;
         public int cActions;
         public IntPtr lpsaActions;
     }

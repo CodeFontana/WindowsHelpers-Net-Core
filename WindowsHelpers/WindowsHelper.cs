@@ -151,10 +151,10 @@ public class WindowsHelper
         //   https://help4windows.com/windows_7_shell32_dll.shtml
 
         // Define 'Windows Script Host Shell Object' as a type
-        Type windowsScriptHostShell = Type.GetTypeFromCLSID(new Guid("72C24DD5-D70A-438B-8A42-98424B88AFB8"));
+        Type windowsScriptHostShell = Type.GetTypeFromCLSID(new Guid("72C24DD5-D70A-438B-8A42-98424B88AFB8"))!; // Justified: CLSID is well-known and always present on Windows
 
         // Create a shell instance
-        dynamic wshShellInstance = Activator.CreateInstance(windowsScriptHostShell);
+        dynamic wshShellInstance = Activator.CreateInstance(windowsScriptHostShell)!; // Justified: CreateInstance on well-known CLSID returns non-null COM object
 
         try
         {
@@ -163,7 +163,7 @@ public class WindowsHelper
                 shortcutFileName += ".lnk";
             }
 
-            dynamic lnk = wshShellInstance.CreateShortcut(shortcutFileName);
+            dynamic lnk = wshShellInstance.CreateShortcut(shortcutFileName)!; // Justified: CreateShortcut on WshShell COM object returns non-null IDispatch
 
             try
             {
@@ -191,18 +191,24 @@ public class WindowsHelper
         {
             _logger.LogInformation("Configure automatic logon user: " + logonUser);
 
-            RegistryKey winLogonKey = _registryHelper.OpenKey(@"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon", true, RegistryHive.LocalMachine);
-            winLogonKey.SetValue("AutoAdminLogon", "1", RegistryValueKind.String);
-            winLogonKey.SetValue("DefaultUserName", logonUser, RegistryValueKind.String);
-            winLogonKey.SetValue("DefaultPassword", logonPwd, RegistryValueKind.String);
-            winLogonKey.SetValue("DisableCAD", "1", RegistryValueKind.DWord);
-            winLogonKey.DeleteValue("AutoLogonCount", false);
-            winLogonKey.DeleteValue("DefaultDomainName", false);
-            winLogonKey.Dispose();
+            RegistryKey? winLogonKey = _registryHelper.OpenKey(@"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon", true, RegistryHive.LocalMachine);
+            if (winLogonKey != null)
+            {
+                winLogonKey.SetValue("AutoAdminLogon", "1", RegistryValueKind.String);
+                winLogonKey.SetValue("DefaultUserName", logonUser, RegistryValueKind.String);
+                winLogonKey.SetValue("DefaultPassword", logonPwd, RegistryValueKind.String);
+                winLogonKey.SetValue("DisableCAD", "1", RegistryValueKind.DWord);
+                winLogonKey.DeleteValue("AutoLogonCount", false);
+                winLogonKey.DeleteValue("DefaultDomainName", false);
+                winLogonKey.Dispose();
+            }
 
-            RegistryKey policiesKey = _registryHelper.OpenKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System", true, RegistryHive.LocalMachine);
-            policiesKey.SetValue("EnableFirstLogonAnimation", "0", RegistryValueKind.DWord);
-            policiesKey.Dispose();
+            RegistryKey? policiesKey = _registryHelper.OpenKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System", true, RegistryHive.LocalMachine);
+            if (policiesKey != null)
+            {
+                policiesKey.SetValue("EnableFirstLogonAnimation", "0", RegistryValueKind.DWord);
+                policiesKey.Dispose();
+            }
 
             return true;
         }
@@ -687,7 +693,7 @@ public class WindowsHelper
 
                     object? displayNameValue = productKey.GetValue("DisplayName");
 
-                    if (displayNameValue is not null && displayNameValue.ToString().ToLower().Equals(displayName.ToLower()))
+                    if (displayNameValue is not null && (displayNameValue.ToString() ?? string.Empty).ToLower().Equals(displayName.ToLower()))
                     {
                         return @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\" + subKeyName;
                     }
@@ -765,7 +771,7 @@ public class WindowsHelper
 
                     object? displayNameValue = productKey.GetValue("DisplayName");
 
-                    if (displayNameValue is not null && displayNameValue.ToString().ToLower().Equals(displayName.ToLower()))
+                    if (displayNameValue is not null && (displayNameValue.ToString() ?? string.Empty).ToLower().Equals(displayName.ToLower()))
                     {
                         foundApp = true;
                         object? uninstStringValue = productKey.GetValue("UninstallString");
@@ -1701,8 +1707,11 @@ public class WindowsHelper
                 }
             }
 
-            pathKey.SetValue("Path", cleanPath, RegistryValueKind.ExpandString);
-            pathKey.Dispose();
+            if (pathKey != null)
+            {
+                pathKey.SetValue("Path", cleanPath, RegistryValueKind.ExpandString);
+                pathKey.Dispose();
+            }
         }
         catch (Exception e)
         {

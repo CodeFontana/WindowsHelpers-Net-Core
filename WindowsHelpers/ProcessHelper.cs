@@ -404,7 +404,7 @@ public class ProcessHelper
             {
                 if (runningProcess.Id == processID)
                 {
-                    string commandLine = null;
+                    string? commandLine = null;
 
                     if (moreInfo)
                     {
