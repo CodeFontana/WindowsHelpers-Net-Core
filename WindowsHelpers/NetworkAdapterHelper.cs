@@ -39,9 +39,9 @@ public class NetworkAdapterHelper
 
         foreach (ManagementObject adapterResult in adapterQuery.Get())
         {
-            var netConnectionId = adapterResult["NetConnectionId"];
+            object? netConnectionId = adapterResult["NetConnectionId"];
 
-            if (netConnectionId != null && netConnectionId.ToString().Equals("") == false)
+            if (netConnectionId != null && (netConnectionId.ToString() ?? string.Empty).Equals("") == false)
             {
                 int adapterIndex = int.Parse(adapterResult["Index"]?.ToString() ?? "0");
                 string adapterName = adapterResult["Name"]?.ToString() ?? string.Empty;
@@ -55,10 +55,10 @@ public class NetworkAdapterHelper
                 {
                     try
                     {
-                        var rawIsDHCPEnabled = configResult["DHCPEnabled"];
-                        var rawCurrentIPAddr = configResult["IPAddress"];
-                        var rawCurrentSubnet = configResult["IPSubnet"];
-                        var rawCurrentGatewayAddr = configResult["DefaultIPGateway"];
+                        object? rawIsDHCPEnabled = configResult["DHCPEnabled"];
+                        object? rawCurrentIPAddr = configResult["IPAddress"];
+                        object? rawCurrentSubnet = configResult["IPSubnet"];
+                        object? rawCurrentGatewayAddr = configResult["DefaultIPGateway"];
 
                         if (bool.TryParse(rawIsDHCPEnabled.ToString(), out bool isEnabled) == false)
                         {

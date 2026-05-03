@@ -24,17 +24,17 @@ public class ProcessInfo
 
     public ProcessInfo(Process p)
     {
-        ProcessName = p.MainModule.FileName;
+        ProcessName = p.MainModule?.FileName ?? string.Empty;
         ProcessShortName = Path.GetFileName(ProcessName);
         ProcessFriendlyName = p.ProcessName;
-        ProcessFilePath = Path.GetDirectoryName(ProcessName);
+        ProcessFilePath = Path.GetDirectoryName(ProcessName) ?? string.Empty;
         PID = p.Id;
         UserName = GetProcessOwner(p.Handle);
         CPUTime = p.TotalProcessorTime.ToString().Substring(0, 11);
         NumBytes = p.WorkingSet64;
         HandleCount = p.HandleCount;
         ThreadCount = p.Threads.Count;
-        CommandLineArgs = GetProcessCLIArgsWMI(PID);
+        CommandLineArgs = GetProcessCLIArgsWMI(PID) ?? string.Empty;
     }
 
     public override string ToString()
@@ -55,7 +55,7 @@ public class ProcessInfo
                 $"{ProcessName} {CommandLineArgs}"};
     }
 
-    public static string GetProcessCLIArgsWMI(int processId)
+    public static string? GetProcessCLIArgsWMI(int processId)
     {
         using (ManagementObjectSearcher searcher = new($"SELECT CommandLine FROM Win32_Process WHERE ProcessId = {processId}"))
         {
@@ -97,7 +97,7 @@ public class ProcessInfo
         try
         {
             NativeMethods.OpenProcessToken(hProcess, 8, out hToken);
-            var wi = new WindowsIdentity(hToken).Name;
+            string wi = new WindowsIdentity(hToken).Name;
             return wi;
         }
         catch
@@ -115,7 +115,7 @@ public class ProcessInfo
 
     private static string BytesToReadableValue(long numBytes)
     {
-        var suffixes = new List<string> { " B ", " KB", " MB", " GB", " TB", " PB" };
+        List<string> suffixes = new List<string> { " B ", " KB", " MB", " GB", " TB", " PB" };
 
         for (int i = 0; i < suffixes.Count; i++)
         {

@@ -320,15 +320,15 @@ public class ServiceHelper
         return true;
     }
 
-    public string GetServiceFolder(string serviceName)
+    public string? GetServiceFolder(string serviceName)
     {
         ManagementClass mc = new("Win32_Service");
 
         foreach (ManagementObject mo in mc.GetInstances())
         {
-            if (mo.GetPropertyValue("Name").ToString().ToLower() == serviceName.ToLower())
+            if ((mo.GetPropertyValue("Name")?.ToString() ?? string.Empty).ToLower() == serviceName.ToLower())
             {
-                return Path.GetDirectoryName(mo.GetPropertyValue("PathName").ToString().Trim('"'));
+                return Path.GetDirectoryName((mo.GetPropertyValue("PathName")?.ToString() ?? string.Empty).Trim('"'));
             }
         }
 

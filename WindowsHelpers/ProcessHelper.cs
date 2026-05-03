@@ -204,7 +204,7 @@ public class ProcessHelper
             {
                 if (moreInfo)
                 {
-                    string commandLine = null;
+                    string commandLine = "unavailable";
 
                     try
                     {
@@ -212,7 +212,7 @@ public class ProcessHelper
 
                         foreach (ManagementObject wmiProcess in wmiQuery.Get())
                         {
-                            commandLine = wmiProcess["CommandLine"].ToString();
+                            commandLine = wmiProcess["CommandLine"]?.ToString() ?? "unavailable";
                         }
 
                         wmiQuery.Dispose();
@@ -318,7 +318,7 @@ public class ProcessHelper
                 if (runningProcess.ProcessName.ToLower().Equals(friendlyOrShortName.ToLower()))
                 {
                     matchFound = true;
-                    string commandLine = null;
+                    string commandLine = "unavailable";
 
                     if (moreInfo)
                     {
@@ -329,7 +329,7 @@ public class ProcessHelper
 
                             foreach (ManagementObject wmiProcess in wmiQuery.Get())
                             {
-                                commandLine = wmiProcess["CommandLine"].ToString();
+                                commandLine = wmiProcess["CommandLine"]?.ToString() ?? "unavailable";
                             }
 
                             wmiQuery.Dispose();
@@ -344,11 +344,11 @@ public class ProcessHelper
 
                     if (moreInfo)
                     {
-                        _logger.LogInformation($"Killed: {runningProcess.Id}/{runningProcess.MainModule.FileName} [{commandLine}]");
+                        _logger.LogInformation($"Killed: {runningProcess.Id}/{runningProcess.MainModule?.FileName ?? "unknown"} [{commandLine}]");
                     }
                     else
                     {
-                        _logger.LogInformation($"Killed: {runningProcess.Id}/{runningProcess.MainModule.FileName}");
+                        _logger.LogInformation($"Killed: {runningProcess.Id}/{runningProcess.MainModule?.FileName ?? "unknown"}");
                     }
                 }
 
@@ -372,11 +372,11 @@ public class ProcessHelper
 
             foreach (ManagementObject wmiProcess in wmiQuery.Get())
             {
-                string processId = null;
+                string? processId = null;
 
                 if (wmiProcess["ProcessID"] != null)
                 {
-                    processId = wmiProcess["ProcessID"].ToString();
+                    processId = wmiProcess["ProcessID"]?.ToString();
                     wmiProcess.Dispose();
                 }
                 else
@@ -386,7 +386,7 @@ public class ProcessHelper
                 }
 
                 matchFound = true;
-                KillProcess(int.Parse(processId), moreInfo);
+                KillProcess(int.Parse(processId!), moreInfo); // Justified: processId is guaranteed non-null by the preceding if (wmiProcess["ProcessID"] != null) check
             }
 
             wmiQuery.Dispose();
@@ -414,7 +414,7 @@ public class ProcessHelper
 
                             foreach (ManagementObject wmiProcess in wmiQuery.Get())
                             {
-                                commandLine = wmiProcess["CommandLine"].ToString();
+                                commandLine = wmiProcess["CommandLine"]?.ToString() ?? "unavailable";
                             }
 
                             wmiQuery.Dispose();
@@ -429,11 +429,11 @@ public class ProcessHelper
 
                     if (moreInfo)
                     {
-                        _logger.LogInformation($"Killed: {runningProcess.Id}/{runningProcess.MainModule.FileName} [{commandLine}]");
+                        _logger.LogInformation($"Killed: {runningProcess.Id}/{runningProcess.MainModule?.FileName ?? "unknown"} [{commandLine}]");
                     }
                     else
                     {
-                        _logger.LogInformation($"Killed: {runningProcess.Id}/{runningProcess.MainModule.FileName}");
+                        _logger.LogInformation($"Killed: {runningProcess.Id}/{runningProcess.MainModule?.FileName ?? "unknown"}");
                     }
 
                     runningProcess.Dispose();
@@ -458,13 +458,13 @@ public class ProcessHelper
 
             foreach (ManagementObject wmiProcess in wmiQuery.Get())
             {
-                string processId = null;
-                string commandLine = null;
+                string? processId = null;
+                string? commandLine = null;
 
                 if (wmiProcess["ProcessID"] != null && wmiProcess["CommandLine"] != null)
                 {
-                    processId = wmiProcess["ProcessID"].ToString();
-                    commandLine = wmiProcess["CommandLine"].ToString();
+                    processId = wmiProcess["ProcessID"]?.ToString();
+                    commandLine = wmiProcess["CommandLine"]?.ToString();
                     wmiProcess.Dispose();
                 }
                 else
@@ -476,7 +476,7 @@ public class ProcessHelper
                 if (commandLine != null && commandLine.ToLower().Contains(containsCommandLine.ToLower()))
                 {
                     matchFound = true;
-                    KillProcess(int.Parse(processId), moreInfo);
+                    KillProcess(int.Parse(processId!), moreInfo); // Justified: processId is set in the preceding if (wmiProcess["ProcessID"] != null) block
                 }
             }
 
@@ -497,13 +497,13 @@ public class ProcessHelper
 
             foreach (ManagementObject wmiProcess in wmiQuery.Get())
             {
-                string processId = null;
-                string executablePath = null;
+                string? processId = null;
+                string? executablePath = null;
 
                 if (wmiProcess["ProcessID"] != null && wmiProcess["ExecutablePath"] != null)
                 {
-                    processId = wmiProcess["ProcessID"].ToString();
-                    executablePath = wmiProcess["ExecutablePath"].ToString();
+                    processId = wmiProcess["ProcessID"]?.ToString() ?? "0";
+                    executablePath = wmiProcess["ExecutablePath"]?.ToString() ?? string.Empty;
                     wmiProcess.Dispose();
                 }
                 else
@@ -515,7 +515,7 @@ public class ProcessHelper
                 if (executablePath != null && executablePath.ToLower().Contains(processPathContains.ToLower()))
                 {
                     processFound = true;
-                    KillProcess(int.Parse(processId));
+                    KillProcess(int.Parse(processId!)); // Justified: processId is set in the preceding if (wmiProcess["ProcessID"] != null) block
                 }
             }
 
@@ -599,9 +599,9 @@ public class ProcessHelper
                 string pathValues = Environment.GetEnvironmentVariable("PATH", EnvironmentVariableTarget.Machine) ?? string.Empty;
 
                 // Is this application available on the system PATH?
-                foreach (var path in pathValues.Split(';'))
+                foreach (string path in pathValues.Split(';'))
                 {
-                    var pathFilename = Path.Combine(path, appFileName);
+                    string pathFilename = Path.Combine(path, appFileName);
 
                     if (File.Exists(pathFilename))
                     {
@@ -635,7 +635,7 @@ public class ProcessHelper
             {
                 if (appFileName.Contains("\\"))
                 {
-                    workingDirectory = Path.GetDirectoryName(appFileName);
+                    workingDirectory = Path.GetDirectoryName(appFileName) ?? processPath;
 
                     if (Directory.Exists(workingDirectory) == false)
                     {
@@ -660,8 +660,8 @@ public class ProcessHelper
 
         Process p = new Process();
         List<string> combinedOutput = new();
-        Task consumeStdOut = null;
-        Task consumeStdErr = null;
+        Task? consumeStdOut = null;
+        Task? consumeStdErr = null;
         CancellationTokenSource cts = new(); // Needed for batch files, see usage below.
 
         try
@@ -697,7 +697,7 @@ public class ProcessHelper
             // Create async task for consuming the STDOUT/STDERR streams.
             async Task ConsumeOutputAsync(StreamReader outputStream)
             {
-                string textLine;
+                string? textLine;
 
                 while (cts.Token.IsCancellationRequested == false &&
                     (textLine = await outputStream.ReadLineAsync()) != null)
@@ -845,7 +845,7 @@ public class ProcessHelper
         {
             if (appFileName.Contains("\\"))
             {
-                workingDirectory = Path.GetDirectoryName(appFileName);
+                workingDirectory = Path.GetDirectoryName(appFileName) ?? processPath;
 
                 if (Directory.Exists(workingDirectory) == false)
                 {

@@ -42,7 +42,7 @@ public class FileSystemHelper
             if (File.Exists(fileOrFolder))
             {
                 FileInfo fInfo = new FileInfo(fileOrFolder);
-                DirectorySecurity fSecurity = fInfo.GetAccessControl();
+                FileSecurity fSecurity = fInfo.GetAccessControl();
                 fSecurity.SetAccessRuleProtection(false, true);
                 fSecurity.AddAccessRule(new FileSystemAccessRule(userAccount, requestedRights, controlType));
                 fInfo.SetAccessControl(fSecurity);
@@ -1226,7 +1226,7 @@ public class FileSystemHelper
             if (File.Exists(fileName))
             {
                 FileInfo fileInfo = new FileInfo(fileName);
-                DirectorySecurity ac = fileInfo.GetAccessControl();
+                FileSecurity ac = fileInfo.GetAccessControl();
                 FileStream fileStream = fileInfo.Open(FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite);
                 fileStream.Dispose();
             }

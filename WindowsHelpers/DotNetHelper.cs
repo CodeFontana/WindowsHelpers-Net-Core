@@ -162,7 +162,7 @@ public static class DotNetHelper
 
     public static string LoremIpsum(int minWords = 6, int maxWords = 20, int minSentences = 1, int maxSentences = 6)
     {
-        var words = new[] {"bacon", "ipsum", "dolor", "amet", "bresola", "tempor", "strip",
+        string[] words = new[] {"bacon", "ipsum", "dolor", "amet", "bresola", "tempor", "strip",
                 "leberkas", "excepteur", "irure", "hamburger", "alcatra", "veniam", "turkey",
                 "est", "exercitation", "in", "brian", "sirloin", "chunk", "tri-tip", "salami",
                 "steak", "anim", "chislic", "commodo", "sint", "pastrami", "lorem", "chuck",
@@ -267,7 +267,7 @@ public static class DotNetHelper
         bool isFirst = true;
 
         // Iterate list elements (each string array)
-        foreach (var line in inputList)
+        foreach (string[] line in inputList)
         {
             if (isFirst == false)
             {
@@ -278,7 +278,7 @@ public static class DotNetHelper
 
             for (int i = 0; i < line.Length; i++)
             {
-                var value = line[i];
+                string value = line[i];
 
                 // Append the value with padding of the maximum length of any value for this element
                 outputString.Append(value.PadLeft(maxValues[i]));

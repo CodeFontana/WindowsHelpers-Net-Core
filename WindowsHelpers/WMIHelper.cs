@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Management;
@@ -191,13 +191,13 @@ public class WmiHelper
 
                 foreach (PropertyData p in props)
                 {
-                    if (p.Value == null || string.IsNullOrWhiteSpace(p.Value!.ToString()))
+                    if (p.Value == null || string.IsNullOrWhiteSpace((p.Value as string) ?? string.Empty))
                     {
                         row.Add("");
                     }
                     else
                     {
-                        row.Add(p.Value!.ToString());
+                        row.Add((p.Value as string) ?? string.Empty);
                     }
                 }
 
@@ -266,13 +266,13 @@ public class WmiHelper
 
                 foreach (PropertyData p in props)
                 {
-                    if (p.Value == null || string.IsNullOrWhiteSpace(p.Value!.ToString()))
+                    if (p.Value == null || string.IsNullOrWhiteSpace((p.Value as string) ?? string.Empty))
                     {
                         row.Add("");
                     }
                     else
                     {
-                        row.Add(p.Value!.ToString());
+                        row.Add((p.Value as string) ?? string.Empty);
                     }
                 }
 

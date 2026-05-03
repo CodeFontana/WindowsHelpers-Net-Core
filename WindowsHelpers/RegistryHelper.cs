@@ -34,11 +34,14 @@ public class RegistryHelper
         {
             try
             {
-                using (RegistryKey regSubKey = sourceKey.OpenSubKey(strSubKey, false))
+                using (RegistryKey? regSubKey = sourceKey.OpenSubKey(strSubKey, false))
                 {
-                    RegistryKey dstSubKey = destKey.CreateSubKey(strSubKey);
-                    CopyKey(regSubKey, dstSubKey);
-                    dstSubKey.Dispose();
+                    if (regSubKey != null)
+                    {
+                        RegistryKey dstSubKey = destKey.CreateSubKey(strSubKey);
+                        CopyKey(regSubKey, dstSubKey);
+                        dstSubKey.Dispose();
+                    }
                 }
             }
             catch (Exception e)
@@ -79,7 +82,7 @@ public class RegistryHelper
                 baseKey64 = RegistryKey.OpenBaseKey(regHive, RegistryView.Registry64);
             }
 
-            RegistryKey regTest = baseKey32.OpenSubKey(regKey, false);
+            RegistryKey? regTest = baseKey32.OpenSubKey(regKey, false);
 
             // Does the specified key exist?
             if (regTest == null)
@@ -95,16 +98,16 @@ public class RegistryHelper
                 }
             }
 
-            foreach (string subKey in regTest.GetSubKeyNames())
+            foreach (string subKey in regTest!.GetSubKeyNames()) // Justified: regTest is guaranteed non-null after the preceding null checks
             {
-                RegistryKey regSubKey = regTest.OpenSubKey(subKey, false);
+                RegistryKey? regSubKey = regTest.OpenSubKey(subKey, false);
 
                 if (regSubKey == null)
                 {
                     continue;
                 }
 
-                string subKeyValue = (string)regSubKey.GetValue(valueName);
+                string subKeyValue = (string?)regSubKey!.GetValue(valueName) ?? string.Empty; // Justified: regSubKey is non-null after the if (regSubKey == null) continue; guard above
 
                 // Was a matching value found, and if so, does its data match the specified input?
                 if (subKeyValue != null && subKeyValue.ToString().ToLower().Equals(valueData.ToLower()))
@@ -113,7 +116,7 @@ public class RegistryHelper
 
                     return DeleteSubKeyTree(regHive, regKey + "\\" + subKey);
                 }
-                else if (subKeyValue == null && regSubKey.SubKeyCount > 0)
+                else if (subKeyValue == null && regSubKey!.SubKeyCount > 0) // Justified: regSubKey is non-null after the if (regSubKey == null) continue; guard above
                 {
                     // Does the subkey of the subkey contain a matching value-data entry?
                     if (DeleteSubKeysWithValue(regHive, regKey + "\\" + subKey, valueName, valueData))
@@ -125,12 +128,12 @@ public class RegistryHelper
                 }
                 else
                 {
-                    regSubKey.Dispose();
+                    regSubKey!.Dispose(); // Justified: regSubKey is non-null after the if (regSubKey == null) continue; guard above
                     continue;
                 }
             }
 
-            regTest.Dispose();
+            regTest!.Dispose(); // Justified: regTest is non-null after the preceding null checks and early return
             return false;
         }
         catch (Exception)
@@ -152,7 +155,7 @@ public class RegistryHelper
                 baseKey64 = RegistryKey.OpenBaseKey(regHive, RegistryView.Registry64);
             }
 
-            RegistryKey regTest = baseKey32.OpenSubKey(regKey, false);
+            RegistryKey? regTest = baseKey32.OpenSubKey(regKey, false);
 
             if (regTest != null)
             {
@@ -204,7 +207,7 @@ public class RegistryHelper
 
                 if (regTest != null && regTest.GetValue(regValue) != null)
                 {
-                    object regData = regTest.GetValue(regValue);
+                    object? regData = regTest.GetValue(regValue);
                     _logger.LogInformation($"Delete value: {regHive}\\{regKey}\\{regValue} [{regData}]");
                     regTest.DeleteValue(regValue);
                     valueDeleted = true;
@@ -220,7 +223,7 @@ public class RegistryHelper
 
             if (regTest != null && regTest.GetValue(regValue) != null)
             {
-                object regData = regTest.GetValue(regValue);
+                object? regData = regTest.GetValue(regValue);
                 _logger.LogInformation($"Delete value: {regHive.ToString()}\\{regKey}\\{regValue} [{regData}]");
                 regTest.DeleteValue(regValue);
                 valueDeleted = true;
@@ -236,7 +239,7 @@ public class RegistryHelper
         }
     }
 
-    public RegistryKey GetParentKey(RegistryKey childKey, bool writable)
+    public RegistryKey? GetParentKey(RegistryKey childKey, bool writable)
     {
         string[] regPath = childKey.Name.Split('\\');
         string childHive = regPath.First();
@@ -261,7 +264,7 @@ public class RegistryHelper
 
         RegistryHive parentHive = GetHive();
 
-        using (var baseKey = RegistryKey.OpenBaseKey(parentHive, childKey.View))
+        using (RegistryKey baseKey = RegistryKey.OpenBaseKey(parentHive, childKey.View))
         {
             return baseKey.OpenSubKey(parentKeyName, writable);
         }
@@ -300,7 +303,7 @@ public class RegistryHelper
             }
             else
             {
-                RegistryKey TestKey = baseKey32.OpenSubKey(regKey, false);
+                RegistryKey? TestKey = baseKey32.OpenSubKey(regKey, false);
 
                 if (TestKey != null)
                 {
@@ -340,14 +343,16 @@ public class RegistryHelper
         {
             try
             {
-                using (RegistryKey regSubKey = sourceKey.OpenSubKey(strSubKey, false))
+                using (RegistryKey? regSubKey = sourceKey.OpenSubKey(strSubKey, false))
                 {
+                    if (regSubKey == null) continue;
                     RegistryKey dstSubKey = destKey.CreateSubKey(strSubKey);
                     MoveKey(regSubKey, dstSubKey);
                     destKey.Dispose();
 
-                    using (RegistryKey parentKey = GetParentKey(regSubKey, true))
+                    using (RegistryKey? parentKey = GetParentKey(regSubKey, true))
                     {
+                        if (parentKey == null) continue;
                         string strChildKey = regSubKey.Name.Split('\\').Last();
                         parentKey.DeleteSubKeyTree(strChildKey);
                     }

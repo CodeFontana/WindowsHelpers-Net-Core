@@ -399,8 +399,7 @@ public class WindowsHelper
 
                 for (int i = 1; i < sessionCount; i++)
                 {
-                    NativeMethods.WTS_SESSION_INFO si = (NativeMethods.WTS_SESSION_INFO)Marshal.PtrToStructure(hCurSession,
-                                                                                                               typeof(NativeMethods.WTS_SESSION_INFO));
+                    NativeMethods.WTS_SESSION_INFO si = Marshal.PtrToStructure<NativeMethods.WTS_SESSION_INFO>(hCurSession);
 
                     if (NativeMethods.WTSQueryUserToken(si.SessionID, out IntPtr hUserToken) == false)
                     {
@@ -519,8 +518,7 @@ public class WindowsHelper
 
                 for (int i = 0; i < sessionCount; i++)
                 {
-                    NativeMethods.WTS_SESSION_INFO si = (NativeMethods.WTS_SESSION_INFO)Marshal.PtrToStructure(hCurSession,
-                                                                                                               typeof(NativeMethods.WTS_SESSION_INFO));
+                    NativeMethods.WTS_SESSION_INFO si = Marshal.PtrToStructure<NativeMethods.WTS_SESSION_INFO>(hCurSession);
                     _logger.LogInformation($"Found session: {si.SessionID}");
 
                     if (NativeMethods.WTSQueryUserToken(si.SessionID, out IntPtr hUserToken) == false)
@@ -1000,7 +998,7 @@ public class WindowsHelper
 
                     object? displayNameValue = productKey.GetValue("DisplayName");
 
-                    if (displayNameValue is not null && displayNameValue.ToString().ToLower().Equals(displayName.ToLower()))
+                    if (displayNameValue is not null && (displayNameValue.ToString() ?? string.Empty).ToLower().Equals(displayName.ToLower()))
                     {
                         foundApp = true;
                         break;
@@ -1505,14 +1503,12 @@ public class WindowsHelper
                     if (Environment.Is64BitOperatingSystem)
                     {
                         newOffset64 = groupInfoPtr.ToInt64() + LOCALGROUP_INFO_1_SIZE * i;
-                        groupInfo = (NativeMethods.LOCALGROUP_INFO_1)Marshal.PtrToStructure(new IntPtr(newOffset64),
-                                                                                            typeof(NativeMethods.LOCALGROUP_INFO_1));
+                        groupInfo = Marshal.PtrToStructure<NativeMethods.LOCALGROUP_INFO_1>(new IntPtr(newOffset64));
                     }
                     else
                     {
                         newOffset = groupInfoPtr.ToInt32() + LOCALGROUP_INFO_1_SIZE * i;
-                        groupInfo = (NativeMethods.LOCALGROUP_INFO_1)Marshal.PtrToStructure(new IntPtr(newOffset),
-                                                                                            typeof(NativeMethods.LOCALGROUP_INFO_1));
+                        groupInfo = Marshal.PtrToStructure<NativeMethods.LOCALGROUP_INFO_1>(new IntPtr(newOffset));
                     }
 
                     string currentGroupName = Marshal.PtrToStringAuto(groupInfo.lpszGroupName)!; // Justified: NetLocalGroupEnum guarantees non-null lpszGroupName for enumerated groups
@@ -1540,14 +1536,12 @@ public class WindowsHelper
                             if (Environment.Is64BitOperatingSystem)
                             {
                                 newOffset1_64 = userInfoPtr.ToInt64() + LOCALGROUP_MEMBERS_INFO_1_SIZE * j;
-                                memberInfo = (NativeMethods.LOCALGROUP_MEMBERS_INFO_1)Marshal.PtrToStructure(new IntPtr(newOffset1_64),
-                                                                                                              typeof(NativeMethods.LOCALGROUP_MEMBERS_INFO_1));
+                                memberInfo = Marshal.PtrToStructure<NativeMethods.LOCALGROUP_MEMBERS_INFO_1>(new IntPtr(newOffset1_64));
                             }
                             else
                             {
                                 newOffset1 = userInfoPtr.ToInt32() + LOCALGROUP_MEMBERS_INFO_1_SIZE * j;
-                                memberInfo = (NativeMethods.LOCALGROUP_MEMBERS_INFO_1)Marshal.PtrToStructure(new IntPtr(newOffset1),
-                                                                                                              typeof(NativeMethods.LOCALGROUP_MEMBERS_INFO_1));
+                                memberInfo = Marshal.PtrToStructure<NativeMethods.LOCALGROUP_MEMBERS_INFO_1>(new IntPtr(newOffset1));
                             }
 
                             string currentUserName = Marshal.PtrToStringAuto(memberInfo.lgrmi1_name) ?? string.Empty;
@@ -1613,14 +1607,12 @@ public class WindowsHelper
                     if (Environment.Is64BitOperatingSystem)
                     {
                         newOffset64 = groupInfoPtr.ToInt64() + LOCALGROUP_INFO_1_SIZE * i;
-                        groupInfo = (NativeMethods.LOCALGROUP_INFO_1)Marshal.PtrToStructure(new IntPtr(newOffset64),
-                                                                                            typeof(NativeMethods.LOCALGROUP_INFO_1));
+                        groupInfo = Marshal.PtrToStructure<NativeMethods.LOCALGROUP_INFO_1>(new IntPtr(newOffset64));
                     }
                     else
                     {
                         newOffset = groupInfoPtr.ToInt32() + LOCALGROUP_INFO_1_SIZE * i;
-                        groupInfo = (NativeMethods.LOCALGROUP_INFO_1)Marshal.PtrToStructure(new IntPtr(newOffset),
-                                                                                            typeof(NativeMethods.LOCALGROUP_INFO_1));
+                        groupInfo = Marshal.PtrToStructure<NativeMethods.LOCALGROUP_INFO_1>(new IntPtr(newOffset));
                     }
 
                     string currentGroupName = Marshal.PtrToStringAuto(groupInfo.lpszGroupName)!; // Justified: NetLocalGroupEnum guarantees non-null lpszGroupName for enumerated groups
@@ -1648,14 +1640,12 @@ public class WindowsHelper
                             if (Environment.Is64BitOperatingSystem)
                             {
                                 newOffset1_64 = userInfoPtr.ToInt64() + LOCALGROUP_MEMBERS_INFO_1_SIZE * j;
-                                memberInfo = (NativeMethods.LOCALGROUP_MEMBERS_INFO_1)Marshal.PtrToStructure(new IntPtr(newOffset1_64),
-                                                                                                              typeof(NativeMethods.LOCALGROUP_MEMBERS_INFO_1));
+                                memberInfo = Marshal.PtrToStructure<NativeMethods.LOCALGROUP_MEMBERS_INFO_1>(new IntPtr(newOffset1_64));
                             }
                             else
                             {
                                 newOffset1 = userInfoPtr.ToInt32() + LOCALGROUP_MEMBERS_INFO_1_SIZE * j;
-                                memberInfo = (NativeMethods.LOCALGROUP_MEMBERS_INFO_1)Marshal.PtrToStructure(new IntPtr(newOffset1),
-                                                                                                              typeof(NativeMethods.LOCALGROUP_MEMBERS_INFO_1));
+                                memberInfo = Marshal.PtrToStructure<NativeMethods.LOCALGROUP_MEMBERS_INFO_1>(new IntPtr(newOffset1));
                             }
 
                             string currentUserName = Marshal.PtrToStringAuto(memberInfo.lgrmi1_name) ?? string.Empty;
@@ -1694,10 +1684,10 @@ public class WindowsHelper
     {
         try
         {
-            RegistryKey pathKey = Registry.LocalMachine.OpenSubKey(@"SYSTEM\CurrentControlSet\Control\Session Manager\Environment\", true);
+            RegistryKey? pathKey = Registry.LocalMachine.OpenSubKey(@"SYSTEM\CurrentControlSet\Control\Session Manager\Environment\", true);
             string cleanPath = "";
 
-            foreach (string strPath in (pathKey.GetValue("PATH",
+            foreach (string strPath in (pathKey?.GetValue("PATH",
                                                         null,
                                                         RegistryValueOptions.DoNotExpandEnvironmentNames)?.ToString() ?? string.Empty).Split(';'))
             {

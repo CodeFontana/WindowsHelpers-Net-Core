@@ -120,18 +120,18 @@ public static class NativeMethods
 
     [DllImport("advapi32.dll", SetLastError = true, CharSet = CharSet.Auto)]
     public static extern IntPtr CreateService(IntPtr hSCManager,
-                                              string lpServiceName,
-                                              string lpDisplayName,
-                                              uint dwDesiredAccess,
-                                              uint dwServiceType,
-                                              uint dwStartType,
-                                              uint dwErrorControl,
-                                              string lpBinaryPathName,
-                                              string lpLoadOrderGroup,
-                                              IntPtr lpdwTagId,
-                                              string lpDependencies,
-                                              string lpServiceStartName,
-                                              string lpPassword);
+                                               string lpServiceName,
+                                               string lpDisplayName,
+                                               uint dwDesiredAccess,
+                                               uint dwServiceType,
+                                               uint dwStartType,
+                                               uint dwErrorControl,
+                                               string lpBinaryPathName,
+                                               string? lpLoadOrderGroup,
+                                               IntPtr lpdwTagId,
+                                               string? lpDependencies,
+                                               string? lpServiceStartName,
+                                               string? lpPassword);
 
     [DllImport("advapi32.dll", SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
