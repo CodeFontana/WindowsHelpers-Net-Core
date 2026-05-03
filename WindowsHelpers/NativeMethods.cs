@@ -569,7 +569,7 @@ public static class NativeMethods
     public struct TOKEN_PRIVILEGES
     {
         public int PrivilegeCount;
-        [MarshalAs(UnmanagedType.ByValArray)] public LUID_AND_ATTRIBUTES[] Privileges;
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 1)] public LUID_AND_ATTRIBUTES[] Privileges;
     }
 
     [StructLayout(LayoutKind.Sequential)]

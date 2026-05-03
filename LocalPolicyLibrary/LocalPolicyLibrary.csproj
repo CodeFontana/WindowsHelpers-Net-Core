@@ -1,11 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0-windows7.0</TargetFramework>
+    <TargetFrameworks>net8.0-windows7.0;net9.0-windows7.0;net10.0-windows7.0</TargetFrameworks>
     <Authors>Brian Fontana</Authors>
     <Company>CodeFoxtrot</Company>
     <Product />
-    <Nullable>disable</Nullable>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>

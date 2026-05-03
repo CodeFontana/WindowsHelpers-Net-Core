@@ -1,23 +1,23 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0-windows7.0</TargetFramework>
+    <TargetFrameworks>net8.0-windows7.0;net9.0-windows7.0;net10.0-windows7.0</TargetFrameworks>
     <Authors>CodeFoxtrot</Authors>
     <Company>Codefoxtrot</Company>
     <Product>WindowsHelpers</Product>
-    <AssemblyVersion>1.7.0.0</AssemblyVersion>
-    <FileVersion>1.7.0.0</FileVersion>
-    <Nullable>disable</Nullable>
+    <AssemblyVersion>1.8.0.0</AssemblyVersion>
+    <FileVersion>1.8.0.0</FileVersion>
+    <Nullable>enable</Nullable>
     <PackageId>CodeFoxtrot.WindowsHelpers</PackageId>
     <Description>Useful set of helper methods for C# in the Microsoft Windows environment.</Description>
-    <Copyright>2025</Copyright>
+    <Copyright>2026</Copyright>
     <PackageProjectUrl>https://github.com/CodeFontana/WindowsHelpers-Net-Core</PackageProjectUrl>
     <RepositoryUrl>https://github.com/CodeFontana/WindowsHelpers-Net-Core</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <PackageTags>CodeFoxtrot WindowsHelpers Native PInvoke</PackageTags>
-    <Version>1.0.6</Version>
+    <Version>1.0.7</Version>
 	<UseWindowsForms>true</UseWindowsForms>
   </PropertyGroup>
 
@@ -30,14 +30,34 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CodeFoxtrot.FileLogger" Version="1.0.9" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.4" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.4" />
+    <!-- Common packages (compatible across all TFMs) -->
+    <PackageReference Include="CodeFoxtrot.FileLogger" Version="1.1.0" />
     <PackageReference Include="Microsoft.Win32.Registry" Version="5.0.0" />
-    <PackageReference Include="System.DirectoryServices.AccountManagement" Version="9.0.4" />
     <PackageReference Include="System.IO.FileSystem.AccessControl" Version="5.0.0" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net8.0-windows7.0'">
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.2" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.3" />
+    <PackageReference Include="System.DirectoryServices.AccountManagement" Version="9.0.4" />
     <PackageReference Include="System.Management" Version="9.0.4" />
-    <PackageReference Include="System.ServiceProcess.ServiceController" Version="9.0.4" />
+    <PackageReference Include="System.ServiceProcess.ServiceController" Version="10.0.7" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net9.0-windows7.0'">
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.15" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.15" />
+    <PackageReference Include="System.DirectoryServices.AccountManagement" Version="9.0.4" />
+    <PackageReference Include="System.Management" Version="9.0.4" />
+    <PackageReference Include="System.ServiceProcess.ServiceController" Version="10.0.7" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net10.0-windows7.0'">
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.7" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.7" />
+    <PackageReference Include="System.DirectoryServices.AccountManagement" Version="10.0.7" />
+    <PackageReference Include="System.Management" Version="10.0.7" />
+    <PackageReference Include="System.ServiceProcess.ServiceController" Version="10.0.7" />
   </ItemGroup>
 
 </Project>
